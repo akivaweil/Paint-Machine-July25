@@ -10,6 +10,8 @@
 #include "Config/Pins_Definitions.h"
 #include <FastAccelStepper.h>
 #include <Bounce2.h>
+#include "ServoControl.h"
+#include "ServoAccelerationController.h"
 
 //* ************************************************************************
 //* ************************ HOME STATE VARIABLES ************************
@@ -18,8 +20,11 @@ static bool homeStateInitialized = false;
 static bool homeComplete = false;
 static bool homeFound = false;
 static bool movingAwayFromHome = false;
+static bool testMotionComplete = false;
 static FastAccelStepper* homeZMotor = NULL;
 static Bounce2::Button* homeZHomeSwitch = NULL;
+static ServoControl* homeServo = NULL;
+static ServoAccelerationController* homeServoController = NULL;
 
 //* ************************************************************************
 //* ************************ HOME STATE FUNCTIONS ************************
@@ -38,6 +43,7 @@ void executeHomeState() {
         homeComplete = false;
         homeFound = false;
         movingAwayFromHome = false;
+        testMotionComplete = false;
         
         //! ************************************************************************
         //! STEP 1: SET HOMING SPEED
@@ -60,9 +66,20 @@ void executeHomeState() {
     //! STEP 3: CHECK IF HOMING IS COMPLETE
     //! ************************************************************************
     if (homeComplete) {
-        Serial.println("Homing sequence complete - transitioning to IDLE");
-        setState(IDLE_STATE);
-        return;
+        //! ************************************************************************
+        //! STEP 8: PERFORM TEST MOTION SEQUENCE
+        //! ************************************************************************
+        if (!testMotionComplete && homeServo && homeServoController) {
+            performTestMotionSequence();
+            testMotionComplete = true;
+        }
+        
+        // Wait for test motion to complete before transitioning
+        if (testMotionComplete) {
+            Serial.println("Homing sequence and test motion complete - transitioning to IDLE");
+            setState(IDLE_STATE);
+            return;
+        }
     }
     
     //! ************************************************************************
@@ -126,6 +143,66 @@ void executeHomeState() {
     }
 }
 
+void performTestMotionSequence() {
+    //! ************************************************************************
+    //! PERFORM TEST MOTION SEQUENCE AFTER HOMING
+    //! ************************************************************************
+    Serial.println("=== STARTING TEST MOTION SEQUENCE ===");
+    
+    if (!homeServo || !homeServoController) {
+        Serial.println("ERROR: Servo or servo controller not available for test motion");
+        return;
+    }
+    
+    //! ************************************************************************
+    //! STEP 1: MOVE SERVO TO 70 DEGREES
+    //! ************************************************************************
+    Serial.println("Moving servo to 70 degrees...");
+    homeServo->write(70.0);
+    while (!homeServo->hasReachedTarget()) {
+        delay(10);
+    }
+    Serial.println("Servo reached 70 degrees");
+    
+    //! ************************************************************************
+    //! STEP 2: MOVE FROM 70 TO 130 WITH ACCEL 10
+    //! ************************************************************************
+    Serial.println("Moving servo from 70 to 130 degrees with acceleration 10...");
+    homeServoController->setAccelerationProfile(10.0, 10.0, 30.0);
+    homeServoController->moveTo(130.0);
+    while (homeServoController->isMoving()) {
+        homeServoController->update();
+        delay(10);
+    }
+    Serial.println("Servo reached 130 degrees with accel 10");
+    
+    //! ************************************************************************
+    //! STEP 3: MOVE BACK TO 70 WITH ACCEL 50
+    //! ************************************************************************
+    Serial.println("Moving servo back to 70 degrees with acceleration 50...");
+    homeServoController->setAccelerationProfile(50.0, 50.0, 150.0);
+    homeServoController->moveTo(70.0);
+    while (homeServoController->isMoving()) {
+        homeServoController->update();
+        delay(10);
+    }
+    Serial.println("Servo reached 70 degrees with accel 50");
+    
+    //! ************************************************************************
+    //! STEP 4: MOVE BACK TO 130 WITH ACCEL 70
+    //! ************************************************************************
+    Serial.println("Moving servo back to 130 degrees with acceleration 70...");
+    homeServoController->setAccelerationProfile(70.0, 70.0, 210.0);
+    homeServoController->moveTo(130.0);
+    while (homeServoController->isMoving()) {
+        homeServoController->update();
+        delay(10);
+    }
+    Serial.println("Servo reached 130 degrees with accel 70");
+    
+    Serial.println("=== TEST MOTION SEQUENCE COMPLETE ===");
+}
+
 void resetHomeState() {
     //! ************************************************************************
     //! RESET HOME STATE FLAGS
@@ -134,6 +211,7 @@ void resetHomeState() {
     homeComplete = false;
     homeFound = false;
     movingAwayFromHome = false;
+    testMotionComplete = false;
 }
 
 void setHomeReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch) {
@@ -145,4 +223,15 @@ void setHomeReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch) {
     
     Serial.println("Home motor/switch references set - Motor: " + String(motor ? "VALID" : "NULL") + 
                   ", Switch: " + String(homeSwitch ? "VALID" : "NULL"));
+}
+
+void setHomeServoReferences(ServoControl* servo, ServoAccelerationController* controller) {
+    //! ************************************************************************
+    //! SET REFERENCES TO SERVO AND SERVO CONTROLLER OBJECTS
+    //! ************************************************************************
+    homeServo = servo;
+    homeServoController = controller;
+    
+    Serial.println("Home servo references set - Servo: " + String(servo ? "VALID" : "NULL") + 
+                  ", Controller: " + String(controller ? "VALID" : "NULL"));
 } 

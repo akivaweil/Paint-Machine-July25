@@ -220,6 +220,7 @@ void setupStateMachineReferences() {
   
   // Set references for home state
   setHomeReferences(zMotor, &zHomeSwitch);
+  setHomeServoReferences(&loaderServo, &mainServoController);
   
   // Set references for retrieve state
   setRetrieveReferences(zMotor);
