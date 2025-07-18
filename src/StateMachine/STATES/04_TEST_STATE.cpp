@@ -33,8 +33,8 @@ static const int SERVO_POSITION_1_DEGREES = 70; // First servo position: 70 degr
 static const int SERVO_POSITION_2_DEGREES = 130; // Second servo position: 130 degrees
 
 // Servo test settings
-static const int SERVO_TEST_ACCEL = 500;    // Servo acceleration for test
-static const int SERVO_TEST_MAX_SPEED = 1000; // Servo max speed for test
+static const int SERVO_TEST_ACCEL = 100;    // Servo acceleration for test
+static const int SERVO_TEST_MAX_SPEED = 200; // Servo max speed for test
 
 //* ************************************************************************
 //* ************************ TEST STATE FUNCTIONS ************************
