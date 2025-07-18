@@ -37,6 +37,28 @@ void updateStateMachine() {
     // Check if state has changed
     if (stateChanged) {
         Serial.println("=== STATE CHANGE: " + getStateName(previousState) + " -> " + getStateName(currentState) + " ===");
+        
+        // Reset previous state when transitioning away from it
+        switch (previousState) {
+            case IDLE_STATE:
+                resetIdleState();
+                break;
+            case HOME_STATE:
+                resetHomeState();
+                break;
+            case RETRIEVE_STATE:
+                resetRetrieveState();
+                break;
+            case STORE_STATE:
+                resetStoreState();
+                break;
+            case TEST_STATE:
+                resetTestState();
+                break;
+            default:
+                break;
+        }
+        
         stateChanged = false;
     }
     

@@ -207,21 +207,21 @@ void executeTestState() {
         case 4: // Removed - no longer needed
             break;
             
-        case 5: // Return to home position
+        case 5: // Return to home offset position
             if (!motorMoving) {
                 if (testZMotor) {
                     testZMotor->setSpeedInHz(Z_MAX_SPEED);
                     testZMotor->setAcceleration(Z_ACCELERATION);
-                    testZMotor->moveTo(0);
+                    testZMotor->moveTo(Z_HOME_OFFSET_STEPS);
                     motorMoving = true;
-                    Serial.println("Motor returning to home position");
+                    Serial.println("Motor returning to home offset position: " + String(Z_HOME_OFFSET_STEPS) + " steps (" + String(Z_HOME_OFFSET_INCHES) + " inches)");
                 }
             }
             
-            // Check if motor has returned to home
+            // Check if motor has returned to home offset position
             if (testZMotor && !testZMotor->isRunning()) {
-                if (testZMotor->getCurrentPosition() == 0) {
-                    Serial.println("Test sequence complete - returned to home");
+                if (testZMotor->getCurrentPosition() == Z_HOME_OFFSET_STEPS) {
+                    Serial.println("Test sequence complete - returned to home offset position");
                     testComplete = true;
                 }
             }
