@@ -196,9 +196,9 @@ void initializeServo() {
   
   // Configure servo acceleration controller with conservative default settings
   mainServoController.setAccelerationProfile(
-    0.001,  // Base acceleration rate (degrees/ms^2)
-    0.001,  // Deceleration rate (degrees/ms^2)
-    0.05    // Max velocity (degrees/ms)
+    10.0,   // Base acceleration rate (degrees/second^2)
+    10.0,   // Deceleration rate (degrees/second^2)
+    30.0    // Max velocity (degrees/second)
   );
   
   Serial.println("Loader servo and acceleration controller initialized");
@@ -480,14 +480,14 @@ void performServoAccelerationSequence() {
   // Perform 5 movements with increasing acceleration
   for (int movement = 0; movement < 5; movement++) {
     // Calculate acceleration for this movement (increasing with each movement)
-    float baseAccel = 0.01; // Base acceleration rate (10x faster)
+    float baseAccel = 5.0; // Base acceleration rate (degrees/second^2)
     float currentAccel = baseAccel * (movement + 1); // Increase acceleration each time
     
     // Set acceleration profile for this movement
     mainServoController.setAccelerationProfile(
       currentAccel,  // Acceleration rate
       currentAccel,  // Deceleration rate (same as acceleration)
-      currentAccel * 1000  // Max velocity (calculated from acceleration)
+      currentAccel * 3  // Max velocity (calculated from acceleration)
     );
     
     // Calculate target angle (alternate between +30 and -30 degrees from center)

@@ -111,14 +111,14 @@ void executeHomingState() {
                 Serial.println("Starting servo acceleration sequence...");
                 
                 // Start the first movement immediately
-                float baseAccel = 0.01; // Base acceleration rate (10x faster)
+                float baseAccel = 5.0; // Base acceleration rate (degrees/second^2)
                 float currentAccel = baseAccel * (currentServoMovement + 1); // First movement acceleration
                 
                 // Set acceleration profile for first movement
                 servoController->setAccelerationProfile(
                     currentAccel,  // Acceleration rate
                     currentAccel,  // Deceleration rate (same as acceleration)
-                    currentAccel * 1000  // Max velocity (calculated from acceleration)
+                    currentAccel * 3  // Max velocity (calculated from acceleration)
                 );
                 
                 // Start first movement to 105 degrees
@@ -153,14 +153,14 @@ void executeHomingState() {
             
             if (currentServoMovement < TOTAL_SERVO_MOVEMENTS) {
                 // Calculate acceleration for this movement (increasing with each movement)
-                float baseAccel = 0.01; // Base acceleration rate (10x faster)
+                float baseAccel = 5.0; // Base acceleration rate (degrees/second^2)
                 float currentAccel = baseAccel * (currentServoMovement + 1); // Increase acceleration each time
                 
                 // Set acceleration profile for this movement
                 servoController->setAccelerationProfile(
                     currentAccel,  // Acceleration rate
                     currentAccel,  // Deceleration rate (same as acceleration)
-                    currentAccel * 1000  // Max velocity (calculated from acceleration)
+                    currentAccel * 3  // Max velocity (calculated from acceleration)
                 );
                 
                 // Calculate target angle (alternate between +15 and -15 degrees from center)

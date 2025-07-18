@@ -11,9 +11,9 @@ ServoAccelerationController::ServoAccelerationController(ServoControl* servoPtr)
     servo = servoPtr;
     
     // Default acceleration profile (conservative values)
-    accelerationRate = 0.001; // 1 degree per second^2
-    decelerationRate = 0.001; // 1 degree per second^2
-    maxVelocity = 0.05; // 50 degrees per second
+    accelerationRate = 10.0; // 10 degrees per second^2
+    decelerationRate = 10.0; // 10 degrees per second^2
+    maxVelocity = 30.0; // 30 degrees per second
     
     // Initialize motion state
     currentAngle = 0.0;
@@ -129,6 +129,7 @@ void ServoAccelerationController::updateMotionState() {
     float distanceFromStart = abs(currentAngle - startAngle);
     
     // Calculate stopping distance with current velocity
+    // Note: decelerationRate is in degrees/second^2, so this calculation is correct
     float stoppingDistance = (currentVelocity * currentVelocity) / (2.0 * decelerationRate);
     
     switch (currentState) {
@@ -164,31 +165,34 @@ float ServoAccelerationController::calculateNextPosition() {
     unsigned long currentTime = millis();
     unsigned long deltaTime = currentTime - lastUpdateTime;
     
+    // Convert deltaTime to seconds for proper acceleration calculations
+    float deltaTimeSeconds = deltaTime / 1000.0;
+    
     float newAngle = currentAngle;
     float newVelocity = currentVelocity;
     
     switch (currentState) {
         case ACCELERATING:
             // Apply acceleration
-            newVelocity = currentVelocity + (accelerationRate * deltaTime);
+            newVelocity = currentVelocity + (accelerationRate * deltaTimeSeconds);
             if (newVelocity > maxVelocity) {
                 newVelocity = maxVelocity;
             }
-            newAngle = currentAngle + (currentVelocity * deltaTime) + (0.5 * accelerationRate * deltaTime * deltaTime);
+            newAngle = currentAngle + (currentVelocity * deltaTimeSeconds) + (0.5 * accelerationRate * deltaTimeSeconds * deltaTimeSeconds);
             break;
             
         case CONSTANT_VELOCITY:
             // Maintain constant velocity
-            newAngle = currentAngle + (maxVelocity * deltaTime);
+            newAngle = currentAngle + (maxVelocity * deltaTimeSeconds);
             break;
             
         case DECELERATING:
             // Apply deceleration
-            newVelocity = currentVelocity - (decelerationRate * deltaTime);
+            newVelocity = currentVelocity - (decelerationRate * deltaTimeSeconds);
             if (newVelocity < 0) {
                 newVelocity = 0;
             }
-            newAngle = currentAngle + (currentVelocity * deltaTime) - (0.5 * decelerationRate * deltaTime * deltaTime);
+            newAngle = currentAngle + (currentVelocity * deltaTimeSeconds) - (0.5 * decelerationRate * deltaTimeSeconds * deltaTimeSeconds);
             break;
             
         case IDLE:
