@@ -40,6 +40,13 @@ void executeRetrieveState();
 void executeStoreState();
 void executeTestState();
 
+// State reset functions
+void resetIdleState();
+void resetHomeState();
+void resetRetrieveState();
+void resetStoreState();
+void resetTestState();
+
 // Home state specific functions
 void performTestMotionSequence();
 
