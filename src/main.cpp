@@ -193,18 +193,6 @@ void initializeServo() {
   
   loaderServo.init(LOADER_SERVO_PIN, 7, 50, 14); // Pin, channel, frequency, resolution
   
-  // Test servo immediately after initialization
-  Serial.println("Testing servo immediately after init...");
-  loaderServo.write(90);
-  delay(1000);
-  loaderServo.write(0);
-  delay(1000);
-  loaderServo.write(180);
-  delay(1000);
-  loaderServo.write(90);
-  delay(1000);
-  Serial.println("Initial servo test complete");
-  
   // Configure servo acceleration controller with conservative default settings
   mainServoController.setAccelerationProfile(
     0.001,  // Base acceleration rate (degrees/ms^2)
@@ -458,16 +446,6 @@ void performServoAccelerationSequence() {
   //! PERFORM SERVO ACCELERATION SEQUENCE: 5 movements with increasing acceleration
   //! ************************************************************************
   Serial.println("Starting servo acceleration sequence...");
-  
-  // Test direct servo movement first
-  Serial.println("Testing direct servo movement...");
-  loaderServo.write(0);
-  delay(1000);
-  loaderServo.write(180);
-  delay(1000);
-  loaderServo.write(90);
-  delay(1000);
-  Serial.println("Direct servo test complete");
   
   // Set initial servo position to center (90 degrees)
   mainServoController.setCurrentAngle(90.0);

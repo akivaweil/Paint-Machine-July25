@@ -101,16 +101,6 @@ void executeHomingState() {
             if (servoController && homingServo) {
                 Serial.println("Servo references are valid - starting sequence");
                 
-                // Test direct servo movement first
-                Serial.println("Testing direct servo movement in homing state...");
-                homingServo->write(0);
-                delay(1000);
-                homingServo->write(180);
-                delay(1000);
-                homingServo->write(90);
-                delay(1000);
-                Serial.println("Direct servo test in homing state complete");
-                
                 servoSequenceStarted = true;
                 currentServoMovement = 0;
                 
