@@ -155,7 +155,7 @@ void performTestMotionSequence() {
     }
     
     // Configure servo controller for smooth motion
-    homeServoController->setAccelerationProfile(200, 1500); // Improved settings
+    homeServoController->setAccelerationProfile(375, 2250); // 75% of original values
     homeServoController->setSmoothingFactor(0.15); // 15% smoothing factor
     homeServoController->setUpdateInterval(5000); // 5ms update interval (200Hz)
     

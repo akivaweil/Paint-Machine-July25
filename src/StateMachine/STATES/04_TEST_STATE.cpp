@@ -34,8 +34,8 @@ static const int SERVO_POSITION_1_DEGREES = 70; // First servo position: 70 degr
 static const int SERVO_POSITION_2_DEGREES = 130; // Second servo position: 130 degrees
 
 // Improved servo test settings for smoother motion
-static const int SERVO_TEST_ACCEL = 200;     // Reduced acceleration for smoother motion
-static const int SERVO_TEST_MAX_SPEED = 1500; // Reduced max speed for smoother motion
+static const int SERVO_TEST_ACCEL = 375;     // 75% of original 500 for smoother motion
+static const int SERVO_TEST_MAX_SPEED = 2250; // 75% of original 3000 for smoother motion
 static const float SERVO_SMOOTHING_FACTOR = 0.15; // Smoothing factor (15% per update)
 static const unsigned long SERVO_UPDATE_INTERVAL = 5000; // 5ms update interval (200Hz)
 

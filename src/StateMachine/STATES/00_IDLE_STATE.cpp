@@ -32,7 +32,7 @@ void executeIdleState() {
         
         // Set servo to boot-up position (90 degrees) with improved settings
         if (idleServoController) {
-            idleServoController->setAccelerationProfile(200, 1500); // Improved settings
+            idleServoController->setAccelerationProfile(375, 2250); // 75% of original values
             idleServoController->setSmoothingFactor(0.15); // 15% smoothing factor
             idleServoController->setUpdateInterval(5000); // 5ms update interval (200Hz)
             idleServoController->moveTo(90);
