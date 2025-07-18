@@ -14,9 +14,10 @@ class ServoAccelerationController;
 //* ************************************************************************
 enum StateMachineState {
     IDLE_STATE = 0,        // Waiting for commands
-    HOMING_STATE = 1,      // Homing sequence
-    RETRIEVING_STATE = 2,  // Retrieving operation
-    STORING_STATE = 3      // Storing operation
+    HOME_STATE = 1,        // Homing sequence
+    RETRIEVE_STATE = 2,    // Retrieving operation
+    STORE_STATE = 3,       // Storing operation
+    TEST_STATE = 4         // Test state for manual testing
 };
 
 //* ************************************************************************
@@ -34,13 +35,16 @@ String getStateName(StateMachineState state);
 
 // Individual state execution functions
 void executeIdleState();
-void executeHomingState();
-void executeRetrievingState();
-void executeStoringState();
+void executeHomeState();
+void executeRetrieveState();
+void executeStoreState();
+void executeTestState();
 
 // State reference setup functions
-void setHomingReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch);
-void setRetrievingReferences(FastAccelStepper* motor);
-void setStoringReferences(FastAccelStepper* motor);
+void setHomeReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch);
+void setHomeServoReferences(ServoControl* servo, ServoAccelerationController* controller);
+void setRetrieveReferences(FastAccelStepper* motor);
+void setStoreReferences(FastAccelStepper* motor);
+void setTestReferences(FastAccelStepper* motor);
 
 #endif // STATE_MACHINE_H 

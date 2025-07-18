@@ -80,6 +80,40 @@ void ServoAccelerationController::moveToWithTime(float targetAngle, unsigned lon
     moveTo(targetAngle);
 }
 
+void ServoAccelerationController::moveToWithCurve(float targetAngle, int accelerationCurve) {
+    // Clamp acceleration curve to 0-100 range
+    accelerationCurve = constrain(accelerationCurve, 0, 100);
+    
+    // Calculate distance to target
+    float distance = abs(targetAngle - currentAngle);
+    
+    if (distance == 0) {
+        return; // Already at target
+    }
+    
+    // Convert curve (0-100) to acceleration parameters
+    // 0 = very slow and smooth, 100 = very fast and aggressive
+    float baseAccelRate = 5.0;   // Base acceleration rate (degrees/second^2)
+    float maxAccelRate = 50.0;   // Maximum acceleration rate (degrees/second^2)
+    float baseMaxVel = 15.0;     // Base maximum velocity (degrees/second)
+    float maxMaxVel = 60.0;      // Maximum velocity (degrees/second)
+    
+    // Calculate acceleration rate based on curve
+    float accelRate = baseAccelRate + (accelerationCurve / 100.0f) * (maxAccelRate - baseAccelRate);
+    
+    // Calculate maximum velocity based on curve
+    float maxVel = baseMaxVel + (accelerationCurve / 100.0f) * (maxMaxVel - baseMaxVel);
+    
+    // Deceleration rate is typically the same as acceleration for smooth motion
+    float decelRate = accelRate;
+    
+    // Set the acceleration profile
+    setAccelerationProfile(accelRate, decelRate, maxVel);
+    
+    // Start the move
+    moveTo(targetAngle);
+}
+
 void ServoAccelerationController::stop() {
     currentState = DECELERATING;
     targetAngle = currentAngle; // Stop at current position

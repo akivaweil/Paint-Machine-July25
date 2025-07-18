@@ -45,14 +45,17 @@ void updateStateMachine() {
         case IDLE_STATE:
             executeIdleState();
             break;
-        case HOMING_STATE:
-            executeHomingState();
+        case HOME_STATE:
+            executeHomeState();
             break;
-        case RETRIEVING_STATE:
-            executeRetrievingState();
+        case RETRIEVE_STATE:
+            executeRetrieveState();
             break;
-        case STORING_STATE:
-            executeStoringState();
+        case STORE_STATE:
+            executeStoreState();
+            break;
+        case TEST_STATE:
+            executeTestState();
             break;
         default:
             Serial.println("ERROR: Unknown state encountered");
@@ -91,12 +94,14 @@ String getStateName(StateMachineState state) {
     switch (state) {
         case IDLE_STATE:
             return "IDLE";
-        case HOMING_STATE:
-            return "HOMING";
-        case RETRIEVING_STATE:
-            return "RETRIEVING";
-        case STORING_STATE:
-            return "STORING";
+        case HOME_STATE:
+            return "HOME";
+        case RETRIEVE_STATE:
+            return "RETRIEVE";
+        case STORE_STATE:
+            return "STORE";
+        case TEST_STATE:
+            return "TEST";
         default:
             return "UNKNOWN";
     }

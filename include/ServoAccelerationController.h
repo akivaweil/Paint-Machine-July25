@@ -55,6 +55,7 @@ public:
     // Motion control methods
     void moveTo(float targetAngle);
     void moveToWithTime(float targetAngle, unsigned long moveTimeMs);
+    void moveToWithCurve(float targetAngle, int accelerationCurve); // 0-100 curve value
     void stop();
     void update(); // Call this in main loop
     

@@ -1,8 +1,8 @@
 //* ************************************************************************
-//* ************************ STORING STATE ********************************
+//* ************************ RETRIEVE STATE ******************************
 //* ************************************************************************
-//! STORING state - Performs storing operations
-//! This state handles the storage sequence for the paint machine
+//! RETRIEVE state - Performs retrieving operations
+//! This state handles the retrieval sequence for the paint machine
 
 #include <Arduino.h>
 #include "StateMachine.h"
@@ -11,74 +11,74 @@
 #include <FastAccelStepper.h>
 
 //* ************************************************************************
-//* ************************ STORING STATE VARIABLES **********************
+//* ************************ RETRIEVE STATE VARIABLES ********************
 //* ************************************************************************
-static bool storingStateInitialized = false;
-static bool storingComplete = false;
-static FastAccelStepper* storingZMotor = NULL;
+static bool retrieveStateInitialized = false;
+static bool retrieveComplete = false;
+static FastAccelStepper* retrieveZMotor = NULL;
 
 //* ************************************************************************
-//* ************************ STORING STATE FUNCTIONS **********************
+//* ************************ RETRIEVE STATE FUNCTIONS ********************
 //* ************************************************************************
 
-void executeStoringState() {
+void executeRetrieveState() {
     //! ************************************************************************
-    //! EXECUTE STORING STATE - STORAGE OPERATION
+    //! EXECUTE RETRIEVE STATE - RETRIEVAL OPERATION
     //! ************************************************************************
     
-    // Initialize storing state on first entry
-    if (!storingStateInitialized) {
-        Serial.println("=== ENTERING STORING STATE ===");
-        Serial.println("Starting storage operation...");
-        storingStateInitialized = true;
-        storingComplete = false;
+    // Initialize retrieve state on first entry
+    if (!retrieveStateInitialized) {
+        Serial.println("=== ENTERING RETRIEVE STATE ===");
+        Serial.println("Starting retrieval operation...");
+        retrieveStateInitialized = true;
+        retrieveComplete = false;
         
         //! ************************************************************************
-        //! STEP 1: SET STORING SPEED
+        //! STEP 1: SET RETRIEVING SPEED
         //! ************************************************************************
-        if (storingZMotor) {
-            storingZMotor->setSpeedInHz(Z_MAX_SPEED);
+        if (retrieveZMotor) {
+            retrieveZMotor->setSpeedInHz(Z_MAX_SPEED);
             Serial.println("Z Motor speed set to: " + String(Z_MAX_SPEED) + " Hz");
         }
     }
     
     //! ************************************************************************
-    //! STEP 2: CHECK IF STORING IS COMPLETE
+    //! STEP 2: CHECK IF RETRIEVING IS COMPLETE
     //! ************************************************************************
-    if (storingComplete) {
-        Serial.println("Storage operation complete - transitioning to IDLE");
+    if (retrieveComplete) {
+        Serial.println("Retrieval operation complete - transitioning to IDLE");
         setState(IDLE_STATE);
         return;
     }
     
     //! ************************************************************************
-    //! STEP 3: PERFORM STORING SEQUENCE
+    //! STEP 3: PERFORM RETRIEVING SEQUENCE
     //! ************************************************************************
-    if (storingZMotor) {
+    if (retrieveZMotor) {
         //! ************************************************************************
-        //! STEP 3A: MOVE TO STORAGE POSITION
+        //! STEP 3A: MOVE TO RETRIEVAL POSITION
         //! ************************************************************************
-        if (!storingZMotor->isRunning()) {
-            // Move to storage position (example: 10 inches from home)
-            int storagePosition = 10 * STEPS_PER_INCH; // 10 inches
-            storingZMotor->moveTo(storagePosition);
-            Serial.println("Moving to storage position: " + String(storagePosition) + " steps");
+        if (!retrieveZMotor->isRunning()) {
+            // Move to retrieval position (example: 5 inches from home)
+            int retrievalPosition = 5 * STEPS_PER_INCH; // 5 inches
+            retrieveZMotor->moveTo(retrievalPosition);
+            Serial.println("Moving to retrieval position: " + String(retrievalPosition) + " steps");
         }
         
         //! ************************************************************************
         //! STEP 3B: CHECK IF MOVEMENT COMPLETE
         //! ************************************************************************
-        if (!storingZMotor->isRunning()) {
-            Serial.println("Reached storage position");
+        if (!retrieveZMotor->isRunning()) {
+            Serial.println("Reached retrieval position");
             
             //! ************************************************************************
-            //! STEP 3C: PERFORM STORAGE ACTIONS
+            //! STEP 3C: PERFORM RETRIEVAL ACTIONS
             //! ************************************************************************
-            // Add specific storage logic here
-            // For example: release gripper, servo movements, etc.
+            // Add specific retrieval logic here
+            // For example: activate gripper, servo movements, etc.
             
-            Serial.println("Storage actions completed");
-            storingComplete = true;
+            Serial.println("Retrieval actions completed");
+            retrieveComplete = true;
         }
     } else {
         Serial.println("ERROR: Z motor not available");
@@ -86,17 +86,17 @@ void executeStoringState() {
     }
 }
 
-void resetStoringState() {
+void resetRetrieveState() {
     //! ************************************************************************
-    //! RESET STORING STATE FLAGS
+    //! RESET RETRIEVE STATE FLAGS
     //! ************************************************************************
-    storingStateInitialized = false;
-    storingComplete = false;
+    retrieveStateInitialized = false;
+    retrieveComplete = false;
 }
 
-void setStoringReferences(FastAccelStepper* motor) {
+void setRetrieveReferences(FastAccelStepper* motor) {
     //! ************************************************************************
     //! SET REFERENCES TO MOTOR OBJECTS
     //! ************************************************************************
-    storingZMotor = motor;
+    retrieveZMotor = motor;
 } 

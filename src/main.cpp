@@ -125,8 +125,8 @@ void loop() {
   //! STEP 4: HANDLE START BUTTON PRESS
   //! ************************************************************************
   if (systemInitialized && startButton.pressed() && getCurrentState() == IDLE_STATE) {
-    Serial.println("Start button pressed - beginning homing sequence");
-    setState(HOMING_STATE);
+    Serial.println("Start button pressed - entering TEST state");
+    setState(TEST_STATE);
   }
 
   //! ************************************************************************
@@ -218,14 +218,17 @@ void setupStateMachineReferences() {
   //! ************************************************************************
   Serial.println("Setting up state machine references...");
   
-  // Set references for homing state
-  setHomingReferences(zMotor, &zHomeSwitch);
+  // Set references for home state
+  setHomeReferences(zMotor, &zHomeSwitch);
   
-  // Set references for retrieving state
-  setRetrievingReferences(zMotor);
+  // Set references for retrieve state
+  setRetrieveReferences(zMotor);
   
-  // Set references for storing state
-  setStoringReferences(zMotor);
+  // Set references for store state
+  setStoreReferences(zMotor);
+  
+  // Set references for test state
+  setTestReferences(zMotor);
   
   Serial.println("State machine references configured");
 }
@@ -255,11 +258,11 @@ void performStartupSequence() {
     Serial.println("Performing servo acceleration sequence...");
     performServoAccelerationSequence();
   } else {
-    // Step 3: Start homing state (which now includes moving away from home)
-    setState(HOMING_STATE);
+    // Step 3: Start home state (which now includes moving away from home)
+    setState(HOME_STATE);
     
     // Step 4: Wait for homing to complete
-    while (getCurrentState() == HOMING_STATE) {
+    while (getCurrentState() == HOME_STATE) {
       updateStateMachine();
       updateButtons();
       delay(10);
