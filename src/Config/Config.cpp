@@ -18,7 +18,7 @@ float STEPS_PER_INCH = (STEPS_PER_MM * 25.4);
 //* ************************ Z-AXIS POSITION SETTINGS *********************
 //* ************************************************************************
 // Z-axis position settings (in inches)
-float Z_HOME_OFFSET_INCHES = 10.0;    // Distance to move away from home switch after homing
+float Z_HOME_OFFSET_INCHES = 5.0;    // Distance to move away from home switch after homing
 int Z_HOME_OFFSET_STEPS = (int)(Z_HOME_OFFSET_INCHES * STEPS_PER_INCH);
 
 // Z-axis cycle movement settings
@@ -38,13 +38,12 @@ int SERVO_THIRD_POS = 70;      // Third position in sequence
 //* ************************************************************************
 // Timing settings (in milliseconds)
 int SERVO_MOVE_DELAY = 1000;      // Wait time between servo movements (1 second)
-int HOME_SWITCH_DEBOUNCE = 50;      // Home switch debounce time (5ms)
+int HOME_SWITCH_DEBOUNCE = 0;      // Home switch debounce time (5ms)
 int START_BUTTON_DEBOUNCE = 20;    // Start button debounce time (50ms)
-
 //* ************************************************************************
 //* ************************ Z-AXIS MOTOR SETTINGS ************************
 //* ************************************************************************
 // Z-axis stepper motor settings
 float Z_MAX_SPEED = 5000.0;      // Maximum speed in steps per second
 float Z_ACCELERATION = 5000.0;   // Acceleration in steps per second^2
-float Z_HOMING_SPEED = 1000.0;    // Slow homing speed 
+float Z_HOMING_SPEED = 400.0;    // Slow homing speed 

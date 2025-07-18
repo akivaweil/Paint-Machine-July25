@@ -4,6 +4,14 @@
 #include "Config/Config.h"
 #include "Config/Pins_Definitions.h"
 #include "ServoControl.h"
+#include "OTA_Manager.h"
+#include "StateMachine.h"
+
+//* ************************************************************************
+//* *********************** OTA MANAGER ***********************************
+//* ************************************************************************
+void initOTA();
+void handleOTA();
 
 //* ************************************************************************
 //* *********************** PAINT MACHINE LOADER **************************
@@ -12,10 +20,6 @@
 // Z-axis stepper motor homing and servo sequence control
 // Start button triggers 2-inch down/up cycle
 // OTA functionality integrated for remote updates
-
-// External OTA functions
-extern void setupOTA();
-extern void handleOTA();
 
 //* ************************************************************************
 //* *********************** MOTOR & SERVO OBJECTS *************************
@@ -44,6 +48,7 @@ void initializeServo();
 void initializeButtons();
 void updateButtons();
 void performStartupSequence();
+void setupStateMachineReferences();
 void homeZAxis();
 void moveAwayFromHome();
 void performServoSequence();
@@ -64,7 +69,7 @@ void setup() {
   //! STEP 2: INITIALIZE OTA FUNCTIONALITY
   //! ************************************************************************
   Serial.println("Initializing OTA...");
-  setupOTA();
+  initOTA();
   Serial.println("OTA initialization complete");
 
   //! ************************************************************************
@@ -79,7 +84,13 @@ void setup() {
   Serial.println("Hardware systems initialized");
 
   //! ************************************************************************
-  //! STEP 4: PERFORM STARTUP SEQUENCE
+  //! STEP 4: INITIALIZE STATE MACHINE
+  //! ************************************************************************
+  Serial.println("Initializing state machine...");
+  initStateMachine();
+  
+  //! ************************************************************************
+  //! STEP 5: PERFORM STARTUP SEQUENCE
   //! ************************************************************************
   Serial.println("Starting startup sequence...");
   performStartupSequence();
@@ -94,7 +105,8 @@ void loop() {
   //! ************************************************************************
   //! STEP 1: HANDLE OTA UPDATES
   //! ************************************************************************
-  handleOTA();
+    handleOTA();
+
 
   //! ************************************************************************
   //! STEP 2: UPDATE BUTTON STATES
@@ -102,11 +114,16 @@ void loop() {
   updateButtons();
 
   //! ************************************************************************
-  //! STEP 3: HANDLE START BUTTON PRESS
+  //! STEP 3: UPDATE STATE MACHINE
   //! ************************************************************************
-  if (systemInitialized && startButton.pressed() && !cycleInProgress) {
-    Serial.println("Start button pressed - beginning cycle");
-    performCycle();
+  updateStateMachine();
+
+  //! ************************************************************************
+  //! STEP 4: HANDLE START BUTTON PRESS
+  //! ************************************************************************
+  if (systemInitialized && startButton.pressed() && getCurrentState() == IDLE_STATE) {
+    Serial.println("Start button pressed - beginning homing sequence");
+    setState(HOMING_STATE);
   }
 
   //! ************************************************************************
@@ -130,7 +147,7 @@ void initializeButtons() {
   startButton.interval(START_BUTTON_DEBOUNCE);
   
   // Z home switch: Active HIGH (input pulldown)
-  zHomeSwitch.attach(Z_HOME_SWITCH_PIN, INPUT);
+  zHomeSwitch.attach(Z_HOME_SWITCH_PIN, INPUT_PULLDOWN);
   zHomeSwitch.interval(HOME_SWITCH_DEBOUNCE);
   
   Serial.println("Buttons and switches setup complete");
@@ -167,34 +184,9 @@ void initializeServo() {
   //! ************************************************************************
   Serial.println("Setting up loader servo...");
   
-  loaderServo.init(LOADER_SERVO_PIN, 0, 50, 16); // Pin, channel, frequency, resolution
+  loaderServo.init(LOADER_SERVO_PIN, 0, 50, 14); // Pin, channel, frequency, resolution
   
-  //! ************************************************************************
-  //! TEST SERVO MOVEMENT
-  //! ************************************************************************
-  Serial.println("Testing servo movement...");
-  
-  // Test movement to center position
-  Serial.println("Moving to 90 degrees (center)");
-  loaderServo.write(90);
-  delay(1000);
-  
-  // Test movement to one extreme
-  Serial.println("Moving to 0 degrees");
-  loaderServo.write(0);
-  delay(1000);
-  
-  // Test movement to other extreme
-  Serial.println("Moving to 180 degrees");
-  loaderServo.write(180);
-  delay(1000);
-  
-  // Return to center
-  Serial.println("Returning to 90 degrees");
-  loaderServo.write(90);
-  delay(500);
-  
-  Serial.println("Servo test complete - servo initialized");
+  Serial.println("Loader servo initialized");
 }
 
 void updateButtons() {
@@ -205,19 +197,40 @@ void updateButtons() {
   zHomeSwitch.update();
 }
 
+void setupStateMachineReferences() {
+  //! ************************************************************************
+  //! SET UP REFERENCES FOR STATE MACHINE
+  //! ************************************************************************
+  Serial.println("Setting up state machine references...");
+  
+  // Set references for homing state
+  setHomingReferences(zMotor, &zHomeSwitch);
+  
+  // Set references for retrieving state
+  setRetrievingReferences(zMotor);
+  
+  // Set references for storing state
+  setStoringReferences(zMotor);
+  
+  Serial.println("State machine references configured");
+}
+
 void performStartupSequence() {
   //! ************************************************************************
   //! PERFORM COMPLETE STARTUP SEQUENCE
   //! ************************************************************************
   Serial.println("=== STARTING STARTUP SEQUENCE ===");
   
-  // Step 1: Home the Z-axis
+  // Step 1: Set up state machine references
+  setupStateMachineReferences();
+  
+  // Step 2: Home the Z-axis
   homeZAxis();
   
-  // Step 2: Move 10 inches away from home
+  // Step 3: Move 10 inches away from home
   moveAwayFromHome();
   
-  // Step 3: Perform servo sequence
+  // Step 4: Perform servo sequence
   performServoSequence();
   
   systemInitialized = true;
@@ -254,7 +267,7 @@ void homeZAxis() {
   // Wait until home switch is triggered (active high)
   while (!zHomeSwitch.read()) {
     updateButtons();
-    handleOTA(); // Continue handling OTA during homing
+    // handleOTA(); // Continue handling OTA during homing
     delay(1);
   }
   
@@ -286,7 +299,7 @@ void moveAwayFromHome() {
   
   // Wait for movement to complete
   while (zMotor->isRunning()) {
-    handleOTA(); // Continue handling OTA during movement
+    // handleOTA(); // Continue handling OTA during movement
     delay(1);
   }
   
@@ -298,28 +311,37 @@ void performServoSequence() {
   //! PERFORM SERVO SEQUENCE: 90° -> 45° -> 70°
   //! ************************************************************************
   Serial.println("Starting servo sequence...");
-  
+
   //! ************************************************************************
   //! STEP 1: MOVE TO 90 DEGREES
   //! ************************************************************************
   Serial.println("Moving servo to " + String(SERVO_START_POS) + " degrees");
   loaderServo.write(SERVO_START_POS);
-  delay(SERVO_MOVE_DELAY);
-  
+  while (!loaderServo.hasReachedTarget()) {
+    // handleOTA();
+    delay(10);
+  }
+
   //! ************************************************************************
   //! STEP 2: MOVE TO 45 DEGREES
   //! ************************************************************************
   Serial.println("Moving servo to " + String(SERVO_SECOND_POS) + " degrees");
   loaderServo.write(SERVO_SECOND_POS);
-  delay(SERVO_MOVE_DELAY);
-  
+  while (!loaderServo.hasReachedTarget()) {
+    // handleOTA();
+    delay(10);
+  }
+
   //! ************************************************************************
   //! STEP 3: MOVE TO 70 DEGREES
   //! ************************************************************************
   Serial.println("Moving servo to " + String(SERVO_THIRD_POS) + " degrees");
   loaderServo.write(SERVO_THIRD_POS);
-  delay(SERVO_MOVE_DELAY);
-  
+  while (!loaderServo.hasReachedTarget()) {
+    // handleOTA();
+    delay(10);
+  }
+
   Serial.println("Servo sequence complete");
 }
 
@@ -356,7 +378,7 @@ void performCycle() {
   // Wait for downward movement to complete
   while (zMotor->isRunning()) {
     updateButtons(); // Continue monitoring buttons
-    handleOTA(); // Continue handling OTA during movement
+    // handleOTA(); // Continue handling OTA during movement
     delay(1);
   }
   
@@ -373,7 +395,7 @@ void performCycle() {
   // Wait for upward movement to complete
   while (zMotor->isRunning()) {
     updateButtons(); // Continue monitoring buttons
-    handleOTA(); // Continue handling OTA during movement
+    // handleOTA(); // Continue handling OTA during movement
     delay(1);
   }
   

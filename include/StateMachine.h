@@ -1,0 +1,42 @@
+#ifndef STATE_MACHINE_H
+#define STATE_MACHINE_H
+
+#include <Arduino.h>
+#include <FastAccelStepper.h>
+#include <Bounce2.h>
+
+//* ************************************************************************
+//* ************************ STATE DEFINITIONS ****************************
+//* ************************************************************************
+enum StateMachineState {
+    IDLE_STATE = 0,        // Waiting for commands
+    HOMING_STATE = 1,      // Homing sequence
+    RETRIEVING_STATE = 2,  // Retrieving operation
+    STORING_STATE = 3      // Storing operation
+};
+
+//* ************************************************************************
+//* ************************ STATE MACHINE FUNCTIONS **********************
+//* ************************************************************************
+
+// Main state machine functions
+void initStateMachine();
+void updateStateMachine();
+void setState(StateMachineState newState);
+StateMachineState getCurrentState();
+StateMachineState getPreviousState();
+bool isStateChanged();
+String getStateName(StateMachineState state);
+
+// Individual state execution functions
+void executeIdleState();
+void executeHomingState();
+void executeRetrievingState();
+void executeStoringState();
+
+// State reference setup functions
+void setHomingReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch);
+void setRetrievingReferences(FastAccelStepper* motor);
+void setStoringReferences(FastAccelStepper* motor);
+
+#endif // STATE_MACHINE_H 
