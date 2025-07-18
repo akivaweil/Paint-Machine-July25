@@ -52,6 +52,14 @@ void executeHomingState() {
             homingZMotor->setSpeedInHz(Z_HOMING_SPEED);
             Serial.println("Z Motor homing speed set to: " + String(Z_HOMING_SPEED) + " Hz");
         }
+        
+        //! ************************************************************************
+        //! STEP 2: START MOVING TOWARD HOME
+        //! ************************************************************************
+        if (homingZMotor) {
+            homingZMotor->runBackward();
+            Serial.println("Moving toward home switch...");
+        }
     }
     
     //! ************************************************************************
@@ -67,12 +75,6 @@ void executeHomingState() {
     //! STEP 3: PERFORM HOMING SEQUENCE
     //! ************************************************************************
     if (homingZMotor && homingZHomeSwitch) {
-        // Start moving in negative direction (toward home)
-        if (!homingZMotor->isRunning()) {
-            homingZMotor->runBackward();
-            Serial.println("Moving toward home switch...");
-        }
-        
         // Check if home switch is triggered (active high)
         if (homingZHomeSwitch->read()) {
                     //! ************************************************************************

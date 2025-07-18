@@ -234,14 +234,18 @@ void performStartupSequence() {
   // Step 1: Set up state machine references
   setupStateMachineReferences();
   
-  // Step 2: Home the Z-axis
-  homeZAxis();
+  // Step 2: Start homing state (which includes servo acceleration sequence)
+  setState(HOMING_STATE);
   
-  // Step 3: Move 10 inches away from home
+  // Step 3: Wait for homing to complete
+  while (getCurrentState() == HOMING_STATE) {
+    updateStateMachine();
+    updateButtons();
+    delay(10);
+  }
+  
+  // Step 4: Move 10 inches away from home
   moveAwayFromHome();
-  
-  // Step 4: Perform servo sequence
-  performServoSequence();
   
   systemInitialized = true;
   Serial.println("=== STARTUP SEQUENCE COMPLETE ===");
