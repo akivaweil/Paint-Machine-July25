@@ -4,6 +4,7 @@
 #include "Config/Config.h"
 #include "Config/Pins_Definitions.h"
 #include "ServoControl.h"
+#include "ServoAccelerationController.h"
 #include "OTA_Manager.h"
 #include "StateMachine.h"
 
@@ -27,6 +28,7 @@ void handleOTA();
 FastAccelStepperEngine engine = FastAccelStepperEngine();
 FastAccelStepper *zMotor = NULL;      // Z-axis stepper motor (up/down)
 ServoControl loaderServo;             // Loader servo
+ServoAccelerationController mainServoController(&loaderServo); // Servo acceleration controller
 
 //* ************************************************************************
 //* *********************** BUTTON CONTROL ********************************
@@ -180,13 +182,20 @@ void initializeMotor() {
 
 void initializeServo() {
   //! ************************************************************************
-  //! INITIALIZE LOADER SERVO
+  //! INITIALIZE LOADER SERVO AND ACCELERATION CONTROLLER
   //! ************************************************************************
   Serial.println("Setting up loader servo...");
   
   loaderServo.init(LOADER_SERVO_PIN, 0, 50, 14); // Pin, channel, frequency, resolution
   
-  Serial.println("Loader servo initialized");
+  // Configure servo acceleration controller with conservative default settings
+  mainServoController.setAccelerationProfile(
+    0.001,  // Base acceleration rate (degrees/ms^2)
+    0.001,  // Deceleration rate (degrees/ms^2)
+    0.05    // Max velocity (degrees/ms)
+  );
+  
+  Serial.println("Loader servo and acceleration controller initialized");
 }
 
 void updateButtons() {
@@ -205,6 +214,7 @@ void setupStateMachineReferences() {
   
   // Set references for homing state
   setHomingReferences(zMotor, &zHomeSwitch);
+  setHomingServoReferences(&loaderServo, &mainServoController);
   
   // Set references for retrieving state
   setRetrievingReferences(zMotor);
