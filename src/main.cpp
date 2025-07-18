@@ -171,6 +171,7 @@ void initializeMotor() {
     zMotor->setSpeedInHz(Z_MAX_SPEED);
     zMotor->setAcceleration(Z_ACCELERATION);
     zMotor->setCurrentPosition(0);
+    zMotor->enableOutputs(); // Enable motor outputs
     
     Serial.println("Z-axis motor configured successfully");
     Serial.println("Z Motor speed: " + String(Z_MAX_SPEED) + " Hz");
@@ -296,12 +297,21 @@ void homeZAxis() {
   
   // Start moving in negative direction (toward home)
   zMotor->runBackward();
+  Serial.println("Motor started moving backward");
   
   // Wait until home switch is triggered (active high)
-  while (!zHomeSwitch.read()) {
+  int homingTimeout = 0;
+  while (!zHomeSwitch.read() && homingTimeout < 30000) { // 30 second timeout
     updateButtons();
     // handleOTA(); // Continue handling OTA during homing
     delay(1);
+    homingTimeout++;
+  }
+  
+  if (homingTimeout >= 30000) {
+    Serial.println("ERROR: Homing timeout - home switch not triggered");
+    zMotor->forceStop();
+    return;
   }
   
   //! ************************************************************************
@@ -315,27 +325,42 @@ void homeZAxis() {
 
 void moveAwayFromHome() {
   //! ************************************************************************
-  //! MOVE 10 INCHES AWAY FROM HOME POSITION
+  //! MOVE 2 INCHES AWAY FROM HOME POSITION
   //! ************************************************************************
-  Serial.println("Moving 10 inches away from home...");
+  Serial.println("Moving " + String(Z_HOME_OFFSET_INCHES) + " inches away from home...");
   
   if (!zMotor) {
     Serial.println("ERROR: Z motor not initialized");
     return;
   }
   
+  // Debug: Print current position and target
+  int currentPos = zMotor->getCurrentPosition();
+  Serial.println("Current position: " + String(currentPos) + " steps");
+  Serial.println("Target position: " + String(Z_HOME_OFFSET_STEPS) + " steps");
+  Serial.println("Steps per inch: " + String(STEPS_PER_INCH));
+  
   // Set normal operating speed
   zMotor->setSpeedInHz(Z_MAX_SPEED);
+  Serial.println("Motor speed set to: " + String(Z_MAX_SPEED) + " Hz");
   
-  // Move to the offset position (10 inches away from home)
+  // Move to the offset position (2 inches away from home)
   zMotor->moveTo(Z_HOME_OFFSET_STEPS);
+  Serial.println("Movement command sent");
   
   // Wait for movement to complete
-  while (zMotor->isRunning()) {
-    // handleOTA(); // Continue handling OTA during movement
+  int timeout = 0;
+  while (zMotor->isRunning() && timeout < 10000) { // 10 second timeout
     delay(1);
+    timeout++;
   }
   
+  if (timeout >= 10000) {
+    Serial.println("WARNING: Movement timeout - motor may be stuck");
+  }
+  
+  int finalPos = zMotor->getCurrentPosition();
+  Serial.println("Final position: " + String(finalPos) + " steps");
   Serial.println("Moved to position: " + String(Z_HOME_OFFSET_INCHES) + " inches from home");
 }
 
