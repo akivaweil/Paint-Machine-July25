@@ -49,5 +49,6 @@ void setHomeServoReferences(ServoControl* servo, ServoAccelerationController* co
 void setRetrieveReferences(FastAccelStepper* motor);
 void setStoreReferences(FastAccelStepper* motor);
 void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* servoController);
+void setIdleReferences(ServoAccelerationController* servoController);
 
 #endif // STATE_MACHINE_H 

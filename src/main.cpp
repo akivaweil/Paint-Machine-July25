@@ -234,6 +234,9 @@ void setupStateMachineReferences() {
   // Set references for test state
   setTestReferences(zMotor, &mainServoController);
   
+  // Set references for idle state
+  setIdleReferences(&mainServoController);
+  
   Serial.println("State machine references configured");
 }
 
