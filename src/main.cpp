@@ -9,7 +9,7 @@
 //* *********************** PAINT MACHINE LOADER **************************
 //* ************************************************************************
 // Paint Machine Loader Control System with OTA Support
-// Z-axis stepper motor (up/down) with X-axis servo rotation
+// Z-axis stepper motor homing and servo sequence control
 // OTA functionality integrated for remote updates
 
 // External OTA functions
@@ -21,23 +21,29 @@ extern void handleOTA();
 //* ************************************************************************
 FastAccelStepperEngine engine = FastAccelStepperEngine();
 FastAccelStepper *zMotor = NULL;      // Z-axis stepper motor (up/down)
-ServoControl xServo;                  // X-axis rotation servo
+ServoControl loaderServo;             // Loader servo
 
 //* ************************************************************************
 //* *********************** BUTTON CONTROL ********************************
 //* ************************************************************************
-Bounce2::Button startButton = Bounce2::Button();
-Bounce2::Button stopButton = Bounce2::Button();
 Bounce2::Button zHomeSwitch = Bounce2::Button();
-Bounce2::Button zBottomSwitch = Bounce2::Button();
+
+//* ************************************************************************
+//* *********************** STATE VARIABLES *******************************
+//* ************************************************************************
+bool systemInitialized = false;      // Flag to track if startup sequence is complete
 
 //* ************************************************************************
 //* *********************** FUNCTION DECLARATIONS *************************
 //* ************************************************************************
 void initializeMotor();
 void initializeServo();
-void initializeButtons();
-void updateButtons();
+void initializeHomeSwitch();
+void updateHomeSwitch();
+void performStartupSequence();
+void homeZAxis();
+void moveAwayFromHome();
+void performServoSequence();
 
 //* ************************************************************************
 //* *********************** SETUP FUNCTION ********************************
@@ -58,15 +64,22 @@ void setup() {
   Serial.println("OTA initialization complete");
 
   //! ************************************************************************
-  //! STEP 3: INITIALIZE LOADER SYSTEMS
+  //! STEP 3: INITIALIZE HARDWARE SYSTEMS
   //! ************************************************************************
-  Serial.println("Initializing loader systems...");
+  Serial.println("Initializing hardware systems...");
   
-  initializeButtons();
+  initializeHomeSwitch();
   initializeMotor();
   initializeServo();
   
-  Serial.println("Loader systems initialized");
+  Serial.println("Hardware systems initialized");
+
+  //! ************************************************************************
+  //! STEP 4: PERFORM STARTUP SEQUENCE
+  //! ************************************************************************
+  Serial.println("Starting startup sequence...");
+  performStartupSequence();
+  
   Serial.println("=== PAINT MACHINE LOADER READY ===");
 }
 
@@ -80,24 +93,15 @@ void loop() {
   handleOTA();
 
   //! ************************************************************************
-  //! STEP 2: UPDATE BUTTON STATES
+  //! STEP 2: UPDATE SWITCH STATES
   //! ************************************************************************
-  updateButtons();
+  updateHomeSwitch();
 
   //! ************************************************************************
-  //! STEP 3: LOADER MAIN LOOP
+  //! STEP 3: MAIN OPERATION LOOP
   //! ************************************************************************
-  // Check for button presses and handle loader operations
-  if (startButton.pressed()) {
-    Serial.println("Start button pressed - ready for loader cycle implementation");
-  }
-  
-  if (stopButton.pressed()) {
-    Serial.println("Stop button pressed - emergency stop");
-    if (zMotor) {
-      zMotor->forceStop();
-    }
-  }
+  // System is now ready for operation commands
+  // Additional functionality can be added here as needed
   
   //! ************************************************************************
   //! STEP 4: SMALL DELAY TO PREVENT WATCHDOG ISSUES
@@ -109,27 +113,17 @@ void loop() {
 //* *********************** FUNCTION DEFINITIONS **************************
 //* ************************************************************************
 
-void initializeButtons() {
+void initializeHomeSwitch() {
   //! ************************************************************************
-  //! INITIALIZE BUTTONS WITH PROPER INPUT MODES
+  //! INITIALIZE HOME SWITCH WITH PROPER INPUT MODE
   //! ************************************************************************
-  Serial.println("Setting up buttons and switches...");
+  Serial.println("Setting up Z home switch...");
   
-  // Physical switches: Active HIGH (input pulldown)
-  startButton.attach(START_BUTTON_PIN, INPUT_PULLDOWN);
-  startButton.interval(50);
+  // Z home switch: Active HIGH (input pulldown)
+  zHomeSwitch.attach(Z_HOME_SWITCH_PIN, INPUT_PULLDOWN);
+  zHomeSwitch.interval(HOME_SWITCH_DEBOUNCE);
   
-  stopButton.attach(STOP_BUTTON_PIN, INPUT_PULLDOWN);
-  stopButton.interval(50);
-  
-  // Sensors: Active LOW (input pullup)
-  zHomeSwitch.attach(Z_HOME_SWITCH_PIN, INPUT_PULLUP);
-  zHomeSwitch.interval(50);
-  
-  zBottomSwitch.attach(Z_BOTTOM_SWITCH_PIN, INPUT_PULLUP);
-  zBottomSwitch.interval(50);
-  
-  Serial.println("Buttons and switches setup complete");
+  Serial.println("Z home switch setup complete");
 }
 
 void initializeMotor() {
@@ -146,16 +140,12 @@ void initializeMotor() {
     zMotor->setDirectionPin(Z_MOTOR_DIR_PIN);
     zMotor->setSpeedInHz(Z_MAX_SPEED);
     zMotor->setAcceleration(Z_ACCELERATION);
-    zMotor->setAutoEnable(false); // Manual enable control
     zMotor->setCurrentPosition(0);
-    
-    // Setup enable pin
-    pinMode(Z_MOTOR_ENABLE_PIN, OUTPUT);
-    digitalWrite(Z_MOTOR_ENABLE_PIN, LOW); // Enable motor (active low)
     
     Serial.println("Z-axis motor configured successfully");
     Serial.println("Z Motor speed: " + String(Z_MAX_SPEED) + " Hz");
     Serial.println("Z Motor acceleration: " + String(Z_ACCELERATION) + " steps/s²");
+    Serial.println("Steps per inch: " + String(STEPS_PER_INCH));
   } else {
     Serial.println("ERROR: Failed to create Z-axis motor instance");
   }
@@ -163,22 +153,136 @@ void initializeMotor() {
 
 void initializeServo() {
   //! ************************************************************************
-  //! INITIALIZE X-AXIS SERVO FOR ROTATION CONTROL
+  //! INITIALIZE LOADER SERVO
   //! ************************************************************************
-  Serial.println("Setting up X-axis rotation servo...");
+  Serial.println("Setting up loader servo...");
   
-  xServo.init(X_SERVO_PIN, 0, 50, 16); // Pin, channel, frequency, resolution
-  xServo.write(SERVO_NEUTRAL_POS);     // Start in neutral position
+  loaderServo.init(LOADER_SERVO_PIN, 0, 50, 16); // Pin, channel, frequency, resolution
   
-  Serial.println("X-axis servo initialized at neutral position: " + String(SERVO_NEUTRAL_POS) + "°");
+  Serial.println("Loader servo initialized");
 }
 
-void updateButtons() {
+void updateHomeSwitch() {
   //! ************************************************************************
-  //! UPDATE ALL BUTTON STATES
+  //! UPDATE HOME SWITCH STATE
   //! ************************************************************************
-  startButton.update();
-  stopButton.update();
   zHomeSwitch.update();
-  zBottomSwitch.update();
+}
+
+void performStartupSequence() {
+  //! ************************************************************************
+  //! PERFORM COMPLETE STARTUP SEQUENCE
+  //! ************************************************************************
+  Serial.println("=== STARTING STARTUP SEQUENCE ===");
+  
+  // Step 1: Home the Z-axis
+  homeZAxis();
+  
+  // Step 2: Move 10 inches away from home
+  moveAwayFromHome();
+  
+  // Step 3: Perform servo sequence
+  performServoSequence();
+  
+  systemInitialized = true;
+  Serial.println("=== STARTUP SEQUENCE COMPLETE ===");
+}
+
+//* ************************************************************************
+//* ************************ HOMING ***************************
+//* ************************************************************************
+// Homes the Z-axis by moving toward the home switch until it's triggered
+
+void homeZAxis() {
+  //! ************************************************************************
+  //! STEP 1: START HOMING SEQUENCE
+  //! ************************************************************************
+  Serial.println("Starting Z-axis homing...");
+  
+  if (!zMotor) {
+    Serial.println("ERROR: Z motor not initialized");
+    return;
+  }
+  
+  // Set homing speed
+  zMotor->setSpeedInHz(Z_HOMING_SPEED);
+  
+  //! ************************************************************************
+  //! STEP 2: MOVE IN NEGATIVE DIRECTION UNTIL HOME SWITCH IS TRIGGERED
+  //! ************************************************************************
+  Serial.println("Moving toward home switch...");
+  
+  // Start moving in negative direction (toward home)
+  zMotor->runBackward();
+  
+  // Wait until home switch is triggered (active high)
+  while (!zHomeSwitch.read()) {
+    updateHomeSwitch();
+    handleOTA(); // Continue handling OTA during homing
+    delay(1);
+  }
+  
+  //! ************************************************************************
+  //! STEP 3: STOP MOTOR AND SET HOME POSITION
+  //! ************************************************************************
+  zMotor->forceStop();
+  zMotor->setCurrentPosition(0); // Set current position as home (0)
+  
+  Serial.println("Z-axis homing complete - at home position");
+}
+
+void moveAwayFromHome() {
+  //! ************************************************************************
+  //! MOVE 10 INCHES AWAY FROM HOME POSITION
+  //! ************************************************************************
+  Serial.println("Moving 10 inches away from home...");
+  
+  if (!zMotor) {
+    Serial.println("ERROR: Z motor not initialized");
+    return;
+  }
+  
+  // Set normal operating speed
+  zMotor->setSpeedInHz(Z_MAX_SPEED);
+  
+  // Move to the offset position (10 inches away from home)
+  zMotor->moveTo(Z_HOME_OFFSET_STEPS);
+  
+  // Wait for movement to complete
+  while (zMotor->isRunning()) {
+    handleOTA(); // Continue handling OTA during movement
+    delay(1);
+  }
+  
+  Serial.println("Moved to position: " + String(Z_HOME_OFFSET_INCHES) + " inches from home");
+}
+
+void performServoSequence() {
+  //! ************************************************************************
+  //! PERFORM SERVO SEQUENCE: 90° -> 45° -> 70°
+  //! ************************************************************************
+  Serial.println("Starting servo sequence...");
+  
+  //! ************************************************************************
+  //! STEP 1: MOVE TO 90 DEGREES
+  //! ************************************************************************
+  Serial.println("Moving servo to " + String(SERVO_START_POS) + " degrees");
+  loaderServo.write(SERVO_START_POS);
+  delay(SERVO_MOVE_DELAY);
+  
+  //! ************************************************************************
+  //! STEP 2: MOVE TO 45 DEGREES
+  //! ************************************************************************
+  Serial.println("Moving servo to " + String(SERVO_SECOND_POS) + " degrees");
+  loaderServo.write(SERVO_SECOND_POS);
+  delay(SERVO_MOVE_DELAY);
+  
+  //! ************************************************************************
+  //! STEP 3: MOVE TO 70 DEGREES
+  //! ************************************************************************
+  Serial.println("Moving servo to " + String(SERVO_THIRD_POS) + " degrees");
+  loaderServo.write(SERVO_THIRD_POS);
+  delay(SERVO_MOVE_DELAY);
+  
+  Serial.println("Servo sequence complete");
 }
