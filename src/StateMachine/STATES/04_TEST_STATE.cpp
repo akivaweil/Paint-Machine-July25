@@ -29,7 +29,7 @@ static unsigned long stepStartTime = 0; // Timeout tracking
 
 // Test positions
 static const int TEST_POSITION_1_INCHES = 10;  // First position: 10 inches
-static const int TEST_POSITION_2_INCHES = 2;   // Second position: 2 inches
+static const int TEST_POSITION_2_INCHES = 1;   // Second position: 1 inch (home offset)
 static const int SERVO_POSITION_1_DEGREES = 70; // First servo position: 70 degrees
 static const int SERVO_POSITION_2_DEGREES = 130; // Second servo position: 130 degrees
 
@@ -50,7 +50,7 @@ void executeTestState() {
     if (!testStateInitialized) {
         Serial.println("=== ENTERING TEST STATE ===");
         Serial.println("Manual testing mode activated");
-        Serial.println("Test sequence: 10\" @ 70° -> 2\" @ 130°");
+        Serial.println("Test sequence: 10\" @ 70° -> 1\" @ 130°");
         testStateInitialized = true;
         testComplete = false;
             testStep = 0;
@@ -133,23 +133,18 @@ void executeTestState() {
                     Serial.println("Test Step 1 complete - Motor at: " + String(testZMotor->getCurrentPosition()) + " steps");
                     motorMoving = false;
                     servoMoving = false;
-                    testStep = 2;
-                    testDelay = millis();
-                    Serial.println("Waiting 2 seconds before next movement...");
+                    testStep = 3; // Go directly to step 3, skip delay
+                    Serial.println("Moving directly to Step 2 (no delay)...");
                 }
             }
             break;
             
-        case 2: // Wait delay between movements
-            if (millis() - testDelay > 2000) {
-                testStep = 3;
-                Serial.println("Starting Test Step 2...");
-            }
+        case 2: // Removed - no longer needed
             break;
             
-        case 3: // Move to 2 inches with servo at 130 degrees
+        case 3: // Move to 1 inch (home offset) with servo at 130 degrees
             if (!motorMoving && !servoMoving) {
-                Serial.println("Test Step 2: Moving to 2 inches with servo at 130°");
+                Serial.println("Test Step 2: Moving to 1 inch (home offset) with servo at 130°");
                 stepStartTime = millis(); // Start timeout timer
                 
                 // Move motor to 2 inches
@@ -203,18 +198,13 @@ void executeTestState() {
                     Serial.println("Test Step 2 complete - Motor at: " + String(testZMotor->getCurrentPosition()) + " steps");
                     motorMoving = false;
                     servoMoving = false;
-                    testStep = 4;
-                    testDelay = millis();
-                    Serial.println("Waiting 2 seconds before returning to home...");
+                    testStep = 5; // Go directly to home return, skip delay
+                    Serial.println("Moving directly to home position (no delay)...");
                 }
             }
             break;
             
-        case 4: // Wait delay before returning to home
-            if (millis() - testDelay > 2000) {
-                testStep = 5;
-                Serial.println("Returning to home position...");
-            }
+        case 4: // Removed - no longer needed
             break;
             
         case 5: // Return to home position
