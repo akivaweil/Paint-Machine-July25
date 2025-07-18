@@ -40,7 +40,6 @@ void executeStoringState();
 
 // State reference setup functions
 void setHomingReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch);
-void setHomingServoReferences(ServoControl* servo, ServoAccelerationController* controller);
 void setRetrievingReferences(FastAccelStepper* motor);
 void setStoringReferences(FastAccelStepper* motor);
 

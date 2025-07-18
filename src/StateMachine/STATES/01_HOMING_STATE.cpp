@@ -2,7 +2,7 @@
 //* ************************ HOMING STATE *********************************
 //* ************************************************************************
 //! HOMING state - Performs homing sequence for Z-axis
-//! Moves toward home switch until triggered, then sets position to 0
+//! Moves toward home switch until triggered, then moves away from home
 
 #include <Arduino.h>
 #include "StateMachine.h"
@@ -10,24 +10,16 @@
 #include "Config/Pins_Definitions.h"
 #include <FastAccelStepper.h>
 #include <Bounce2.h>
-#include "ServoAccelerationController.h"
-#include "ServoControl.h"
 
 //* ************************************************************************
 //* ************************ HOMING STATE VARIABLES ***********************
 //* ************************************************************************
 static bool homingStateInitialized = false;
 static bool homingComplete = false;
+static bool homeFound = false;
+static bool movingAwayFromHome = false;
 static FastAccelStepper* homingZMotor = NULL;
 static Bounce2::Button* homingZHomeSwitch = NULL;
-
-// Servo acceleration control variables
-static ServoControl* homingServo = NULL;
-static ServoAccelerationController* servoController = NULL;
-static bool servoSequenceStarted = false;
-static int currentServoMovement = 0;
-static const int TOTAL_SERVO_MOVEMENTS = 5;
-static const float SERVO_MOVEMENT_ANGLE = 30.0; // 30 degrees in each direction (doubled)
 
 //* ************************************************************************
 //* ************************ HOMING STATE FUNCTIONS ***********************
@@ -44,6 +36,8 @@ void executeHomingState() {
         Serial.println("Starting Z-axis homing sequence...");
         homingStateInitialized = true;
         homingComplete = false;
+        homeFound = false;
+        movingAwayFromHome = false;
         
         //! ************************************************************************
         //! STEP 1: SET HOMING SPEED
@@ -63,7 +57,7 @@ void executeHomingState() {
     }
     
     //! ************************************************************************
-    //! STEP 2: CHECK IF HOMING IS COMPLETE
+    //! STEP 3: CHECK IF HOMING IS COMPLETE
     //! ************************************************************************
     if (homingComplete) {
         Serial.println("Homing sequence complete - transitioning to IDLE");
@@ -72,7 +66,7 @@ void executeHomingState() {
     }
     
     //! ************************************************************************
-    //! STEP 3: PERFORM HOMING SEQUENCE
+    //! STEP 4: PERFORM HOMING SEQUENCE
     //! ************************************************************************
     if (homingZMotor && homingZHomeSwitch) {
         // Update the home switch state
@@ -86,10 +80,10 @@ void executeHomingState() {
             lastSwitchState = currentSwitchState;
         }
         
-        // Check if home switch is triggered (active high)
-        if (currentSwitchState) {
+        // Check if home switch is triggered (active high) and we haven't found home yet
+        if (currentSwitchState && !homeFound) {
             //! ************************************************************************
-            //! STEP 4: HOME SWITCH TRIGGERED - STOP AND SET HOME
+            //! STEP 5: HOME SWITCH TRIGGERED - STOP AND SET HOME
             //! ************************************************************************
             homingZMotor->forceStop();
             homingZMotor->setCurrentPosition(0); // Set current position as home (0)
@@ -97,92 +91,31 @@ void executeHomingState() {
             Serial.println("Home switch triggered - Z-axis homed");
             Serial.println("Current position set to 0");
             
-            // Start servo sequence with acceleration curves
-            if (servoController && homingServo) {
-                Serial.println("Servo references are valid - starting sequence");
-                
-                servoSequenceStarted = true;
-                currentServoMovement = 0;
-                
-                // Set initial servo position to center (90 degrees)
-                servoController->setCurrentAngle(90.0);
-                homingServo->write(90.0);
-                
-                Serial.println("Starting servo acceleration sequence...");
-                
-                // Start the first movement immediately
-                float baseAccel = 5.0; // Base acceleration rate (degrees/second^2)
-                float currentAccel = baseAccel * (currentServoMovement + 1); // First movement acceleration
-                
-                // Set acceleration profile for first movement
-                servoController->setAccelerationProfile(
-                    currentAccel,  // Acceleration rate
-                    currentAccel,  // Deceleration rate (same as acceleration)
-                    currentAccel * 3  // Max velocity (calculated from acceleration)
-                );
-                
-                // Start first movement to 105 degrees
-                servoController->moveTo(90.0 + SERVO_MOVEMENT_ANGLE);
-                
-                Serial.println("Servo movement 1 - Moving to 105 degrees with acceleration " + String(currentAccel));
-            } else {
-                homingComplete = true;
-            }
-        }
-    }
-    
-    //! ************************************************************************
-    //! STEP 5: EXECUTE SERVO ACCELERATION SEQUENCE
-    //! ************************************************************************
-    if (servoSequenceStarted && servoController && homingServo) {
-        // Debug: Print servo status
-        static unsigned long lastDebugTime = 0;
-        if (millis() - lastDebugTime > 1000) { // Print every second
-            Serial.println("Servo sequence active - Movement: " + String(currentServoMovement) + 
-                          ", Current angle: " + String(servoController->getCurrentAngle()) + 
-                          ", Target reached: " + String(servoController->hasReachedTarget()));
-            lastDebugTime = millis();
-        }
-        
-        // Update servo controller
-        servoController->update();
-        
-        // Check if current movement is complete
-        if (servoController->hasReachedTarget()) {
-            currentServoMovement++;
+            homeFound = true;
             
-            if (currentServoMovement < TOTAL_SERVO_MOVEMENTS) {
-                // Calculate acceleration for this movement (increasing with each movement)
-                float baseAccel = 5.0; // Base acceleration rate (degrees/second^2)
-                float currentAccel = baseAccel * (currentServoMovement + 1); // Increase acceleration each time
-                
-                // Set acceleration profile for this movement
-                servoController->setAccelerationProfile(
-                    currentAccel,  // Acceleration rate
-                    currentAccel,  // Deceleration rate (same as acceleration)
-                    currentAccel * 3  // Max velocity (calculated from acceleration)
-                );
-                
-                // Calculate target angle (alternate between +15 and -15 degrees from center)
-                float targetAngle;
-                if (currentServoMovement % 2 == 0) {
-                    targetAngle = 90.0 + SERVO_MOVEMENT_ANGLE; // Move to 105 degrees
-                } else {
-                    targetAngle = 90.0 - SERVO_MOVEMENT_ANGLE; // Move to 75 degrees
-                }
-                
-                // Start the movement
-                servoController->moveTo(targetAngle);
-                
-                Serial.println("Servo movement " + String(currentServoMovement) + 
-                              " - Moving to " + String(targetAngle) + 
-                              " degrees with acceleration " + String(currentAccel));
-            } else {
-                // All movements complete
-                Serial.println("Servo acceleration sequence complete");
-                servoSequenceStarted = false;
-                homingComplete = true;
-            }
+            //! ************************************************************************
+            //! STEP 6: START MOVING AWAY FROM HOME
+            //! ************************************************************************
+            Serial.println("Moving " + String(Z_HOME_OFFSET_INCHES) + " inches away from home...");
+            
+            // Set normal operating speed for moving away
+            homingZMotor->setSpeedInHz(Z_MAX_SPEED);
+            Serial.println("Motor speed set to: " + String(Z_MAX_SPEED) + " Hz");
+            
+            // Move to the offset position (2 inches away from home)
+            homingZMotor->moveTo(Z_HOME_OFFSET_STEPS);
+            Serial.println("Movement command sent to position: " + String(Z_HOME_OFFSET_STEPS) + " steps");
+            
+            movingAwayFromHome = true;
+        }
+        
+        //! ************************************************************************
+        //! STEP 7: CHECK IF MOVEMENT AWAY FROM HOME IS COMPLETE
+        //! ************************************************************************
+        if (movingAwayFromHome && !homingZMotor->isRunning()) {
+            Serial.println("Movement away from home complete");
+            Serial.println("Final position: " + String(homingZMotor->getCurrentPosition()) + " steps");
+            homingComplete = true;
         }
     }
     
@@ -199,8 +132,8 @@ void resetHomingState() {
     //! ************************************************************************
     homingStateInitialized = false;
     homingComplete = false;
-    servoSequenceStarted = false;
-    currentServoMovement = 0;
+    homeFound = false;
+    movingAwayFromHome = false;
 }
 
 void setHomingReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch) {
@@ -212,15 +145,4 @@ void setHomingReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch) {
     
     Serial.println("Homing motor/switch references set - Motor: " + String(motor ? "VALID" : "NULL") + 
                   ", Switch: " + String(homeSwitch ? "VALID" : "NULL"));
-}
-
-void setHomingServoReferences(ServoControl* servo, ServoAccelerationController* controller) {
-    //! ************************************************************************
-    //! SET REFERENCES TO SERVO AND ACCELERATION CONTROLLER
-    //! ************************************************************************
-    homingServo = servo;
-    servoController = controller;
-    
-    Serial.println("Homing servo references set - Servo: " + String(servo ? "VALID" : "NULL") + 
-                  ", Controller: " + String(controller ? "VALID" : "NULL"));
 } 

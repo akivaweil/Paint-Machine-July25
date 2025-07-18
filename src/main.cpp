@@ -220,7 +220,6 @@ void setupStateMachineReferences() {
   
   // Set references for homing state
   setHomingReferences(zMotor, &zHomeSwitch);
-  setHomingServoReferences(&loaderServo, &mainServoController);
   
   // Set references for retrieving state
   setRetrievingReferences(zMotor);
@@ -249,11 +248,14 @@ void performStartupSequence() {
       zMotor->setCurrentPosition(0);
     }
     
-    // Still perform servo acceleration sequence
+    // Move away from home position
+    moveAwayFromHome();
+    
+    // Perform servo acceleration sequence
     Serial.println("Performing servo acceleration sequence...");
     performServoAccelerationSequence();
   } else {
-    // Step 3: Start homing state (which includes servo acceleration sequence)
+    // Step 3: Start homing state (which now includes moving away from home)
     setState(HOMING_STATE);
     
     // Step 4: Wait for homing to complete
@@ -263,9 +265,6 @@ void performStartupSequence() {
       delay(10);
     }
   }
-  
-  // Step 5: Move 10 inches away from home
-  moveAwayFromHome();
   
   systemInitialized = true;
   Serial.println("=== STARTUP SEQUENCE COMPLETE ===");
