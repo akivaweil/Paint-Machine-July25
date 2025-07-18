@@ -18,9 +18,9 @@ private:
     ServoControl* servo; // Pointer to the servo to control
     
     // Acceleration curve parameters
-    float accelerationRate; // Degrees per second^2
-    float decelerationRate; // Degrees per second^2
-    float maxVelocity; // Maximum velocity in degrees per second
+    float accelerationRate; // Degrees per millisecond^2
+    float decelerationRate; // Degrees per millisecond^2
+    float maxVelocity; // Maximum velocity in degrees per millisecond
     
     // Current motion state
     float currentAngle;
@@ -28,16 +28,9 @@ private:
     float currentVelocity;
     float startAngle;
     
-    // Timing with microsecond precision
+    // Timing
     unsigned long lastUpdateTime;
     unsigned long moveStartTime;
-    unsigned long lastServoUpdateTime;
-    
-    // Position smoothing variables
-    float smoothedAngle;
-    float smoothingFactor;
-    float minPositionIncrement;
-    unsigned long updateInterval;
     
     MotionState currentState;
     
@@ -58,8 +51,6 @@ public:
     void setDecelerationRate(float decelRate);
     void setMaxVelocity(float maxVel);
     void setAccelerationProfile(float accelRate, float maxVel); // Simplified - accel and decel are always the same
-    void setSmoothingFactor(float factor); // New: Control position smoothing (0.01-1.0)
-    void setUpdateInterval(unsigned long intervalMicros); // New: Control update frequency
     
     // Motion control methods
     void moveTo(float targetAngle);

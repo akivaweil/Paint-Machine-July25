@@ -30,13 +30,11 @@ void executeIdleState() {
         Serial.println("=== ENTERING IDLE STATE ===");
         Serial.println("Machine ready - waiting for commands");
         
-        // Set servo to boot-up position (90 degrees) with improved settings
+        // Set servo to boot-up position (90 degrees)
         if (idleServoController) {
-            idleServoController->setAccelerationProfile(375, 2250); // 75% of original values
-            idleServoController->setSmoothingFactor(0.15); // 15% smoothing factor
-            idleServoController->setUpdateInterval(5000); // 5ms update interval (200Hz)
+            idleServoController->setAccelerationProfile(100, 200); // Conservative settings
             idleServoController->moveTo(90);
-            Serial.println("Setting servo to boot-up position (90 degrees) - smooth motion enabled");
+            Serial.println("Setting servo to boot-up position (90 degrees)");
         }
         
         idleStateInitialized = true;
