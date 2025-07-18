@@ -10,6 +10,7 @@
 //* ************************************************************************
 // Paint Machine Loader Control System with OTA Support
 // Z-axis stepper motor homing and servo sequence control
+// Start button triggers 2-inch down/up cycle
 // OTA functionality integrated for remote updates
 
 // External OTA functions
@@ -26,24 +27,27 @@ ServoControl loaderServo;             // Loader servo
 //* ************************************************************************
 //* *********************** BUTTON CONTROL ********************************
 //* ************************************************************************
+Bounce2::Button startButton = Bounce2::Button();
 Bounce2::Button zHomeSwitch = Bounce2::Button();
 
 //* ************************************************************************
 //* *********************** STATE VARIABLES *******************************
 //* ************************************************************************
 bool systemInitialized = false;      // Flag to track if startup sequence is complete
+bool cycleInProgress = false;         // Flag to prevent multiple cycles running simultaneously
 
 //* ************************************************************************
 //* *********************** FUNCTION DECLARATIONS *************************
 //* ************************************************************************
 void initializeMotor();
 void initializeServo();
-void initializeHomeSwitch();
-void updateHomeSwitch();
+void initializeButtons();
+void updateButtons();
 void performStartupSequence();
 void homeZAxis();
 void moveAwayFromHome();
 void performServoSequence();
+void performCycle();
 
 //* ************************************************************************
 //* *********************** SETUP FUNCTION ********************************
@@ -68,7 +72,7 @@ void setup() {
   //! ************************************************************************
   Serial.println("Initializing hardware systems...");
   
-  initializeHomeSwitch();
+  initializeButtons();
   initializeMotor();
   initializeServo();
   
@@ -93,16 +97,18 @@ void loop() {
   handleOTA();
 
   //! ************************************************************************
-  //! STEP 2: UPDATE SWITCH STATES
+  //! STEP 2: UPDATE BUTTON STATES
   //! ************************************************************************
-  updateHomeSwitch();
+  updateButtons();
 
   //! ************************************************************************
-  //! STEP 3: MAIN OPERATION LOOP
+  //! STEP 3: HANDLE START BUTTON PRESS
   //! ************************************************************************
-  // System is now ready for operation commands
-  // Additional functionality can be added here as needed
-  
+  if (systemInitialized && startButton.pressed() && !cycleInProgress) {
+    Serial.println("Start button pressed - beginning cycle");
+    performCycle();
+  }
+
   //! ************************************************************************
   //! STEP 4: SMALL DELAY TO PREVENT WATCHDOG ISSUES
   //! ************************************************************************
@@ -113,17 +119,21 @@ void loop() {
 //* *********************** FUNCTION DEFINITIONS **************************
 //* ************************************************************************
 
-void initializeHomeSwitch() {
+void initializeButtons() {
   //! ************************************************************************
-  //! INITIALIZE HOME SWITCH WITH PROPER INPUT MODE
+  //! INITIALIZE BUTTONS AND SWITCHES WITH PROPER INPUT MODES
   //! ************************************************************************
-  Serial.println("Setting up Z home switch...");
+  Serial.println("Setting up buttons and switches...");
+  
+  // Start button: Active HIGH (input pulldown)
+  startButton.attach(START_BUTTON_PIN, INPUT_PULLDOWN);
+  startButton.interval(START_BUTTON_DEBOUNCE);
   
   // Z home switch: Active HIGH (input pulldown)
   zHomeSwitch.attach(Z_HOME_SWITCH_PIN, INPUT_PULLDOWN);
   zHomeSwitch.interval(HOME_SWITCH_DEBOUNCE);
   
-  Serial.println("Z home switch setup complete");
+  Serial.println("Buttons and switches setup complete");
 }
 
 void initializeMotor() {
@@ -162,10 +172,11 @@ void initializeServo() {
   Serial.println("Loader servo initialized");
 }
 
-void updateHomeSwitch() {
+void updateButtons() {
   //! ************************************************************************
-  //! UPDATE HOME SWITCH STATE
+  //! UPDATE ALL BUTTON STATES
   //! ************************************************************************
+  startButton.update();
   zHomeSwitch.update();
 }
 
@@ -217,7 +228,7 @@ void homeZAxis() {
   
   // Wait until home switch is triggered (active high)
   while (!zHomeSwitch.read()) {
-    updateHomeSwitch();
+    updateButtons();
     handleOTA(); // Continue handling OTA during homing
     delay(1);
   }
@@ -285,4 +296,67 @@ void performServoSequence() {
   delay(SERVO_MOVE_DELAY);
   
   Serial.println("Servo sequence complete");
+}
+
+//* ************************************************************************
+//* ************************ CYCLE OPERATION ******************************
+//* ************************************************************************
+// Performs down 2 inches, then up 2 inches cycle when start button is pressed
+
+void performCycle() {
+  //! ************************************************************************
+  //! STEP 1: SET CYCLE IN PROGRESS FLAG
+  //! ************************************************************************
+  cycleInProgress = true;
+  Serial.println("=== STARTING CYCLE OPERATION ===");
+  
+  if (!zMotor) {
+    Serial.println("ERROR: Z motor not initialized");
+    cycleInProgress = false;
+    return;
+  }
+  
+  // Store current position
+  int currentPosition = zMotor->getCurrentPosition();
+  
+  //! ************************************************************************
+  //! STEP 2: MOVE DOWN 2 INCHES
+  //! ************************************************************************
+  Serial.println("Moving down " + String(Z_CYCLE_DISTANCE_INCHES) + " inches...");
+  
+  // Calculate target position (current position + 2 inches in steps)
+  int downPosition = currentPosition + Z_CYCLE_DISTANCE_STEPS;
+  zMotor->moveTo(downPosition);
+  
+  // Wait for downward movement to complete
+  while (zMotor->isRunning()) {
+    updateButtons(); // Continue monitoring buttons
+    handleOTA(); // Continue handling OTA during movement
+    delay(1);
+  }
+  
+  Serial.println("Reached down position");
+  
+  //! ************************************************************************
+  //! STEP 3: MOVE UP 2 INCHES (BACK TO ORIGINAL POSITION)
+  //! ************************************************************************
+  Serial.println("Moving up " + String(Z_CYCLE_DISTANCE_INCHES) + " inches...");
+  
+  // Move back to original position
+  zMotor->moveTo(currentPosition);
+  
+  // Wait for upward movement to complete
+  while (zMotor->isRunning()) {
+    updateButtons(); // Continue monitoring buttons
+    handleOTA(); // Continue handling OTA during movement
+    delay(1);
+  }
+  
+  Serial.println("Returned to original position");
+  
+  //! ************************************************************************
+  //! STEP 4: CYCLE COMPLETE
+  //! ************************************************************************
+  cycleInProgress = false;
+  Serial.println("=== CYCLE OPERATION COMPLETE ===");
 }

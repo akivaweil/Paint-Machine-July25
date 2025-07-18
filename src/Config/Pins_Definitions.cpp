@@ -6,7 +6,8 @@
 // Pin assignments for Freenove ESP32-S3 WROOM board
 // Paint Machine specific pin configuration
 
-// INPUT PINS (Z Home Switch: Active HIGH with pulldown)
+// INPUT PINS (Active HIGH with pulldown)
+int START_BUTTON_PIN = 2;         // Start button for cycle operation (active high with pulldown)
 int Z_HOME_SWITCH_PIN = 6;        // Z-axis homing limit switch (active high with pulldown)
 
 // OUTPUT PINS - Z-AXIS STEPPER MOTOR

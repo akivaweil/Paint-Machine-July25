@@ -8,6 +8,7 @@
 // Paint Machine specific pin configuration
 
 // INPUT PINS
+extern int START_BUTTON_PIN;       // Start button for cycle operation (active high with pulldown)
 extern int Z_HOME_SWITCH_PIN;      // Z-axis homing limit switch (active high with pulldown)
 
 // OUTPUT PINS - Z-AXIS STEPPER MOTOR
