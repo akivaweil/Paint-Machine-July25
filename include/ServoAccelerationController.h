@@ -18,9 +18,9 @@ private:
     ServoControl* servo; // Pointer to the servo to control
     
     // Acceleration curve parameters
-    float accelerationRate; // Degrees per millisecond^2
-    float decelerationRate; // Degrees per millisecond^2
-    float maxVelocity; // Maximum velocity in degrees per millisecond
+    float accelerationRate; // Degrees per second^2
+    float decelerationRate; // Degrees per second^2
+    float maxVelocity; // Maximum velocity in degrees per second
     
     // Current motion state
     float currentAngle;

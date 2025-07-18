@@ -116,7 +116,9 @@ void executeTestState() {
                                    ", Servo angle: " + String(testServoController->getCurrentAngle()) +
                                    ", Target: " + String(SERVO_POSITION_1_DEGREES) +
                                    ", State: " + String(testServoController->getMotionState()) +
-                                   ", Distance: " + String(abs(testServoController->getCurrentAngle() - SERVO_POSITION_1_DEGREES)));
+                                   ", Distance: " + String(abs(testServoController->getCurrentAngle() - SERVO_POSITION_1_DEGREES)) +
+                                   ", Velocity: " + String(testServoController->getCurrentVelocity()) +
+                                   ", IsMoving: " + String(testServoController->isMoving() ? "YES" : "NO"));
                     lastDebugTime = millis();
                 }
                 
@@ -181,7 +183,9 @@ void executeTestState() {
                                    ", Servo angle: " + String(testServoController->getCurrentAngle()) +
                                    ", Target: " + String(SERVO_POSITION_2_DEGREES) +
                                    ", State: " + String(testServoController->getMotionState()) +
-                                   ", Distance: " + String(abs(testServoController->getCurrentAngle() - SERVO_POSITION_2_DEGREES)));
+                                   ", Distance: " + String(abs(testServoController->getCurrentAngle() - SERVO_POSITION_2_DEGREES)) +
+                                   ", Velocity: " + String(testServoController->getCurrentVelocity()) +
+                                   ", IsMoving: " + String(testServoController->isMoving() ? "YES" : "NO"));
                     lastDebugTime2 = millis();
                 }
                 

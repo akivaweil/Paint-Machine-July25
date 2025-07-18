@@ -25,6 +25,11 @@ ServoAccelerationController::ServoAccelerationController(ServoControl* servoPtr)
     // Initialize timing
     lastUpdateTime = millis();
     moveStartTime = millis();
+    
+    // Debug initialization
+    Serial.println("ServoAccelerationController initialized");
+    Serial.println("Default acceleration: " + String(accelerationRate) + " deg/s²");
+    Serial.println("Default max velocity: " + String(maxVelocity) + " deg/s");
 }
 
 //* ************************************************************************
@@ -33,20 +38,24 @@ ServoAccelerationController::ServoAccelerationController(ServoControl* servoPtr)
 
 void ServoAccelerationController::setAccelerationRate(float accelRate) {
     accelerationRate = accelRate;
+    Serial.println("Acceleration rate set to: " + String(accelRate) + " deg/s²");
 }
 
 void ServoAccelerationController::setDecelerationRate(float decelRate) {
     decelerationRate = decelRate;
+    Serial.println("Deceleration rate set to: " + String(decelRate) + " deg/s²");
 }
 
 void ServoAccelerationController::setMaxVelocity(float maxVel) {
     maxVelocity = maxVel;
+    Serial.println("Max velocity set to: " + String(maxVel) + " deg/s");
 }
 
 void ServoAccelerationController::setAccelerationProfile(float accelRate, float maxVel) {
     accelerationRate = accelRate;
     decelerationRate = accelRate; // Always the same as acceleration
     maxVelocity = maxVel;
+    Serial.println("Acceleration profile set - Accel: " + String(accelRate) + " deg/s², MaxVel: " + String(maxVel) + " deg/s");
 }
 
 //* ************************************************************************
@@ -54,11 +63,18 @@ void ServoAccelerationController::setAccelerationProfile(float accelRate, float 
 //* ************************************************************************
 
 void ServoAccelerationController::moveTo(float targetAngle) {
+    if (!servo) {
+        Serial.println("ERROR: Servo reference is NULL - cannot move");
+        return;
+    }
+    
     this->targetAngle = targetAngle;
     startAngle = currentAngle;
     moveStartTime = millis();
     currentState = ACCELERATING;
     currentVelocity = 0.0;
+    
+    Serial.println("Servo moveTo: " + String(currentAngle) + "° -> " + String(targetAngle) + "°");
 }
 
 void ServoAccelerationController::moveToWithTime(float targetAngle, unsigned long moveTimeMs) {
@@ -66,6 +82,7 @@ void ServoAccelerationController::moveToWithTime(float targetAngle, unsigned lon
     float distance = abs(targetAngle - currentAngle);
     
     if (distance == 0) {
+        Serial.println("Already at target position");
         return; // Already at target
     }
     
@@ -88,6 +105,7 @@ void ServoAccelerationController::moveToWithCurve(float targetAngle, int acceler
     float distance = abs(targetAngle - currentAngle);
     
     if (distance == 0) {
+        Serial.println("Already at target position");
         return; // Already at target
     }
     
@@ -117,10 +135,17 @@ void ServoAccelerationController::moveToWithCurve(float targetAngle, int acceler
 void ServoAccelerationController::stop() {
     currentState = DECELERATING;
     targetAngle = currentAngle; // Stop at current position
+    Serial.println("Servo stop command issued");
 }
 
 void ServoAccelerationController::update() {
     if (currentState == IDLE) {
+        return;
+    }
+    
+    if (!servo) {
+        Serial.println("ERROR: Servo reference is NULL in update()");
+        currentState = IDLE;
         return;
     }
     
@@ -152,9 +177,8 @@ void ServoAccelerationController::update() {
     if (abs(currentAngle - targetAngle) < 0.1 && abs(currentVelocity) < 0.01) {
         currentState = IDLE;
         currentVelocity = 0.0;
+        Serial.println("Servo reached target: " + String(targetAngle) + "°");
     }
-    
-    // Debug output removed - servo acceleration controller working properly
 }
 
 //* ************************************************************************
