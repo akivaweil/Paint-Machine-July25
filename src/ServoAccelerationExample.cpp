@@ -30,8 +30,7 @@ void setupServoWithAcceleration() {
     
     // Configure acceleration profile
     servoController.setAccelerationProfile(
-        0.002,  // Acceleration rate (degrees/ms^2)
-        0.002,  // Deceleration rate (degrees/ms^2)
+        0.002,  // Acceleration rate (degrees/ms^2) - same as deceleration
         0.1     // Max velocity (degrees/ms)
     );
     

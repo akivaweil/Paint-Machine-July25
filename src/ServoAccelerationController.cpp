@@ -16,10 +16,10 @@ ServoAccelerationController::ServoAccelerationController(ServoControl* servoPtr)
     maxVelocity = 30.0; // 30 degrees per second
     
     // Initialize motion state
-    currentAngle = 0.0;
-    targetAngle = 0.0;
+    currentAngle = 90.0; // Start at 90 degrees (middle position)
+    targetAngle = 90.0;
     currentVelocity = 0.0;
-    startAngle = 0.0;
+    startAngle = 90.0;
     currentState = IDLE;
     
     // Initialize timing
@@ -43,9 +43,9 @@ void ServoAccelerationController::setMaxVelocity(float maxVel) {
     maxVelocity = maxVel;
 }
 
-void ServoAccelerationController::setAccelerationProfile(float accelRate, float decelRate, float maxVel) {
+void ServoAccelerationController::setAccelerationProfile(float accelRate, float maxVel) {
     accelerationRate = accelRate;
-    decelerationRate = decelRate;
+    decelerationRate = accelRate; // Always the same as acceleration
     maxVelocity = maxVel;
 }
 
@@ -74,7 +74,7 @@ void ServoAccelerationController::moveToWithTime(float targetAngle, unsigned lon
     float requiredAccel = (4.0 * distance) / (moveTimeMs * moveTimeMs);
     
     // Set the acceleration profile
-    setAccelerationProfile(requiredAccel, requiredAccel, requiredAccel * moveTimeMs / 2.0);
+    setAccelerationProfile(requiredAccel, requiredAccel * moveTimeMs / 2.0);
     
     // Start the move
     moveTo(targetAngle);
@@ -108,7 +108,7 @@ void ServoAccelerationController::moveToWithCurve(float targetAngle, int acceler
     float decelRate = accelRate;
     
     // Set the acceleration profile
-    setAccelerationProfile(accelRate, decelRate, maxVel);
+    setAccelerationProfile(accelRate, maxVel);
     
     // Start the move
     moveTo(targetAngle);
@@ -138,7 +138,8 @@ void ServoAccelerationController::update() {
     float newAngle = calculateNextPosition();
     
     // Update current angle and velocity
-    currentVelocity = (newAngle - currentAngle) / deltaTime;
+    float deltaTimeSeconds = deltaTime / 1000.0;
+    currentVelocity = abs((newAngle - currentAngle) / deltaTimeSeconds); // Convert to degrees per second, always positive
     currentAngle = newAngle;
     
     // Send command to servo
@@ -152,6 +153,8 @@ void ServoAccelerationController::update() {
         currentState = IDLE;
         currentVelocity = 0.0;
     }
+    
+    // Debug output removed - servo acceleration controller working properly
 }
 
 //* ************************************************************************
@@ -205,28 +208,35 @@ float ServoAccelerationController::calculateNextPosition() {
     float newAngle = currentAngle;
     float newVelocity = currentVelocity;
     
+    // Determine direction (1 for positive, -1 for negative)
+    int direction = (targetAngle > currentAngle) ? 1 : -1;
+    
     switch (currentState) {
         case ACCELERATING:
-            // Apply acceleration
+            // Apply acceleration in the correct direction
             newVelocity = currentVelocity + (accelerationRate * deltaTimeSeconds);
             if (newVelocity > maxVelocity) {
                 newVelocity = maxVelocity;
             }
-            newAngle = currentAngle + (currentVelocity * deltaTimeSeconds) + (0.5 * accelerationRate * deltaTimeSeconds * deltaTimeSeconds);
+            // Apply velocity in the correct direction
+            newAngle = currentAngle + (direction * currentVelocity * deltaTimeSeconds) + 
+                      (0.5 * direction * accelerationRate * deltaTimeSeconds * deltaTimeSeconds);
             break;
             
         case CONSTANT_VELOCITY:
-            // Maintain constant velocity
-            newAngle = currentAngle + (maxVelocity * deltaTimeSeconds);
+            // Maintain constant velocity in the correct direction
+            newAngle = currentAngle + (direction * maxVelocity * deltaTimeSeconds);
             break;
             
         case DECELERATING:
-            // Apply deceleration
+            // Apply deceleration in the correct direction
             newVelocity = currentVelocity - (decelerationRate * deltaTimeSeconds);
             if (newVelocity < 0) {
                 newVelocity = 0;
             }
-            newAngle = currentAngle + (currentVelocity * deltaTimeSeconds) - (0.5 * decelerationRate * deltaTimeSeconds * deltaTimeSeconds);
+            // Apply velocity in the correct direction
+            newAngle = currentAngle + (direction * currentVelocity * deltaTimeSeconds) - 
+                      (0.5 * direction * decelerationRate * deltaTimeSeconds * deltaTimeSeconds);
             break;
             
         case IDLE:
@@ -308,4 +318,5 @@ void ServoAccelerationController::setCurrentAngle(float angle) {
     startAngle = angle;
     currentVelocity = 0.0;
     currentState = IDLE;
+    lastUpdateTime = millis(); // Reset timing
 } 

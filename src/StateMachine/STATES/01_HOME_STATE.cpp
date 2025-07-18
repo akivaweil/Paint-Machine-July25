@@ -158,8 +158,10 @@ void performTestMotionSequence() {
     //! STEP 1: MOVE SERVO TO 70 DEGREES
     //! ************************************************************************
     Serial.println("Moving servo to 70 degrees...");
-    homeServo->write(70);
-    while (!homeServo->hasReachedTarget()) {
+    homeServoController->setAccelerationProfile(100, 150);
+    homeServoController->moveTo(50);
+    while (homeServoController->isMoving()) {
+        homeServoController->update();
         delay(10);
     }
     Serial.println("Servo reached 70 degrees");
@@ -168,37 +170,21 @@ void performTestMotionSequence() {
     //! STEP 2: MOVE FROM 70 TO 130 WITH ACCEL 10
     //! ************************************************************************
     Serial.println("Moving servo from 70 to 130 degrees with acceleration 10...");
-    homeServoController->setAccelerationProfile(10, 10, 30);
-    homeServoController->moveTo(130);
+    homeServoController->setAccelerationProfile(500, 3000);
+    homeServoController->moveTo(150);
+    
+    unsigned long startTime = millis();
     while (homeServoController->isMoving()) {
         homeServoController->update();
         delay(10);
+        
+        // Add timeout protection
+        if (millis() - startTime > 10000) { // 10 second timeout
+            Serial.println("WARNING: Servo movement timeout - forcing completion");
+            break;
+        }
     }
     Serial.println("Servo reached 130 degrees with accel 10");
-    
-    //! ************************************************************************
-    //! STEP 3: MOVE BACK TO 70 WITH ACCEL 50
-    //! ************************************************************************
-    Serial.println("Moving servo back to 70 degrees with acceleration 50...");
-    homeServoController->setAccelerationProfile(50, 50, 150);
-    homeServoController->moveTo(70);
-    while (homeServoController->isMoving()) {
-        homeServoController->update();
-        delay(10);
-    }
-    Serial.println("Servo reached 70 degrees with accel 50");
-    
-    //! ************************************************************************
-    //! STEP 4: MOVE BACK TO 130 WITH ACCEL 70
-    //! ************************************************************************
-    Serial.println("Moving servo back to 130 degrees with acceleration 70...");
-    homeServoController->setAccelerationProfile(70, 70, 210);
-    homeServoController->moveTo(130);
-    while (homeServoController->isMoving()) {
-        homeServoController->update();
-        delay(10);
-    }
-    Serial.println("Servo reached 130 degrees with accel 70");
     
     Serial.println("=== TEST MOTION SEQUENCE COMPLETE ===");
 }

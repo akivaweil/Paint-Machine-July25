@@ -48,6 +48,6 @@ void setHomeReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch);
 void setHomeServoReferences(ServoControl* servo, ServoAccelerationController* controller);
 void setRetrieveReferences(FastAccelStepper* motor);
 void setStoreReferences(FastAccelStepper* motor);
-void setTestReferences(FastAccelStepper* motor);
+void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* servoController);
 
 #endif // STATE_MACHINE_H 

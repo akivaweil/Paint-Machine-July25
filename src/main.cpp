@@ -196,10 +196,13 @@ void initializeServo() {
   
   // Configure servo acceleration controller with conservative default settings
   mainServoController.setAccelerationProfile(
-    10.0,   // Base acceleration rate (degrees/second^2)
-    10.0,   // Deceleration rate (degrees/second^2)
+    10.0,   // Acceleration rate (degrees/second^2) - same as deceleration
     30.0    // Max velocity (degrees/second)
   );
+  
+  // Set initial servo position to 90 degrees and update controller
+  loaderServo.write(90);
+  mainServoController.setCurrentAngle(90);
   
   Serial.println("Loader servo and acceleration controller initialized");
 }
@@ -229,7 +232,7 @@ void setupStateMachineReferences() {
   setStoreReferences(zMotor);
   
   // Set references for test state
-  setTestReferences(zMotor);
+  setTestReferences(zMotor, &mainServoController);
   
   Serial.println("State machine references configured");
 }
@@ -488,8 +491,7 @@ void performServoAccelerationSequence() {
     
     // Set acceleration profile for this movement
     mainServoController.setAccelerationProfile(
-      currentAccel,  // Acceleration rate
-      currentAccel,  // Deceleration rate (same as acceleration)
+      currentAccel,  // Acceleration rate (same as deceleration)
       currentAccel * 3  // Max velocity (calculated from acceleration)
     );
     

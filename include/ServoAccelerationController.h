@@ -50,7 +50,7 @@ public:
     void setAccelerationRate(float accelRate);
     void setDecelerationRate(float decelRate);
     void setMaxVelocity(float maxVel);
-    void setAccelerationProfile(float accelRate, float decelRate, float maxVel);
+    void setAccelerationProfile(float accelRate, float maxVel); // Simplified - accel and decel are always the same
     
     // Motion control methods
     void moveTo(float targetAngle);
