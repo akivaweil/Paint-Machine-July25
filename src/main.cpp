@@ -477,7 +477,7 @@ void performServoAccelerationSequence() {
   // Perform 5 movements with increasing acceleration
   for (int movement = 0; movement < 5; movement++) {
     // Calculate acceleration for this movement (increasing with each movement)
-    float baseAccel = 0.001; // Base acceleration rate
+    float baseAccel = 0.01; // Base acceleration rate (10x faster)
     float currentAccel = baseAccel * (movement + 1); // Increase acceleration each time
     
     // Set acceleration profile for this movement
@@ -487,12 +487,12 @@ void performServoAccelerationSequence() {
       currentAccel * 1000  // Max velocity (calculated from acceleration)
     );
     
-    // Calculate target angle (alternate between +15 and -15 degrees from center)
+    // Calculate target angle (alternate between +30 and -30 degrees from center)
     float targetAngle;
     if (movement % 2 == 0) {
-      targetAngle = 90.0 + 15.0; // Move to 105 degrees
+      targetAngle = 90.0 + 30.0; // Move to 120 degrees
     } else {
-      targetAngle = 90.0 - 15.0; // Move to 75 degrees
+      targetAngle = 90.0 - 30.0; // Move to 60 degrees
     }
     
     // Start the movement

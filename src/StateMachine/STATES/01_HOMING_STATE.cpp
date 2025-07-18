@@ -27,7 +27,7 @@ static ServoAccelerationController* servoController = NULL;
 static bool servoSequenceStarted = false;
 static int currentServoMovement = 0;
 static const int TOTAL_SERVO_MOVEMENTS = 5;
-static const float SERVO_MOVEMENT_ANGLE = 15.0; // 15 degrees in each direction
+static const float SERVO_MOVEMENT_ANGLE = 30.0; // 30 degrees in each direction (doubled)
 
 //* ************************************************************************
 //* ************************ HOMING STATE FUNCTIONS ***********************
@@ -121,7 +121,7 @@ void executeHomingState() {
                 Serial.println("Starting servo acceleration sequence...");
                 
                 // Start the first movement immediately
-                float baseAccel = 0.001; // Base acceleration rate
+                float baseAccel = 0.01; // Base acceleration rate (10x faster)
                 float currentAccel = baseAccel * (currentServoMovement + 1); // First movement acceleration
                 
                 // Set acceleration profile for first movement
@@ -163,7 +163,7 @@ void executeHomingState() {
             
             if (currentServoMovement < TOTAL_SERVO_MOVEMENTS) {
                 // Calculate acceleration for this movement (increasing with each movement)
-                float baseAccel = 0.001; // Base acceleration rate
+                float baseAccel = 0.01; // Base acceleration rate (10x faster)
                 float currentAccel = baseAccel * (currentServoMovement + 1); // Increase acceleration each time
                 
                 // Set acceleration profile for this movement
