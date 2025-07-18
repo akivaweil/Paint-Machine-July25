@@ -22,9 +22,18 @@ ServoAccelerationController::ServoAccelerationController(ServoControl* servoPtr)
     startAngle = 90.0;
     currentState = IDLE;
     
-    // Initialize timing
-    lastUpdateTime = millis();
-    moveStartTime = millis();
+    // Initialize timing with microsecond precision
+    lastUpdateTime = micros();
+    moveStartTime = micros();
+    
+    // Position smoothing variables
+    smoothedAngle = 90.0;
+    smoothingFactor = 0.1; // Smoothing factor (0.1 = 10% of new position per update)
+    minPositionIncrement = 0.1; // Minimum position increment to prevent stuttering
+    
+    // Update frequency control
+    updateInterval = 10000; // 10ms update interval (100Hz) for smooth motion
+    lastServoUpdateTime = 0;
 }
 
 //* ************************************************************************
@@ -49,6 +58,15 @@ void ServoAccelerationController::setAccelerationProfile(float accelRate, float 
     maxVelocity = maxVel;
 }
 
+void ServoAccelerationController::setSmoothingFactor(float factor) {
+    // Clamp smoothing factor between 0.01 and 1.0
+    smoothingFactor = constrain(factor, 0.01, 1.0);
+}
+
+void ServoAccelerationController::setUpdateInterval(unsigned long intervalMicros) {
+    updateInterval = intervalMicros;
+}
+
 //* ************************************************************************
 //* ************************ MOTION CONTROL METHODS ***************************
 //* ************************************************************************
@@ -56,9 +74,12 @@ void ServoAccelerationController::setAccelerationProfile(float accelRate, float 
 void ServoAccelerationController::moveTo(float targetAngle) {
     this->targetAngle = targetAngle;
     startAngle = currentAngle;
-    moveStartTime = millis();
+    moveStartTime = micros();
     currentState = ACCELERATING;
     currentVelocity = 0.0;
+    
+    // Reset smoothing when starting new movement
+    smoothedAngle = currentAngle;
 }
 
 void ServoAccelerationController::moveToWithTime(float targetAngle, unsigned long moveTimeMs) {
@@ -120,11 +141,17 @@ void ServoAccelerationController::stop() {
 }
 
 void ServoAccelerationController::update() {
+    unsigned long currentTime = micros();
+    
+    // Check if enough time has passed for an update
+    if (currentTime - lastUpdateTime < updateInterval) {
+        return;
+    }
+    
     if (currentState == IDLE) {
         return;
     }
     
-    unsigned long currentTime = millis();
     unsigned long deltaTime = currentTime - lastUpdateTime;
     
     if (deltaTime == 0) {
@@ -137,13 +164,27 @@ void ServoAccelerationController::update() {
     // Calculate new position
     float newAngle = calculateNextPosition();
     
-    // Update current angle and velocity
-    float deltaTimeSeconds = deltaTime / 1000.0;
-    currentVelocity = abs((newAngle - currentAngle) / deltaTimeSeconds); // Convert to degrees per second, always positive
-    currentAngle = newAngle;
+    // Apply position smoothing to eliminate "notch" behavior
+    smoothedAngle = smoothedAngle + (smoothingFactor * (newAngle - smoothedAngle));
     
-    // Send command to servo
-    servo->write(currentAngle);
+    // Ensure minimum position increment to prevent stuttering
+    float positionDiff = abs(smoothedAngle - currentAngle);
+    if (positionDiff < minPositionIncrement && currentState != IDLE) {
+        // Apply minimum increment in the correct direction
+        int direction = (smoothedAngle > currentAngle) ? 1 : -1;
+        smoothedAngle = currentAngle + (direction * minPositionIncrement);
+    }
+    
+    // Update current angle and velocity
+    float deltaTimeSeconds = deltaTime / 1000000.0; // Convert microseconds to seconds
+    currentVelocity = abs((smoothedAngle - currentAngle) / deltaTimeSeconds);
+    currentAngle = smoothedAngle;
+    
+    // Send command to servo at controlled frequency
+    if (currentTime - lastServoUpdateTime >= 5000) { // 5ms servo update rate (200Hz)
+        servo->write(currentAngle);
+        lastServoUpdateTime = currentTime;
+    }
     
     // Update timing
     lastUpdateTime = currentTime;
@@ -152,9 +193,9 @@ void ServoAccelerationController::update() {
     if (abs(currentAngle - targetAngle) < 0.1 && abs(currentVelocity) < 0.01) {
         currentState = IDLE;
         currentVelocity = 0.0;
+        smoothedAngle = targetAngle; // Ensure final position is exact
+        servo->write(targetAngle); // Send final position command
     }
-    
-    // Debug output removed - servo acceleration controller working properly
 }
 
 //* ************************************************************************
@@ -199,11 +240,11 @@ void ServoAccelerationController::updateMotionState() {
 }
 
 float ServoAccelerationController::calculateNextPosition() {
-    unsigned long currentTime = millis();
+    unsigned long currentTime = micros();
     unsigned long deltaTime = currentTime - lastUpdateTime;
     
     // Convert deltaTime to seconds for proper acceleration calculations
-    float deltaTimeSeconds = deltaTime / 1000.0;
+    float deltaTimeSeconds = deltaTime / 1000000.0; // Convert microseconds to seconds
     
     float newAngle = currentAngle;
     float newVelocity = currentVelocity;
@@ -308,8 +349,11 @@ void ServoAccelerationController::reset() {
     currentVelocity = 0.0;
     startAngle = 0.0;
     currentState = IDLE;
-    lastUpdateTime = millis();
-    moveStartTime = millis();
+    lastUpdateTime = micros();
+    moveStartTime = micros();
+    
+    // Reset smoothing
+    smoothedAngle = 90.0;
 }
 
 void ServoAccelerationController::setCurrentAngle(float angle) {
@@ -318,5 +362,8 @@ void ServoAccelerationController::setCurrentAngle(float angle) {
     startAngle = angle;
     currentVelocity = 0.0;
     currentState = IDLE;
-    lastUpdateTime = millis(); // Reset timing
+    lastUpdateTime = micros(); // Reset timing
+    
+    // Reset smoothing
+    smoothedAngle = angle;
 } 

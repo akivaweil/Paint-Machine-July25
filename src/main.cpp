@@ -194,17 +194,22 @@ void initializeServo() {
   
   loaderServo.init(LOADER_SERVO_PIN, 7, 50, 14); // Pin, channel, frequency, resolution
   
-  // Configure servo acceleration controller with conservative default settings
+  // Configure servo acceleration controller with improved settings for smooth motion
   mainServoController.setAccelerationProfile(
-    10.0,   // Acceleration rate (degrees/second^2) - same as deceleration
-    30.0    // Max velocity (degrees/second)
+    200.0,  // Acceleration rate (degrees/second^2) - reduced for smoother motion
+    1500.0  // Max velocity (degrees/second) - reduced for smoother motion
   );
+  
+  // Configure smoothing and timing for smooth motion
+  mainServoController.setSmoothingFactor(0.15); // 15% smoothing factor
+  mainServoController.setUpdateInterval(5000); // 5ms update interval (200Hz)
   
   // Set initial servo position to 90 degrees and update controller
   loaderServo.write(90);
   mainServoController.setCurrentAngle(90);
   
   Serial.println("Loader servo and acceleration controller initialized");
+  Serial.println("Servo settings - Accel: 200°/s², Max Speed: 1500°/s, Smoothing: 0.15, Update Rate: 200Hz");
 }
 
 void updateButtons() {

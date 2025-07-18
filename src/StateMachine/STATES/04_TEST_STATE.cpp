@@ -33,9 +33,11 @@ static const int TEST_POSITION_2_INCHES = 1;   // Second position: 1 inch (home 
 static const int SERVO_POSITION_1_DEGREES = 70; // First servo position: 70 degrees
 static const int SERVO_POSITION_2_DEGREES = 130; // Second servo position: 130 degrees
 
-// Servo test settings
-static const int SERVO_TEST_ACCEL = 500;    // Servo acceleration for test
-static const int SERVO_TEST_MAX_SPEED = 3000; // Servo max speed for test
+// Improved servo test settings for smoother motion
+static const int SERVO_TEST_ACCEL = 200;     // Reduced acceleration for smoother motion
+static const int SERVO_TEST_MAX_SPEED = 1500; // Reduced max speed for smoother motion
+static const float SERVO_SMOOTHING_FACTOR = 0.15; // Smoothing factor (15% per update)
+static const unsigned long SERVO_UPDATE_INTERVAL = 5000; // 5ms update interval (200Hz)
 
 //* ************************************************************************
 //* ************************ TEST STATE FUNCTIONS ************************
@@ -51,13 +53,25 @@ void executeTestState() {
         Serial.println("=== ENTERING TEST STATE ===");
         Serial.println("Manual testing mode activated");
         Serial.println("Test sequence: 10\" @ 70° -> 1\" @ 130°");
+        Serial.println("Using improved servo settings for smooth motion");
         testStateInitialized = true;
         testComplete = false;
-            testStep = 0;
-    motorMoving = false;
-    servoMoving = false;
-    testDelay = 0;
-    stepStartTime = 0;
+        testStep = 0;
+        motorMoving = false;
+        servoMoving = false;
+        testDelay = 0;
+        stepStartTime = 0;
+        
+        // Configure servo controller for smooth motion
+        if (testServoController) {
+            testServoController->setAccelerationProfile(SERVO_TEST_ACCEL, SERVO_TEST_MAX_SPEED);
+            testServoController->setSmoothingFactor(SERVO_SMOOTHING_FACTOR);
+            testServoController->setUpdateInterval(SERVO_UPDATE_INTERVAL);
+            Serial.println("Servo configured - Accel: " + String(SERVO_TEST_ACCEL) + 
+                          ", Max Speed: " + String(SERVO_TEST_MAX_SPEED) + 
+                          ", Smoothing: " + String(SERVO_SMOOTHING_FACTOR) + 
+                          ", Update Rate: 200Hz");
+        }
         
         //! ************************************************************************
         //! STEP 1: START TEST SEQUENCE
@@ -67,7 +81,7 @@ void executeTestState() {
     }
     
     //! ************************************************************************
-    //! STEP 2: UPDATE SERVO CONTROLLER
+    //! STEP 2: UPDATE SERVO CONTROLLER (MORE FREQUENTLY)
     //! ************************************************************************
     if (testServoController) {
         testServoController->update();
@@ -92,12 +106,11 @@ void executeTestState() {
                     Serial.println("Motor moving to: " + String(targetPosition) + " steps (" + String(TEST_POSITION_1_INCHES) + " inches)");
                 }
                 
-                // Move servo to 70 degrees with specified acceleration and speed
+                // Move servo to 70 degrees with improved settings
                 if (testServoController) {
-                    testServoController->setAccelerationProfile(SERVO_TEST_ACCEL, SERVO_TEST_MAX_SPEED);
                     testServoController->moveTo(SERVO_POSITION_1_DEGREES);
                     servoMoving = true;
-                    Serial.println("Servo moving to: " + String(SERVO_POSITION_1_DEGREES) + " degrees (accel: " + String(SERVO_TEST_ACCEL) + ", max speed: " + String(SERVO_TEST_MAX_SPEED) + ")");
+                    Serial.println("Servo moving to: " + String(SERVO_POSITION_1_DEGREES) + " degrees (smooth motion enabled)");
                 }
             }
             
@@ -105,7 +118,7 @@ void executeTestState() {
             if (testZMotor && testServoController) {
                 bool motorComplete = !testZMotor->isRunning();
                 bool servoComplete = testServoController->hasReachedTarget() || 
-                                   (abs(testServoController->getCurrentAngle() - SERVO_POSITION_1_DEGREES) < 2.0 && 
+                                   (abs(testServoController->getCurrentAngle() - SERVO_POSITION_1_DEGREES) < 1.0 && 
                                     !testServoController->isMoving());
                 
                 // Debug output
@@ -113,10 +126,10 @@ void executeTestState() {
                 if (millis() - lastDebugTime > 1000) { // Print every second
                     Serial.println("Debug - Motor running: " + String(motorComplete ? "NO" : "YES") + 
                                    ", Servo target reached: " + String(servoComplete ? "YES" : "NO") +
-                                   ", Servo angle: " + String(testServoController->getCurrentAngle()) +
+                                   ", Servo angle: " + String(testServoController->getCurrentAngle(), 1) +
                                    ", Target: " + String(SERVO_POSITION_1_DEGREES) +
                                    ", State: " + String(testServoController->getMotionState()) +
-                                   ", Distance: " + String(abs(testServoController->getCurrentAngle() - SERVO_POSITION_1_DEGREES)));
+                                   ", Distance: " + String(abs(testServoController->getCurrentAngle() - SERVO_POSITION_1_DEGREES), 1));
                     lastDebugTime = millis();
                 }
                 
@@ -147,7 +160,7 @@ void executeTestState() {
                 Serial.println("Test Step 2: Moving to 1 inch (home offset) with servo at 130°");
                 stepStartTime = millis(); // Start timeout timer
                 
-                // Move motor to 2 inches
+                // Move motor to 1 inch
                 if (testZMotor) {
                     int targetPosition = TEST_POSITION_2_INCHES * STEPS_PER_INCH;
                     testZMotor->setSpeedInHz(Z_MAX_SPEED);
@@ -157,12 +170,11 @@ void executeTestState() {
                     Serial.println("Motor moving to: " + String(targetPosition) + " steps (" + String(TEST_POSITION_2_INCHES) + " inches)");
                 }
                 
-                // Move servo to 130 degrees with specified acceleration and speed
+                // Move servo to 130 degrees with improved settings
                 if (testServoController) {
-                    testServoController->setAccelerationProfile(SERVO_TEST_ACCEL, SERVO_TEST_MAX_SPEED);
                     testServoController->moveTo(SERVO_POSITION_2_DEGREES);
                     servoMoving = true;
-                    Serial.println("Servo moving to: " + String(SERVO_POSITION_2_DEGREES) + " degrees (accel: " + String(SERVO_TEST_ACCEL) + ", max speed: " + String(SERVO_TEST_MAX_SPEED) + ")");
+                    Serial.println("Servo moving to: " + String(SERVO_POSITION_2_DEGREES) + " degrees (smooth motion enabled)");
                 }
             }
             
@@ -170,7 +182,7 @@ void executeTestState() {
             if (testZMotor && testServoController) {
                 bool motorComplete = !testZMotor->isRunning();
                 bool servoComplete = testServoController->hasReachedTarget() || 
-                                   (abs(testServoController->getCurrentAngle() - SERVO_POSITION_2_DEGREES) < 2.0 && 
+                                   (abs(testServoController->getCurrentAngle() - SERVO_POSITION_2_DEGREES) < 1.0 && 
                                     !testServoController->isMoving());
                 
                 // Debug output
@@ -178,10 +190,10 @@ void executeTestState() {
                 if (millis() - lastDebugTime2 > 1000) { // Print every second
                     Serial.println("Debug Step 2 - Motor running: " + String(motorComplete ? "NO" : "YES") + 
                                    ", Servo target reached: " + String(servoComplete ? "YES" : "NO") +
-                                   ", Servo angle: " + String(testServoController->getCurrentAngle()) +
+                                   ", Servo angle: " + String(testServoController->getCurrentAngle(), 1) +
                                    ", Target: " + String(SERVO_POSITION_2_DEGREES) +
                                    ", State: " + String(testServoController->getMotionState()) +
-                                   ", Distance: " + String(abs(testServoController->getCurrentAngle() - SERVO_POSITION_2_DEGREES)));
+                                   ", Distance: " + String(abs(testServoController->getCurrentAngle() - SERVO_POSITION_2_DEGREES), 1));
                     lastDebugTime2 = millis();
                 }
                 

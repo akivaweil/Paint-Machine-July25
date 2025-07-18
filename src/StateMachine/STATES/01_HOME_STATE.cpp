@@ -154,23 +154,26 @@ void performTestMotionSequence() {
         return;
     }
     
+    // Configure servo controller for smooth motion
+    homeServoController->setAccelerationProfile(200, 1500); // Improved settings
+    homeServoController->setSmoothingFactor(0.15); // 15% smoothing factor
+    homeServoController->setUpdateInterval(5000); // 5ms update interval (200Hz)
+    
     //! ************************************************************************
-    //! STEP 1: MOVE SERVO TO 70 DEGREES
+    //! STEP 1: MOVE SERVO TO 50 DEGREES
     //! ************************************************************************
-    Serial.println("Moving servo to 70 degrees...");
-    homeServoController->setAccelerationProfile(100, 150);
+    Serial.println("Moving servo to 50 degrees (smooth motion enabled)...");
     homeServoController->moveTo(50);
     while (homeServoController->isMoving()) {
         homeServoController->update();
         delay(10);
     }
-    Serial.println("Servo reached 70 degrees");
+    Serial.println("Servo reached 50 degrees");
     
     //! ************************************************************************
-    //! STEP 2: MOVE FROM 70 TO 130 WITH ACCEL 10
+    //! STEP 2: MOVE FROM 50 TO 150 DEGREES WITH IMPROVED SETTINGS
     //! ************************************************************************
-    Serial.println("Moving servo from 70 to 130 degrees with acceleration 10...");
-    homeServoController->setAccelerationProfile(500, 3000);
+    Serial.println("Moving servo from 50 to 150 degrees (smooth motion enabled)...");
     homeServoController->moveTo(150);
     
     unsigned long startTime = millis();
@@ -184,7 +187,7 @@ void performTestMotionSequence() {
             break;
         }
     }
-    Serial.println("Servo reached 130 degrees with accel 10");
+    Serial.println("Servo reached 150 degrees");
     
     Serial.println("=== TEST MOTION SEQUENCE COMPLETE ===");
 }
