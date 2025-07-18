@@ -39,9 +39,12 @@ int ServoControl::angleToDuty(float angle) {
 void ServoControl::write(float angle) {
     if (channel >= 0) {
         int duty = angleToDuty(angle);
+        Serial.println("Servo write - Angle: " + String(angle) + ", Duty: " + String(duty) + ", Channel: " + String(channel));
         ledcWrite(channel, duty);
         targetAngle = angle; // Store the target angle
         lastUpdateTime = millis(); // Record the time of update
+    } else {
+        Serial.println("ERROR: Servo channel not initialized!");
     }
 }
 

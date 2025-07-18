@@ -18,7 +18,7 @@ float STEPS_PER_INCH = (STEPS_PER_MM * 25.4);
 //* ************************ Z-AXIS POSITION SETTINGS *********************
 //* ************************************************************************
 // Z-axis position settings (in inches)
-float Z_HOME_OFFSET_INCHES = 2.0;    // Distance to move away from home switch after homing
+float Z_HOME_OFFSET_INCHES = 133.0;    // Distance to move away from home switch after homing
 int Z_HOME_OFFSET_STEPS = (int)(Z_HOME_OFFSET_INCHES * STEPS_PER_INCH);
 
 // Z-axis cycle movement settings

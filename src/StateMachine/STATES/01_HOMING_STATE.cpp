@@ -78,8 +78,16 @@ void executeHomingState() {
         // Update the home switch state
         homingZHomeSwitch->update();
         
+        // Debug: Print switch state
+        static bool lastSwitchState = false;
+        bool currentSwitchState = homingZHomeSwitch->read();
+        if (currentSwitchState != lastSwitchState) {
+            Serial.println("Home switch state changed to: " + String(currentSwitchState ? "TRIGGERED" : "NOT TRIGGERED"));
+            lastSwitchState = currentSwitchState;
+        }
+        
         // Check if home switch is triggered (active high)
-        if (homingZHomeSwitch->read()) {
+        if (currentSwitchState) {
             //! ************************************************************************
             //! STEP 4: HOME SWITCH TRIGGERED - STOP AND SET HOME
             //! ************************************************************************
@@ -91,6 +99,18 @@ void executeHomingState() {
             
             // Start servo sequence with acceleration curves
             if (servoController && homingServo) {
+                Serial.println("Servo references are valid - starting sequence");
+                
+                // Test direct servo movement first
+                Serial.println("Testing direct servo movement in homing state...");
+                homingServo->write(0);
+                delay(1000);
+                homingServo->write(180);
+                delay(1000);
+                homingServo->write(90);
+                delay(1000);
+                Serial.println("Direct servo test in homing state complete");
+                
                 servoSequenceStarted = true;
                 currentServoMovement = 0;
                 
@@ -125,6 +145,15 @@ void executeHomingState() {
     //! STEP 5: EXECUTE SERVO ACCELERATION SEQUENCE
     //! ************************************************************************
     if (servoSequenceStarted && servoController && homingServo) {
+        // Debug: Print servo status
+        static unsigned long lastDebugTime = 0;
+        if (millis() - lastDebugTime > 1000) { // Print every second
+            Serial.println("Servo sequence active - Movement: " + String(currentServoMovement) + 
+                          ", Current angle: " + String(servoController->getCurrentAngle()) + 
+                          ", Target reached: " + String(servoController->hasReachedTarget()));
+            lastDebugTime = millis();
+        }
+        
         // Update servo controller
         servoController->update();
         
@@ -167,7 +196,8 @@ void executeHomingState() {
         }
     }
     
-    if (!servoSequenceStarted && !homingComplete) {
+    // Only show error if we don't have the required components
+    if (!homingZMotor || !homingZHomeSwitch) {
         Serial.println("ERROR: Z motor or home switch not available");
         setState(IDLE_STATE);
     }
@@ -189,6 +219,9 @@ void setHomingReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch) {
     //! ************************************************************************
     homingZMotor = motor;
     homingZHomeSwitch = homeSwitch;
+    
+    Serial.println("Homing motor/switch references set - Motor: " + String(motor ? "VALID" : "NULL") + 
+                  ", Switch: " + String(homeSwitch ? "VALID" : "NULL"));
 }
 
 void setHomingServoReferences(ServoControl* servo, ServoAccelerationController* controller) {
@@ -197,4 +230,7 @@ void setHomingServoReferences(ServoControl* servo, ServoAccelerationController* 
     //! ************************************************************************
     homingServo = servo;
     servoController = controller;
+    
+    Serial.println("Homing servo references set - Servo: " + String(servo ? "VALID" : "NULL") + 
+                  ", Controller: " + String(controller ? "VALID" : "NULL"));
 } 
