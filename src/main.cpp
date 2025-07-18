@@ -55,6 +55,7 @@ void homeZAxis();
 void moveAwayFromHome();
 void performServoSequence();
 void performCycle();
+void performServoAccelerationSequence();
 
 //* ************************************************************************
 //* *********************** SETUP FUNCTION ********************************
@@ -234,17 +235,31 @@ void performStartupSequence() {
   // Step 1: Set up state machine references
   setupStateMachineReferences();
   
-  // Step 2: Start homing state (which includes servo acceleration sequence)
-  setState(HOMING_STATE);
-  
-  // Step 3: Wait for homing to complete
-  while (getCurrentState() == HOMING_STATE) {
-    updateStateMachine();
-    updateButtons();
-    delay(10);
+  // Step 2: Check if already at home position
+  updateButtons(); // Update button states
+  if (zHomeSwitch.read()) {
+    Serial.println("Already at home position - skipping homing");
+    // Set home position without moving
+    if (zMotor) {
+      zMotor->setCurrentPosition(0);
+    }
+    
+    // Still perform servo acceleration sequence
+    Serial.println("Performing servo acceleration sequence...");
+    performServoAccelerationSequence();
+  } else {
+    // Step 3: Start homing state (which includes servo acceleration sequence)
+    setState(HOMING_STATE);
+    
+    // Step 4: Wait for homing to complete
+    while (getCurrentState() == HOMING_STATE) {
+      updateStateMachine();
+      updateButtons();
+      delay(10);
+    }
   }
   
-  // Step 4: Move 10 inches away from home
+  // Step 5: Move 10 inches away from home
   moveAwayFromHome();
   
   systemInitialized = true;
@@ -420,4 +435,53 @@ void performCycle() {
   //! ************************************************************************
   cycleInProgress = false;
   Serial.println("=== CYCLE OPERATION COMPLETE ===");
+}
+
+void performServoAccelerationSequence() {
+  //! ************************************************************************
+  //! PERFORM SERVO ACCELERATION SEQUENCE: 5 movements with increasing acceleration
+  //! ************************************************************************
+  Serial.println("Starting servo acceleration sequence...");
+  
+  // Set initial servo position to center (90 degrees)
+  mainServoController.setCurrentAngle(90.0);
+  loaderServo.write(90.0);
+  delay(100); // Give servo time to reach position
+  
+  // Perform 5 movements with increasing acceleration
+  for (int movement = 0; movement < 5; movement++) {
+    // Calculate acceleration for this movement (increasing with each movement)
+    float baseAccel = 0.001; // Base acceleration rate
+    float currentAccel = baseAccel * (movement + 1); // Increase acceleration each time
+    
+    // Set acceleration profile for this movement
+    mainServoController.setAccelerationProfile(
+      currentAccel,  // Acceleration rate
+      currentAccel,  // Deceleration rate (same as acceleration)
+      currentAccel * 1000  // Max velocity (calculated from acceleration)
+    );
+    
+    // Calculate target angle (alternate between +15 and -15 degrees from center)
+    float targetAngle;
+    if (movement % 2 == 0) {
+      targetAngle = 90.0 + 15.0; // Move to 105 degrees
+    } else {
+      targetAngle = 90.0 - 15.0; // Move to 75 degrees
+    }
+    
+    // Start the movement
+    mainServoController.moveTo(targetAngle);
+    
+    Serial.println("Servo movement " + String(movement + 1) + 
+                  " - Moving to " + String(targetAngle) + 
+                  " degrees with acceleration " + String(currentAccel));
+    
+    // Wait for movement to complete
+    while (mainServoController.isMoving()) {
+      mainServoController.update();
+      delay(10);
+    }
+  }
+  
+  Serial.println("Servo acceleration sequence complete");
 }
