@@ -40,6 +40,9 @@ void executeRetrieveState();
 void executeStoreState();
 void executeTestState();
 
+// Home state specific functions
+void performTestMotionSequence();
+
 // State reference setup functions
 void setHomeReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch);
 void setHomeServoReferences(ServoControl* servo, ServoAccelerationController* controller);
