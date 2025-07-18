@@ -8,7 +8,7 @@
 //* ************************************************************************
 //* ************************ MECHANICAL SETTINGS **************************
 //* ************************************************************************
-int STEPS_PER_REV = 200;       // Standard stepper motor steps per revolution (1.8° per step)
+int STEPS_PER_REV = 400;       // Standard stepper motor steps per revolution (1.8° per step)
 int PULLEY_TEETH = 20;         // GT2 pulley teeth count (20-tooth pulley)
 float BELT_PITCH = 2.0;        // GT2 belt pitch in mm
 float STEPS_PER_MM = ((float)STEPS_PER_REV / (PULLEY_TEETH * BELT_PITCH));
@@ -38,13 +38,13 @@ int SERVO_THIRD_POS = 70;      // Third position in sequence
 //* ************************************************************************
 // Timing settings (in milliseconds)
 int SERVO_MOVE_DELAY = 1000;      // Wait time between servo movements (1 second)
-int HOME_SWITCH_DEBOUNCE = 5;      // Home switch debounce time (5ms)
-int START_BUTTON_DEBOUNCE = 50;    // Start button debounce time (50ms)
+int HOME_SWITCH_DEBOUNCE = 50;      // Home switch debounce time (5ms)
+int START_BUTTON_DEBOUNCE = 20;    // Start button debounce time (50ms)
 
 //* ************************************************************************
 //* ************************ Z-AXIS MOTOR SETTINGS ************************
 //* ************************************************************************
 // Z-axis stepper motor settings
-float Z_MAX_SPEED = 1000.0;      // Maximum speed in steps per second
-float Z_ACCELERATION = 2000.0;   // Acceleration in steps per second^2
-float Z_HOMING_SPEED = 200.0;    // Slow homing speed 
+float Z_MAX_SPEED = 5000.0;      // Maximum speed in steps per second
+float Z_ACCELERATION = 5000.0;   // Acceleration in steps per second^2
+float Z_HOMING_SPEED = 1000.0;    // Slow homing speed 

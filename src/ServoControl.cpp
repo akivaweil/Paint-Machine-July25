@@ -20,6 +20,12 @@ void ServoControl::init(int servoPin, int pwmChannel, int freq, int res) {
     // Setup PWM channel
     ledcSetup(channel, frequency, resolution);
     ledcAttachPin(pin, channel);
+    
+    Serial.println("Servo initialized:");
+    Serial.println("  Pin: " + String(pin));
+    Serial.println("  Channel: " + String(channel));
+    Serial.println("  Frequency: " + String(frequency) + " Hz");
+    Serial.println("  Resolution: " + String(resolution) + " bits");
 }
 
 int ServoControl::angleToDuty(float angle) {
@@ -27,13 +33,19 @@ int ServoControl::angleToDuty(float angle) {
     if (angle < minAngle) angle = minAngle;
     if (angle > maxAngle) angle = maxAngle;
     
-    // Map angle to pulse width in microseconds
-    float pulseWidth = map(angle, minAngle, maxAngle, minPulseWidth, maxPulseWidth);
+    // Map angle to pulse width in microseconds using linear interpolation
+    float pulseWidth = minPulseWidth + (angle - minAngle) * (maxPulseWidth - minPulseWidth) / (maxAngle - minAngle);
     
     // Convert pulse width to duty cycle
-    // For 16-bit resolution: duty = (pulseWidth / 20000) * 65535
+    // Period = 1/frequency seconds = 1,000,000/frequency microseconds
+    float periodMicros = 1000000.0 / frequency;
+    
+    // Calculate duty cycle as percentage of period
+    float dutyCyclePercent = pulseWidth / periodMicros;
+    
+    // Convert to actual duty value based on resolution
     int maxDuty = (1 << resolution) - 1;
-    int duty = (pulseWidth / (1000000.0 / frequency)) * maxDuty;
+    int duty = (int)(dutyCyclePercent * maxDuty);
     
     return duty;
 }
@@ -42,15 +54,26 @@ void ServoControl::write(float angle) {
     if (channel >= 0) {
         int duty = angleToDuty(angle);
         ledcWrite(channel, duty);
+        
+        Serial.println("Servo moving to " + String(angle) + "° (duty: " + String(duty) + ")");
+    } else {
+        Serial.println("ERROR: Servo not initialized");
     }
 }
 
 void ServoControl::writeMicroseconds(int microseconds) {
     if (channel >= 0) {
         // Convert microseconds to duty cycle
+        float periodMicros = 1000000.0 / frequency;
+        float dutyCyclePercent = microseconds / periodMicros;
         int maxDuty = (1 << resolution) - 1;
-        int duty = (microseconds / (1000000.0 / frequency)) * maxDuty;
+        int duty = (int)(dutyCyclePercent * maxDuty);
+        
         ledcWrite(channel, duty);
+        
+        Serial.println("Servo pulse width: " + String(microseconds) + "μs (duty: " + String(duty) + ")");
+    } else {
+        Serial.println("ERROR: Servo not initialized");
     }
 }
 

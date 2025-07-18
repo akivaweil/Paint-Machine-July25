@@ -130,7 +130,7 @@ void initializeButtons() {
   startButton.interval(START_BUTTON_DEBOUNCE);
   
   // Z home switch: Active HIGH (input pulldown)
-  zHomeSwitch.attach(Z_HOME_SWITCH_PIN, INPUT_PULLDOWN);
+  zHomeSwitch.attach(Z_HOME_SWITCH_PIN, INPUT);
   zHomeSwitch.interval(HOME_SWITCH_DEBOUNCE);
   
   Serial.println("Buttons and switches setup complete");
@@ -169,7 +169,32 @@ void initializeServo() {
   
   loaderServo.init(LOADER_SERVO_PIN, 0, 50, 16); // Pin, channel, frequency, resolution
   
-  Serial.println("Loader servo initialized");
+  //! ************************************************************************
+  //! TEST SERVO MOVEMENT
+  //! ************************************************************************
+  Serial.println("Testing servo movement...");
+  
+  // Test movement to center position
+  Serial.println("Moving to 90 degrees (center)");
+  loaderServo.write(90);
+  delay(1000);
+  
+  // Test movement to one extreme
+  Serial.println("Moving to 0 degrees");
+  loaderServo.write(0);
+  delay(1000);
+  
+  // Test movement to other extreme
+  Serial.println("Moving to 180 degrees");
+  loaderServo.write(180);
+  delay(1000);
+  
+  // Return to center
+  Serial.println("Returning to 90 degrees");
+  loaderServo.write(90);
+  delay(500);
+  
+  Serial.println("Servo test complete - servo initialized");
 }
 
 void updateButtons() {
