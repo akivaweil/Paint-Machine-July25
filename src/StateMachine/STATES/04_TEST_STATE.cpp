@@ -76,6 +76,8 @@ static const float Z_TEST_ACCELERATION = 15000;   // Stepper acceleration for te
 // Cylinder sequence settings
 static const unsigned long CYLINDER_WAIT_TIME = 1000;  // 1 second wait time
 static const float CYLINDER_MOVE_DISTANCE = 0.5;       // 0.5 inches up movement
+static const float CYLINDER_MOVE_SPEED = 5000;         // Stepper speed for cylinder up movement (steps/sec)
+static const float CYLINDER_MOVE_ACCELERATION = 3000;  // Stepper acceleration for cylinder up movement (steps/sec^2)
 
 //* ************************************************************************
 //* ************************ TEST STATE FUNCTIONS ************************
@@ -229,8 +231,9 @@ void executeTestState() {
                             int targetPos = currentPos + (int)(CYLINDER_MOVE_DISTANCE * STEPS_PER_INCH);
                             Serial.println("Cylinder Step 1: Moving motor up " + String(CYLINDER_MOVE_DISTANCE) + " inches");
                             Serial.println("From: " + String(currentPos) + " steps to: " + String(targetPos) + " steps");
-                            testZMotor->setSpeedInHz(Z_TEST_MAX_SPEED);
-                            testZMotor->setAcceleration(Z_TEST_ACCELERATION);
+                            Serial.println("Cylinder move speed: " + String(CYLINDER_MOVE_SPEED) + " steps/sec, accel: " + String(CYLINDER_MOVE_ACCELERATION) + " steps/sec²");
+                            testZMotor->setSpeedInHz(CYLINDER_MOVE_SPEED);
+                            testZMotor->setAcceleration(CYLINDER_MOVE_ACCELERATION);
                             testZMotor->moveTo(targetPos);
                             cylinderStep = 2;
                         }
