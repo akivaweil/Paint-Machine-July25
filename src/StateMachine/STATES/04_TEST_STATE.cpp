@@ -231,6 +231,12 @@ void executeTestState() {
                 case 0: // Extend cylinder
                     if (testCylinder) {
                         Serial.println("Cylinder Step 0: Extending cylinder");
+                        
+                        // Stop servo controller during cylinder operations to prevent stuttering
+                        if (testServoController) {
+                            testServoController->stop();
+                        }
+                        
                         testCylinder->extend();
                         cylinderDelay = currentTime + CYLINDER_WAIT_TIME;
                         cylinderStep = 1;
@@ -267,6 +273,13 @@ void executeTestState() {
                 case 3: // Wait 1 second, then move to next position
                     if (currentTime >= cylinderDelay) {
                         Serial.println("Cylinder sequence complete - moving to next position");
+                        
+                        // Reset servo controller for next position
+                        if (testServoController) {
+                            float currentAngle = testServoController->getCurrentAngle();
+                            testServoController->setCurrentAngle(currentAngle);
+                        }
+                        
                         cylinderOperating = false;
                         motorMoving = false;
                         servoMoving = false;
