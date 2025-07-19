@@ -5,6 +5,7 @@
 #include "Config/Pins_Definitions.h"
 #include "ServoControl.h"
 #include "ServoAccelerationController.h"
+#include "CylinderControl.h"
 #include "OTA_Manager.h"
 #include "StateMachine.h"
 
@@ -36,6 +37,11 @@ ServoControl loaderServo;             // Loader servo
 ServoAccelerationController mainServoController(&loaderServo); // Servo acceleration controller
 
 //* ************************************************************************
+//* *********************** CYLINDER OBJECTS ******************************
+//* ************************************************************************
+CylinderControl extensionCylinder;    // Extension cylinder control
+
+//* ************************************************************************
 //* *********************** BUTTON CONTROL ********************************
 //* ************************************************************************
 Bounce2::Button startButton = Bounce2::Button();
@@ -52,6 +58,7 @@ bool cycleInProgress = false;         // Flag to prevent multiple cycles running
 //* ************************************************************************
 void initializeMotor();
 void initializeServo();
+void initializeCylinder();
 void initializeButtons();
 void updateButtons();
 void performStartupSequence();
@@ -89,6 +96,7 @@ void setup() {
   initializeButtons();
   initializeMotor();
   initializeServo();
+  initializeCylinder();
   
   Serial.println("Hardware systems initialized");
 
@@ -164,6 +172,19 @@ void loop() {
     } else if (command == "servo_stop") {
       Serial.println("Stopping servo");
       mainServoController.stop();
+    } else if (command == "cylinder_extend") {
+      Serial.println("Extending cylinder");
+      extensionCylinder.extend();
+    } else if (command == "cylinder_retract") {
+      Serial.println("Retracting cylinder");
+      extensionCylinder.retract();
+    } else if (command == "cylinder_toggle") {
+      Serial.println("Toggling cylinder state");
+      extensionCylinder.toggle();
+    } else if (command == "cylinder_status") {
+      Serial.println("=== CYLINDER STATUS ===");
+      Serial.println("Current state: " + String(extensionCylinder.getState() ? "EXTENDED" : "RETRACTED"));
+      Serial.println("Is extended: " + String(extensionCylinder.isCylinderExtended() ? "YES" : "NO"));
     }
   }
 
@@ -243,6 +264,21 @@ void initializeServo() {
   mainServoController.setCurrentAngle(90);
   
   Serial.println("Loader servo and acceleration controller initialized");
+}
+
+void initializeCylinder() {
+  //! ************************************************************************
+  //! INITIALIZE EXTENSION CYLINDER CONTROL
+  //! ************************************************************************
+  Serial.println("Setting up extension cylinder...");
+  Serial.println("Cylinder pin: " + String(EXTENSION_CYLINDER_PIN));
+  
+  extensionCylinder.begin();
+  
+  // Ensure cylinder starts in retracted position
+  extensionCylinder.retract();
+  
+  Serial.println("Extension cylinder initialized and retracted");
 }
 
 void updateButtons() {
