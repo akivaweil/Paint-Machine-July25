@@ -4,7 +4,7 @@
 #include "Config/Config.h"
 #include "Config/Pins_Definitions.h"
 #include "ServoControl.h"
-#include "ServoAccelerationController.h"
+
 #include "CylinderControl.h"
 #include "OTA_Manager.h"
 #include "StateMachine.h"
@@ -34,7 +34,7 @@ void handleOTA();
 FastAccelStepperEngine engine = FastAccelStepperEngine();
 FastAccelStepper *loaderHeightMotor = NULL;      // Loader height stepper motor (up/down)
 ServoControl loaderServo;             // Loader servo
-ServoAccelerationController mainServoController(&loaderServo); // Servo acceleration controller
+
 
 //* ************************************************************************
 //* *********************** CYLINDER OBJECTS ******************************
@@ -68,7 +68,7 @@ void moveAwayFromHome();
 void performServoSequence();
 void performCycle();
 void performServoAccelerationSequence();
-void testServoAccelerationController(); // New test function
+
 
 //* ************************************************************************
 //* *********************** SETUP FUNCTION ********************************
@@ -130,10 +130,7 @@ void loop() {
   //! ************************************************************************
   updateButtons();
 
-  //! ************************************************************************
-  //! STEP 3: UPDATE SERVO ACCELERATION CONTROLLER
-  //! ************************************************************************
-  mainServoController.update();
+
 
   //! ************************************************************************
   //! STEP 4: UPDATE STATE MACHINE
@@ -177,30 +174,22 @@ void loop() {
       } else if (commandType == 'a' && value >= 0 && value <= 180) {
         // Manual servo angle command
         Serial.println("Manual angle command: Moving servo to " + String(value) + " degrees");
-        mainServoController.moveTo(value);
+        loaderServo.write(value);
         Serial.println("Moving servo to: " + String(value) + " degrees");
         return; // Skip other command processing
       }
     }
     
     // Handle other commands
-    if (command == "test_servo") {
-      Serial.println("Manual servo test triggered");
-      testServoAccelerationController();
-    } else if (command == "servo_status") {
+    if (command == "servo_status") {
       Serial.println("=== SERVO STATUS ===");
-      Serial.println("Current angle: " + String(mainServoController.getCurrentAngle()) + "°");
-      Serial.println("Current velocity: " + String(mainServoController.getCurrentVelocity()) + " deg/s");
-      Serial.println("Motion state: " + String(mainServoController.getMotionState()));
-      Serial.println("Is moving: " + String(mainServoController.isMoving() ? "YES" : "NO"));
-      Serial.println("Has reached target: " + String(mainServoController.hasReachedTarget() ? "YES" : "NO"));
+      Serial.println("Servo is available and ready");
     } else if (command.startsWith("servo_move ")) {
       int targetAngle = command.substring(11).toInt();
       Serial.println("Moving servo to: " + String(targetAngle) + "°");
-      mainServoController.moveTo(targetAngle);
+      loaderServo.write(targetAngle);
     } else if (command == "servo_stop") {
-      Serial.println("Stopping servo");
-      mainServoController.stop();
+      Serial.println("Servo stop command - no action needed (direct servo control)");
     } else if (command == "cylinder_extend") {
       Serial.println("Extending cylinder");
       extensionCylinder.extend();
@@ -234,8 +223,7 @@ void loop() {
         Serial.println("Loader Height Position: " + String(currentSteps) + " steps (" + String(currentInches, 2) + " inches)");
         Serial.println("Loader Height Motor running: " + String(loaderHeightMotor->isRunning() ? "YES" : "NO"));
       }
-      Serial.println("Servo Angle: " + String(mainServoController.getCurrentAngle(), 1) + " degrees");
-      Serial.println("Servo moving: " + String(mainServoController.isMoving() ? "YES" : "NO"));
+      Serial.println("Servo: Available and ready");
       Serial.println("Current State: " + getStateName(getCurrentState()));
     } else if (command.length() > 0) {
       Serial.println("Unknown command: " + command);
@@ -298,7 +286,7 @@ void initializeMotor() {
 
 void initializeServo() {
   //! ************************************************************************
-  //! INITIALIZE LOADER SERVO AND ACCELERATION CONTROLLER
+  //! INITIALIZE LOADER SERVO
   //! ************************************************************************
   Serial.println("Setting up loader servo...");
   Serial.println("Servo pin: " + String(LOADER_SERVO_PIN));
@@ -308,17 +296,10 @@ void initializeServo() {
   
   loaderServo.init(LOADER_SERVO_PIN, 7, 50, 14); // Pin, channel, frequency, resolution
   
-  // Configure servo acceleration controller with conservative default settings
-  mainServoController.setAccelerationProfile(
-    10.0,   // Acceleration rate (degrees/second^2) - same as deceleration
-    30.0    // Max velocity (degrees/second)
-  );
-  
-  // Set initial servo position to 90 degrees and update controller
+  // Set initial servo position to 90 degrees
   loaderServo.write(90);
-  mainServoController.setCurrentAngle(90);
   
-  Serial.println("Loader servo and acceleration controller initialized");
+  Serial.println("Loader servo initialized");
 }
 
 void initializeCylinder() {
@@ -352,7 +333,7 @@ void setupStateMachineReferences() {
   
   // Set references for home state
   setHomeReferences(loaderHeightMotor, &loaderHeightHomeSwitch);
-  setHomeServoReferences(&loaderServo, &mainServoController);
+
   
   // Set references for retrieve state
   setRetrieveReferences(loaderHeightMotor);
@@ -361,10 +342,10 @@ void setupStateMachineReferences() {
   setStoreReferences(loaderHeightMotor);
   
   // Set references for test state
-  setTestReferences(loaderHeightMotor, &mainServoController, &extensionCylinder);
+  setTestReferences(loaderHeightMotor, &extensionCylinder);
   
   // Set references for idle state
-  setIdleReferences(&mainServoController);
+
   
   Serial.println("State machine references configured");
 }
@@ -390,13 +371,9 @@ void performStartupSequence() {
     // Move away from home position
     moveAwayFromHome();
     
-    // Test servo acceleration controller
-    Serial.println("Testing servo acceleration controller...");
-    testServoAccelerationController();
+
     
-    // Perform servo acceleration sequence
-    Serial.println("Performing servo acceleration sequence...");
-    performServoAccelerationSequence();
+
   } else {
     // Step 3: Start home state (which now includes moving away from home)
     setState(HOME_STATE);
@@ -502,34 +479,22 @@ void performServoSequence() {
   //! STEP 1: MOVE TO 90 DEGREES
   //! ************************************************************************
   Serial.println("Moving servo to " + String(SERVO_START_POS) + " degrees");
-  mainServoController.moveTo(SERVO_START_POS);
-  while (!mainServoController.isMoveComplete()) {
-    mainServoController.update();
-    // handleOTA();
-    delay(10);
-  }
+  loaderServo.write(SERVO_START_POS);
+  delay(1000); // Give servo time to reach position
 
   //! ************************************************************************
   //! STEP 2: MOVE TO 45 DEGREES
   //! ************************************************************************
   Serial.println("Moving servo to " + String(SERVO_SECOND_POS) + " degrees");
-  mainServoController.moveTo(SERVO_SECOND_POS);
-  while (!mainServoController.isMoveComplete()) {
-    mainServoController.update();
-    // handleOTA();
-    delay(10);
-  }
+  loaderServo.write(SERVO_SECOND_POS);
+  delay(1000); // Give servo time to reach position
 
   //! ************************************************************************
   //! STEP 3: MOVE TO 70 DEGREES
   //! ************************************************************************
   Serial.println("Moving servo to " + String(SERVO_THIRD_POS) + " degrees");
-  mainServoController.moveTo(SERVO_THIRD_POS);
-  while (!mainServoController.isMoveComplete()) {
-    mainServoController.update();
-    // handleOTA();
-    delay(10);
-  }
+  loaderServo.write(SERVO_THIRD_POS);
+  delay(1000); // Give servo time to reach position
 
   Serial.println("Servo sequence complete");
 }
@@ -597,164 +562,5 @@ void performCycle() {
   Serial.println("=== CYCLE OPERATION COMPLETE ===");
 }
 
-void performServoAccelerationSequence() {
-  //! ************************************************************************
-  //! PERFORM SERVO ACCELERATION SEQUENCE: 5 movements with increasing acceleration
-  //! ************************************************************************
-  Serial.println("Starting servo acceleration sequence...");
-  
-  // Set initial servo position to center (90 degrees)
-  mainServoController.setCurrentAngle(90);
-  loaderServo.write(90.0);
-  delay(100); // Give servo time to reach position
-  
-  // Perform 5 movements with increasing acceleration
-  for (int movement = 0; movement < 5; movement++) {
-    // Calculate acceleration for this movement (increasing with each movement)
-    float baseAccel = 5.0; // Base acceleration rate (degrees/second^2)
-    float currentAccel = baseAccel * (movement + 1); // Increase acceleration each time
-    
-    // Set acceleration profile for this movement
-    mainServoController.setAccelerationProfile(
-      currentAccel,  // Acceleration rate (same as deceleration)
-      currentAccel * 3  // Max velocity (calculated from acceleration)
-    );
-    
-    // Calculate target angle (alternate between +30 and -30 degrees from center)
-    float targetAngle;
-    if (movement % 2 == 0) {
-      targetAngle = 90.0 + 30.0; // Move to 120 degrees
-    } else {
-      targetAngle = 90.0 - 30.0; // Move to 60 degrees
-    }
-    
-    // Start the movement
-    mainServoController.moveTo((int)targetAngle);
-    
-    Serial.println("Servo movement " + String(movement + 1) + 
-                  " - Moving to " + String(targetAngle) + 
-                  " degrees with acceleration " + String(currentAccel));
-    
-    // Wait for movement to complete using new position verification
-    while (!mainServoController.isMoveComplete()) {
-      mainServoController.update();
-      delay(10);
-    }
-  }
-  
-  Serial.println("Servo acceleration sequence complete");
-}
 
-void testServoAccelerationController() {
-  //! ************************************************************************
-  //! COMPREHENSIVE SERVO ACCELERATION CONTROLLER TEST
-  //! ************************************************************************
-  Serial.println("=== SERVO ACCELERATION CONTROLLER TEST ===");
-  
-  // Test 1: Basic initialization check
-  Serial.println("Test 1: Checking servo controller initialization...");
-  // Note: mainServoController is an object, not a pointer, so it's always valid
-  Serial.println("✓ Servo objects initialized correctly");
-  
-  Serial.println("✓ Servo objects initialized correctly");
-  
-  // Test 2: Set servo to known position
-  Serial.println("Test 2: Setting servo to 90 degrees...");
-  mainServoController.setCurrentAngle(90);
-  loaderServo.write(90.0);
-  delay(500); // Give servo time to reach position
-  
-  Serial.println("✓ Servo positioned at 90 degrees");
-  
-  // Test 3: Test slow movement
-  Serial.println("Test 3: Testing slow movement (90° -> 120°)...");
-  mainServoController.setAccelerationProfile(5.0, 15.0); // Slow and smooth
-  mainServoController.moveTo(120);
-  
-  // Use new position verification method
-  while (!mainServoController.isMoveComplete()) {
-    mainServoController.update();
-    delay(10);
-  }
-  
-  if (mainServoController.hasReachedTarget()) {
-    Serial.println("✓ Slow movement test passed");
-  } else {
-    Serial.println("✗ Slow movement test failed - timeout");
-  }
-  
-  // Test 4: Test fast movement
-  Serial.println("Test 4: Testing fast movement (120° -> 60°)...");
-  mainServoController.setAccelerationProfile(20.0, 60.0); // Fast and aggressive
-  mainServoController.moveTo(60);
-  
-  // Use new position verification method
-  while (!mainServoController.isMoveComplete()) {
-    mainServoController.update();
-    delay(10);
-  }
-  
-  if (mainServoController.hasReachedTarget()) {
-    Serial.println("✓ Fast movement test passed");
-  } else {
-    Serial.println("✗ Fast movement test failed - timeout");
-  }
-  
-  // Test 5: Test return to center
-  Serial.println("Test 5: Testing return to center (60° -> 90°)...");
-  mainServoController.setAccelerationProfile(10.0, 30.0); // Medium settings
-  mainServoController.moveTo(90);
-  
-  // Use new position verification method
-  while (!mainServoController.isMoveComplete()) {
-    mainServoController.update();
-    delay(10);
-  }
-  
-  if (mainServoController.hasReachedTarget()) {
-    Serial.println("✓ Return to center test passed");
-  } else {
-    Serial.println("✗ Return to center test failed - timeout");
-  }
-  
-  // Test 6: Test stop functionality
-  Serial.println("Test 6: Testing stop functionality...");
-  mainServoController.moveTo(150);
-  delay(100); // Let it start moving
-  mainServoController.stop();
-  
-  // Use new position verification method
-  while (!mainServoController.isMoveComplete()) {
-    mainServoController.update();
-    delay(10);
-  }
-  
-  if (!mainServoController.isMoving()) {
-    Serial.println("✓ Stop functionality test passed");
-  } else {
-    Serial.println("✗ Stop functionality test failed - servo still moving");
-  }
-  
-  // Test 7: Test status methods
-  Serial.println("Test 7: Testing status methods...");
-  float currentAngle = mainServoController.getCurrentAngle();
-  float currentVelocity = mainServoController.getCurrentVelocity();
-  ServoAccelerationController::MotionState state = mainServoController.getMotionState();
-  
-  Serial.println("Current angle: " + String(currentAngle) + "°");
-  Serial.println("Current velocity: " + String(currentVelocity) + " deg/s");
-  Serial.println("Motion state: " + String(state));
-  Serial.println("Is moving: " + String(mainServoController.isMoving() ? "YES" : "NO"));
-  Serial.println("Has reached target: " + String(mainServoController.hasReachedTarget() ? "YES" : "NO"));
-  
-  Serial.println("✓ Status methods working");
-  
-  // Test 8: Final position check
-  Serial.println("Test 8: Final position verification...");
-  mainServoController.setCurrentAngle(90);
-  loaderServo.write(90.0);
-  delay(500);
-  
-  Serial.println("=== SERVO ACCELERATION CONTROLLER TEST COMPLETE ===");
-  Serial.println("All tests passed - servo acceleration controller is working properly");
-}
+

@@ -35,6 +35,7 @@ int SERVO_MAX_ANGLE = 180;             // Maximum servo angle in degrees
 int SERVO_START_POS = 90;              // First position in sequence
 int SERVO_SECOND_POS = 45;             // Second position in sequence
 int SERVO_THIRD_POS = 70;              // Third position in sequence
+unsigned long SERVO_MOVE_DELAY = 1000; // Servo movement delay (ms)
 
 //* ************************ TIMING SETTINGS ******************************
 // Button and switch debounce settings

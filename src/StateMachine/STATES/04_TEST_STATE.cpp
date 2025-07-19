@@ -14,7 +14,7 @@
 #include "StateMachine.h"
 #include "Config/Pins_Definitions.h"
 #include <FastAccelStepper.h>
-#include "ServoAccelerationController.h"
+
 #include "CylinderControl.h"
 
 //* ************************************************************************
@@ -53,7 +53,7 @@ static const TestPosition TEST_POSITIONS[5] = {
 static bool testStateInitialized = false;
 static bool testComplete = false;
 static FastAccelStepper* testLoaderHeightMotor = NULL;
-static ServoAccelerationController* testServoController = NULL;
+
 static CylinderControl* testCylinder = NULL;
 
 // Test sequence variables
@@ -117,12 +117,7 @@ void executeTestState() {
         Serial.println("Starting 5-position test sequence...");
     }
     
-    //! ************************************************************************
-    //! STEP 2: UPDATE SERVO CONTROLLER
-    //! ************************************************************************
-    if (testServoController) {
-        testServoController->update();
-    }
+
     
     //! ************************************************************************
     //! STEP 3: CHECK FOR SERIAL COMMANDS
@@ -141,12 +136,7 @@ void executeTestState() {
             }
         }
         
-        if (testServoController && manualServoMoving) {
-            if (testServoController->isMoveComplete()) {
-                manualServoMoving = false;
-                Serial.println("Manual servo movement complete");
-            }
-        }
+
         
         return; // Skip auto test sequence in manual mode
     }
@@ -193,36 +183,22 @@ void executeTestState() {
                 Serial.println("Motor moving to: " + String(targetPosition) + " steps (" + String(currentPos.height_inches) + " inches)");
             }
             
-            // Move servo to target angle
-            if (testServoController) {
-                testServoController->moveTo(currentPos.angle_degrees);
-                servoMoving = true;
-                servoMoveStartTime = millis();  // Record when servo movement started
-                Serial.println("Servo moving to: " + String(currentPos.angle_degrees) + " degrees");
-            }
+
         }
         
         // Check if motor movement is complete and wait for servo time
         if (testLoaderHeightMotor) {
             bool motorComplete = !testLoaderHeightMotor->isRunning();
             
-            // Check if servo has reached target using calculated completion time
-            if (motorComplete && servoMoving && testServoController) {
-                if (testServoController->isMoveComplete()) {
-                    servoMoving = false;
-                    Serial.println("Servo reached target position");
-                }
-            }
+
             
             // Debug output
             static unsigned long lastDebugTime = 0;
             if (millis() - lastDebugTime > 1000) { // Print every second
                 TestPosition currentPos = TEST_POSITIONS[currentPositionIndex];
-                unsigned long remainingTime = testServoController ? testServoController->getRemainingMoveTime() : 0;
                 
                 Serial.println("Debug Position " + String(currentPositionIndex + 1) + " - Motor running: " + String(motorComplete ? "NO" : "YES") + 
-                               ", Servo moving: " + String(servoMoving ? "YES" : "NO") +
-                               ", Remaining time: " + String(remainingTime) + "ms");
+                               ", Servo moving: " + String(servoMoving ? "YES" : "NO"));
                 lastDebugTime = millis();
             }
             
@@ -327,15 +303,13 @@ void resetTestState() {
     inputBuffer = "";
 }
 
-void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* servoController, CylinderControl* cylinder) {
+void setTestReferences(FastAccelStepper* motor, CylinderControl* cylinder) {
     //! ************************************************************************
-    //! SET REFERENCES TO MOTOR, SERVO CONTROLLER, AND CYLINDER OBJECTS
+    //! SET REFERENCES TO MOTOR AND CYLINDER OBJECTS
     //! ************************************************************************
     testLoaderHeightMotor = motor;
-    testServoController = servoController;
     testCylinder = cylinder;
     Serial.println("Test references set - Motor: " + String(motor ? "VALID" : "NULL") + 
-                   ", Servo Controller: " + String(servoController ? "VALID" : "NULL") +
                    ", Cylinder: " + String(cylinder ? "VALID" : "NULL"));
 } 
 
@@ -433,21 +407,8 @@ void moveToManualAngle(int angleDegrees) {
     //! ************************************************************************
     //! MOVE SERVO TO SPECIFIED ANGLE IN MANUAL MODE
     //! ************************************************************************
-    if (!testServoController) {
-        Serial.println("ERROR: Servo not available");
-        return;
-    }
-    
-    if (manualServoMoving) {
-        Serial.println("Servo already moving - command ignored");
-        return;
-    }
-    
-    testServoController->moveTo(angleDegrees);
-    manualServoMoving = true;
-    servoMoveStartTime = millis();  // Record when servo movement started
-    
-    Serial.println("Moving servo to: " + String(angleDegrees) + " degrees");
+    Serial.println("Manual servo control not available - use direct servo commands");
+    Serial.println("Target angle: " + String(angleDegrees) + " degrees");
 }
 
 void printManualModeHelp() {
@@ -481,11 +442,7 @@ void printManualModeStatus() {
         Serial.println("Loader Height Motor: NOT AVAILABLE");
     }
     
-    if (testServoController) {
-        Serial.println("Servo: AVAILABLE");
-    } else {
-        Serial.println("Servo: NOT AVAILABLE");
-    }
+    Serial.println("Servo: Direct control only");
     
     Serial.println("Mode: " + String(manualMode ? "MANUAL" : "AUTO TEST"));
 }

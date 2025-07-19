@@ -7,7 +7,6 @@
 
 // Forward declarations
 class ServoControl;
-class ServoAccelerationController;
 class CylinderControl;
 
 //* ************************************************************************
@@ -53,11 +52,9 @@ void performTestMotionSequence();
 
 // State reference setup functions
 void setHomeReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch);
-void setHomeServoReferences(ServoControl* servo, ServoAccelerationController* controller);
 void setRetrieveReferences(FastAccelStepper* motor);
 void setStoreReferences(FastAccelStepper* motor);
-void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* servoController, CylinderControl* cylinder);
-void setIdleReferences(ServoAccelerationController* servoController);
+void setTestReferences(FastAccelStepper* motor, CylinderControl* cylinder);
 
 // Test state manual mode functions
 void parseManualCommand(String command);
