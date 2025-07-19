@@ -14,7 +14,7 @@
 #include "StateMachine.h"
 #include "Config/Pins_Definitions.h"
 #include <FastAccelStepper.h>
-#include "ServoControl.h"
+#include "ServoAccelerationController.h"
 #include "CylinderControl.h"
 
 //* ************************************************************************
@@ -53,7 +53,7 @@ static const TestPosition TEST_POSITIONS[5] = {
 static bool testStateInitialized = false;
 static bool testComplete = false;
 static FastAccelStepper* testZMotor = NULL;
-static ServoControl* testServo = NULL;
+static ServoAccelerationController* testServoController = NULL;
 static CylinderControl* testCylinder = NULL;
 
 // Test sequence variables
@@ -118,12 +118,19 @@ void executeTestState() {
     }
     
     //! ************************************************************************
-    //! STEP 2: CHECK FOR SERIAL COMMANDS
+    //! STEP 2: UPDATE SERVO CONTROLLER
+    //! ************************************************************************
+    if (testServoController) {
+        testServoController->update();
+    }
+    
+    //! ************************************************************************
+    //! STEP 3: CHECK FOR SERIAL COMMANDS
     //! ************************************************************************
     checkSerialCommands();
     
     //! ************************************************************************
-    //! STEP 3: HANDLE MANUAL MODE
+    //! STEP 4: HANDLE MANUAL MODE
     //! ************************************************************************
     if (manualMode) {
         // Update manual movement status
@@ -134,8 +141,8 @@ void executeTestState() {
             }
         }
         
-        if (testServo && manualServoMoving) {
-            if (testServo->isMoveComplete()) {
+        if (testServoController && manualServoMoving) {
+            if (testServoController->isMoveComplete()) {
                 manualServoMoving = false;
                 Serial.println("Manual servo movement complete");
             }
@@ -145,7 +152,7 @@ void executeTestState() {
     }
     
     //! ************************************************************************
-    //! STEP 4: EXECUTE AUTO TEST SEQUENCE
+    //! STEP 5: EXECUTE AUTO TEST SEQUENCE
     //! ************************************************************************
     // Check if we've completed all positions
     if (currentPositionIndex >= 5) {
@@ -187,8 +194,8 @@ void executeTestState() {
             }
             
             // Move servo to target angle
-            if (testServo) {
-                testServo->write(currentPos.angle_degrees);
+            if (testServoController) {
+                testServoController->moveTo(currentPos.angle_degrees);
                 servoMoving = true;
                 servoMoveStartTime = millis();  // Record when servo movement started
                 Serial.println("Servo moving to: " + String(currentPos.angle_degrees) + " degrees");
@@ -200,8 +207,8 @@ void executeTestState() {
             bool motorComplete = !testZMotor->isRunning();
             
             // Check if servo has reached target using calculated completion time
-            if (motorComplete && servoMoving && testServo) {
-                if (testServo->isMoveComplete()) {
+            if (motorComplete && servoMoving && testServoController) {
+                if (testServoController->isMoveComplete()) {
                     servoMoving = false;
                     Serial.println("Servo reached target position");
                 }
@@ -211,7 +218,7 @@ void executeTestState() {
             static unsigned long lastDebugTime = 0;
             if (millis() - lastDebugTime > 1000) { // Print every second
                 TestPosition currentPos = TEST_POSITIONS[currentPositionIndex];
-                unsigned long remainingTime = testServo ? testServo->getRemainingMoveTime() : 0;
+                unsigned long remainingTime = testServoController ? testServoController->getRemainingMoveTime() : 0;
                 
                 Serial.println("Debug Position " + String(currentPositionIndex + 1) + " - Motor running: " + String(motorComplete ? "NO" : "YES") + 
                                ", Servo moving: " + String(servoMoving ? "YES" : "NO") +
@@ -233,7 +240,7 @@ void executeTestState() {
         }
         
         //! ************************************************************************
-        //! STEP 4A: EXECUTE CYLINDER SEQUENCE
+        //! STEP 5A: EXECUTE CYLINDER SEQUENCE
         //! ************************************************************************
         if (cylinderOperating) {
             unsigned long currentTime = millis();
@@ -290,7 +297,7 @@ void executeTestState() {
     }
     
     //! ************************************************************************
-    //! STEP 5: CHECK IF TEST IS COMPLETE
+    //! STEP 6: CHECK IF TEST IS COMPLETE
     //! ************************************************************************
     if (testComplete) {
         Serial.println("Test sequence complete - transitioning to IDLE");
@@ -320,15 +327,15 @@ void resetTestState() {
     inputBuffer = "";
 }
 
-void setTestReferences(FastAccelStepper* motor, ServoControl* servo, CylinderControl* cylinder) {
+void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* servoController, CylinderControl* cylinder) {
     //! ************************************************************************
-    //! SET REFERENCES TO MOTOR, SERVO, AND CYLINDER OBJECTS
+    //! SET REFERENCES TO MOTOR, SERVO CONTROLLER, AND CYLINDER OBJECTS
     //! ************************************************************************
     testZMotor = motor;
-    testServo = servo;
+    testServoController = servoController;
     testCylinder = cylinder;
     Serial.println("Test references set - Motor: " + String(motor ? "VALID" : "NULL") + 
-                   ", Servo: " + String(servo ? "VALID" : "NULL") +
+                   ", Servo Controller: " + String(servoController ? "VALID" : "NULL") +
                    ", Cylinder: " + String(cylinder ? "VALID" : "NULL"));
 } 
 
@@ -425,7 +432,7 @@ void moveToManualAngle(int angleDegrees) {
     //! ************************************************************************
     //! MOVE SERVO TO SPECIFIED ANGLE IN MANUAL MODE
     //! ************************************************************************
-    if (!testServo) {
+    if (!testServoController) {
         Serial.println("ERROR: Servo not available");
         return;
     }
@@ -435,7 +442,7 @@ void moveToManualAngle(int angleDegrees) {
         return;
     }
     
-    testServo->write(angleDegrees);
+    testServoController->moveTo(angleDegrees);
     manualServoMoving = true;
     servoMoveStartTime = millis();  // Record when servo movement started
     
@@ -473,7 +480,7 @@ void printManualModeStatus() {
         Serial.println("Z Motor: NOT AVAILABLE");
     }
     
-    if (testServo) {
+    if (testServoController) {
         Serial.println("Servo: AVAILABLE");
     } else {
         Serial.println("Servo: NOT AVAILABLE");

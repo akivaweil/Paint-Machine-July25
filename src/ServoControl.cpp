@@ -101,7 +101,7 @@ unsigned long ServoControl::calculateMoveTime(float startPos, float endPos) {
     
     // Convert to milliseconds and add safety buffer
     unsigned long moveTimeMs = (unsigned long)(moveTimeSeconds * 1000);
-    unsigned long safetyBuffer = 200; // 200ms safety buffer
+    unsigned long safetyBuffer = 20; // 20ms safety buffer
     
     return moveTimeMs + safetyBuffer;
 }
