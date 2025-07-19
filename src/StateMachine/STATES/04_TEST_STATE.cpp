@@ -63,7 +63,7 @@ static bool cylinderOperating = false;
 static unsigned long testDelay = 0;
 static unsigned long cylinderDelay = 0;
 static int currentPositionIndex = 0;  // Current position in the test sequence
-static int cylinderStep = 0;  // Current step in cylinder sequence (0-3)
+static int cylinderStep = 0;  // Current step in cylinder operation sequence
 
 // Manual command mode variables
 static bool manualMode = false;       // Flag to enable manual command mode
@@ -71,9 +71,8 @@ static bool manualMotorMoving = false; // Track manual motor movement
 static bool manualServoMoving = false; // Track manual servo movement
 static String inputBuffer = "";       // Buffer for incoming serial commands
 
-// Servo completion tracking - simplified to fixed delay only
+// Servo completion tracking - using calculated completion time
 static unsigned long servoMoveStartTime = 0;  // When servo movement started
-static const unsigned long SERVO_MOVE_DELAY = 500;  // 0.5 second fixed delay for servo movement
 
 // Stepper motor test settings
 static const float Z_TEST_MAX_SPEED = 20000;     // Stepper max speed for test (steps/sec)
@@ -136,10 +135,7 @@ void executeTestState() {
         }
         
         if (testServo && manualServoMoving) {
-            unsigned long currentTime = millis();
-            bool servoComplete = (currentTime - servoMoveStartTime >= SERVO_MOVE_DELAY);
-            
-            if (servoComplete) {
+            if (testServo->isMoveComplete()) {
                 manualServoMoving = false;
                 Serial.println("Manual servo movement complete");
             }
@@ -203,12 +199,9 @@ void executeTestState() {
         if (testZMotor) {
             bool motorComplete = !testZMotor->isRunning();
             
-            // Check if servo has reached target or timed out
+            // Check if servo has reached target using calculated completion time
             if (motorComplete && servoMoving && testServo) {
-                unsigned long currentTime = millis();
-                bool servoComplete = (currentTime - servoMoveStartTime >= SERVO_MOVE_DELAY);
-                
-                if (servoComplete) {
+                if (testServo->isMoveComplete()) {
                     servoMoving = false;
                     Serial.println("Servo reached target position");
                 }
@@ -218,13 +211,11 @@ void executeTestState() {
             static unsigned long lastDebugTime = 0;
             if (millis() - lastDebugTime > 1000) { // Print every second
                 TestPosition currentPos = TEST_POSITIONS[currentPositionIndex];
-                unsigned long timeElapsed = millis() - servoMoveStartTime;
-                bool timeoutReached = timeElapsed >= SERVO_MOVE_DELAY;
+                unsigned long remainingTime = testServo ? testServo->getRemainingMoveTime() : 0;
                 
                 Serial.println("Debug Position " + String(currentPositionIndex + 1) + " - Motor running: " + String(motorComplete ? "NO" : "YES") + 
                                ", Servo moving: " + String(servoMoving ? "YES" : "NO") +
-                               ", Time elapsed: " + String(timeElapsed) + "ms" +
-                               ", Delay complete: " + String(timeoutReached ? "YES" : "NO"));
+                               ", Remaining time: " + String(remainingTime) + "ms");
                 lastDebugTime = millis();
             }
             
