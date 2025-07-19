@@ -355,7 +355,7 @@ void setupStateMachineReferences() {
   setHomeServoReferences(&loaderServo, &mainServoController);
   
   // Set references for retrieve state
-  setRetrieveReferences(zMotor);
+  setRetrieveReferences(&loaderServo);
   
   // Set references for store state
   setStoreReferences(zMotor);
