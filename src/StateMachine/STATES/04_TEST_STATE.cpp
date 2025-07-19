@@ -23,7 +23,7 @@
 // Test position structure for height and angle settings
 struct TestPosition {
     float height_inches;     // Height position in inches
-    float angle_degrees;     // Servo angle in degrees
+    int angle_degrees;       // Servo angle in degrees
     const char* name;        // Position name for identification
 };
 
@@ -40,11 +40,11 @@ static const int Z_HOME_OFFSET_STEPS = (int)(Z_HOME_OFFSET_INCHES * STEPS_PER_IN
 
 // Test sequence positions (5 positions total)
 static const TestPosition TEST_POSITIONS[5] = {
-    {2.40, 28.0, "Position 1 - High"},      // Position 1: 25 inches, 0 degrees
-    {12.0, 45.0, "Position 2 - Mid-High"}, // Position 2: 15 inches, 45 degrees
-    {20.0, 90.0, "Position 3 - Center"},   // Position 3: 10 inches, 90 degrees
-    {5.0, 135.0, "Position 4 - Mid-Low"},  // Position 4: 5 inches, 135 degrees
-    {1.0, 180.0, "Position 5 - Low"}       // Position 5: 1 inch, 180 degrees
+    {2.40, 28, "Position 1 - High"},      // Position 1: 25 inches, 0 degrees
+    {12.0, 45, "Position 2 - Mid-High"}, // Position 2: 15 inches, 45 degrees
+    {20.0, 90, "Position 3 - Center"},   // Position 3: 10 inches, 90 degrees
+    {5.0, 135, "Position 4 - Mid-Low"},  // Position 4: 5 inches, 135 degrees
+    {1.0, 180, "Position 5 - Low"}       // Position 5: 1 inch, 180 degrees
 };
 
 //* ************************************************************************
@@ -208,7 +208,7 @@ void executeTestState() {
             // Use servo controller's built-in completion time calculation
             if (motorComplete && !servoMoving && testServoController) {
                 TestPosition currentPos = TEST_POSITIONS[currentPositionIndex];
-                float targetAngle = currentPos.angle_degrees;
+                int targetAngle = currentPos.angle_degrees;
                 
                 // Get completion time from servo controller
                 unsigned long completionTime = testServoController->getMoveCompletionTime();
@@ -436,7 +436,7 @@ void moveToManualHeight(float heightInches) {
     Serial.println("Speed: " + String(Z_TEST_MAX_SPEED) + " steps/sec, Accel: " + String(Z_TEST_ACCELERATION) + " steps/sec²");
 }
 
-void moveToManualAngle(float angleDegrees) {
+void moveToManualAngle(int angleDegrees) {
     //! ************************************************************************
     //! MOVE SERVO TO SPECIFIED ANGLE IN MANUAL MODE
     //! ************************************************************************

@@ -195,7 +195,7 @@ void loop() {
       Serial.println("Is moving: " + String(mainServoController.isMoving() ? "YES" : "NO"));
       Serial.println("Has reached target: " + String(mainServoController.hasReachedTarget() ? "YES" : "NO"));
     } else if (command.startsWith("servo_move ")) {
-      float targetAngle = command.substring(11).toFloat();
+      int targetAngle = command.substring(11).toInt();
       Serial.println("Moving servo to: " + String(targetAngle) + "°");
       mainServoController.moveTo(targetAngle);
     } else if (command == "servo_stop") {
@@ -604,7 +604,7 @@ void performServoAccelerationSequence() {
   Serial.println("Starting servo acceleration sequence...");
   
   // Set initial servo position to center (90 degrees)
-  mainServoController.setCurrentAngle(90.0);
+  mainServoController.setCurrentAngle(90);
   loaderServo.write(90.0);
   delay(100); // Give servo time to reach position
   
@@ -629,7 +629,7 @@ void performServoAccelerationSequence() {
     }
     
     // Start the movement
-    mainServoController.moveTo(targetAngle);
+    mainServoController.moveTo((int)targetAngle);
     
     Serial.println("Servo movement " + String(movement + 1) + 
                   " - Moving to " + String(targetAngle) + 
@@ -660,7 +660,7 @@ void testServoAccelerationController() {
   
   // Test 2: Set servo to known position
   Serial.println("Test 2: Setting servo to 90 degrees...");
-  mainServoController.setCurrentAngle(90.0);
+  mainServoController.setCurrentAngle(90);
   loaderServo.write(90.0);
   delay(500); // Give servo time to reach position
   
@@ -669,7 +669,7 @@ void testServoAccelerationController() {
   // Test 3: Test slow movement
   Serial.println("Test 3: Testing slow movement (90° -> 120°)...");
   mainServoController.setAccelerationProfile(5.0, 15.0); // Slow and smooth
-  mainServoController.moveTo(120.0);
+  mainServoController.moveTo(120);
   
   // Use new position verification method
   while (!mainServoController.isMoveComplete()) {
@@ -686,7 +686,7 @@ void testServoAccelerationController() {
   // Test 4: Test fast movement
   Serial.println("Test 4: Testing fast movement (120° -> 60°)...");
   mainServoController.setAccelerationProfile(20.0, 60.0); // Fast and aggressive
-  mainServoController.moveTo(60.0);
+  mainServoController.moveTo(60);
   
   // Use new position verification method
   while (!mainServoController.isMoveComplete()) {
@@ -703,7 +703,7 @@ void testServoAccelerationController() {
   // Test 5: Test return to center
   Serial.println("Test 5: Testing return to center (60° -> 90°)...");
   mainServoController.setAccelerationProfile(10.0, 30.0); // Medium settings
-  mainServoController.moveTo(90.0);
+  mainServoController.moveTo(90);
   
   // Use new position verification method
   while (!mainServoController.isMoveComplete()) {
@@ -719,7 +719,7 @@ void testServoAccelerationController() {
   
   // Test 6: Test stop functionality
   Serial.println("Test 6: Testing stop functionality...");
-  mainServoController.moveTo(150.0);
+  mainServoController.moveTo(150);
   delay(100); // Let it start moving
   mainServoController.stop();
   
@@ -751,7 +751,7 @@ void testServoAccelerationController() {
   
   // Test 8: Final position check
   Serial.println("Test 8: Final position verification...");
-  mainServoController.setCurrentAngle(90.0);
+  mainServoController.setCurrentAngle(90);
   loaderServo.write(90.0);
   delay(500);
   

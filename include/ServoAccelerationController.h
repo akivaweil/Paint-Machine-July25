@@ -53,9 +53,9 @@ public:
     void setAccelerationProfile(float accelRate, float maxVel); // Simplified - accel and decel are always the same
     
     // Motion control methods
-    void moveTo(float targetAngle);
-    void moveToWithTime(float targetAngle, unsigned long moveTimeMs);
-    void moveToWithCurve(float targetAngle, int accelerationCurve); // 0-100 curve value
+    void moveTo(int targetAngle);
+    void moveToWithTime(int targetAngle, unsigned long moveTimeMs);
+    void moveToWithCurve(int targetAngle, int accelerationCurve); // 0-100 curve value
     void stop();
     void update(); // Call this in main loop
     
@@ -70,11 +70,11 @@ public:
     unsigned long getMoveCompletionTime(); // Returns millis() timestamp when move will complete
     bool isMoveComplete(); // Returns true if current time >= completion time
     unsigned long getRemainingMoveTime(); // Returns remaining time in milliseconds
-    unsigned long calculateMoveTimeToTarget(float targetAngle); // Calculate time to reach specific target
+    unsigned long calculateMoveTimeToTarget(int targetAngle); // Calculate time to reach specific target
     
     // Reset methods
     void reset();
-    void setCurrentAngle(float angle);
+    void setCurrentAngle(int angle);
 };
 
 #endif 

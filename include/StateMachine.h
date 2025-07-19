@@ -62,7 +62,7 @@ void setIdleReferences(ServoAccelerationController* servoController);
 // Test state manual mode functions
 void parseManualCommand(String command);
 void moveToManualHeight(float heightInches);
-void moveToManualAngle(float angleDegrees);
+void moveToManualAngle(int angleDegrees);
 void printManualModeHelp();
 void printManualModeStatus();
 void toggleManualMode();
