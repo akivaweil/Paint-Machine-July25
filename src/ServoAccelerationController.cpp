@@ -358,7 +358,7 @@ unsigned long ServoAccelerationController::getMoveCompletionTime() {
     }
     
     // Add 0.5 second buffer for safety
-    unsigned long bufferTime = 500; // 0.5 seconds in milliseconds
+    unsigned long bufferTime = 1000; // 1 second in milliseconds
     unsigned long completionTime = moveStartTime + (unsigned long)(totalTime * 1000) + bufferTime;
     
     return completionTime;

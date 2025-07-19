@@ -40,11 +40,11 @@ static const int Z_HOME_OFFSET_STEPS = (int)(Z_HOME_OFFSET_INCHES * STEPS_PER_IN
 
 // Test sequence positions (5 positions total)
 static const TestPosition TEST_POSITIONS[5] = {
-    {27.0, 0.0, "Position 1 - High"},      // Position 1: 25 inches, 0 degrees
-    {12.0, 45.0, "Position 2 - Mid-High"}, // Position 2: 15 inches, 45 degrees
+    {1.1, 90.0, "Position 1 - High"},      // Position 1: 25 inches, 0 degrees
+    {3.0, 45.0, "Position 2 - Mid-High"}, // Position 2: 15 inches, 45 degrees
     {20.0, 90.0, "Position 3 - Center"},   // Position 3: 10 inches, 90 degrees
-    {5.0, 135.0, "Position 4 - Mid-Low"},  // Position 4: 5 inches, 135 degrees
-    {1.0, 180.0, "Position 5 - Low"}       // Position 5: 1 inch, 180 degrees
+    {25.0, 135.0, "Position 4 - Mid-Low"},  // Position 4: 5 inches, 135 degrees
+    {4.0, 120.0, "Position 5 - Low"}       // Position 5: 1 inch, 180 degrees
 };
 
 //* ************************************************************************
@@ -76,7 +76,7 @@ static const float Z_TEST_ACCELERATION = 15000;   // Stepper acceleration for te
 // Cylinder sequence settings
 static const unsigned long CYLINDER_WAIT_TIME = 1000;  // 1 second wait time
 static const float CYLINDER_MOVE_DISTANCE = 0.5;       // 0.5 inches up movement
-static const float CYLINDER_MOVE_SPEED = 5000;         // Stepper speed for cylinder up movement (steps/sec)
+static const float CYLINDER_MOVE_SPEED = 1000;         // Stepper speed for cylinder up movement (steps/sec)
 static const float CYLINDER_MOVE_ACCELERATION = 3000;  // Stepper acceleration for cylinder up movement (steps/sec^2)
 
 //* ************************************************************************
@@ -101,7 +101,27 @@ void executeTestState() {
         testDelay = 0;
         
         //! ************************************************************************
-        //! STEP 1: START TEST SEQUENCE
+        //! STEP 1: SYNCHRONIZE SERVO CONTROLLER
+        //! ************************************************************************
+        if (testServoController) {
+            // Force servo to a known position and synchronize controller
+            Serial.println("Synchronizing servo controller...");
+            
+            // First, stop any ongoing movement
+            testServoController->stop();
+            delay(50);
+            
+            // Set servo to 90 degrees (center position) and synchronize
+            testServoController->setCurrentAngle(90.0);
+            
+            // Small delay to ensure servo is stable
+            delay(200);
+            
+            Serial.println("Servo controller synchronized at 90°");
+        }
+        
+        //! ************************************************************************
+        //! STEP 2: START TEST SEQUENCE
         //! ************************************************************************
         Serial.println("Starting 5-position test sequence...");
     }
@@ -155,10 +175,20 @@ void executeTestState() {
             
             // Move servo to target angle
             if (testServoController) {
-                testServoController->setAccelerationProfile(SERVO_TEST_ACCEL, SERVO_TEST_MAX_SPEED);
-                testServoController->moveTo(currentPos.angle_degrees);
-                servoMoving = true;
-                Serial.println("Servo moving to: " + String(currentPos.angle_degrees) + " degrees (accel: " + String(SERVO_TEST_ACCEL) + ", max speed: " + String(SERVO_TEST_MAX_SPEED) + ")");
+                // Check if we actually need to move the servo
+                float currentAngle = testServoController->getCurrentAngle();
+                float targetAngle = currentPos.angle_degrees;
+                float angleDifference = abs(currentAngle - targetAngle);
+                
+                if (angleDifference > 0.5) { // Only move if more than 0.5 degrees difference
+                    testServoController->setAccelerationProfile(SERVO_TEST_ACCEL, SERVO_TEST_MAX_SPEED);
+                    testServoController->moveTo(targetAngle);
+                    servoMoving = true;
+                    Serial.println("Servo moving from " + String(currentAngle) + "° to " + String(targetAngle) + "° (accel: " + String(SERVO_TEST_ACCEL) + ", max speed: " + String(SERVO_TEST_MAX_SPEED) + ")");
+                } else {
+                    Serial.println("Servo already at target position: " + String(targetAngle) + "° (current: " + String(currentAngle) + "°)");
+                    servoMoving = false; // No movement needed
+                }
             }
         }
         
@@ -171,14 +201,31 @@ void executeTestState() {
                 TestPosition currentPos = TEST_POSITIONS[currentPositionIndex];
                 float targetAngle = currentPos.angle_degrees;
                 
-                // Get completion time from servo controller
-                unsigned long completionTime = testServoController->getMoveCompletionTime();
-                testDelay = completionTime;
-                servoMoving = true;
+                // Check if servo movement is needed
+                float currentAngle = testServoController->getCurrentAngle();
+                float angleDifference = abs(currentAngle - targetAngle);
                 
-                unsigned long waitTime = testServoController->calculateMoveTimeToTarget(targetAngle);
-                Serial.println("Servo movement using built-in calculation: " + String(waitTime) + "ms");
-                Serial.println("Waiting until: " + String(testDelay) + " (current: " + String(millis()) + ")");
+                if (angleDifference > 0.5) {
+                    // Ensure servo controller is in a clean state before starting movement
+                    if (testServoController->getMotionState() == ServoAccelerationController::IDLE) {
+                        // Get completion time from servo controller
+                        unsigned long completionTime = testServoController->getMoveCompletionTime();
+                        testDelay = completionTime;
+                        servoMoving = true;
+                        
+                        unsigned long waitTime = testServoController->calculateMoveTimeToTarget(targetAngle);
+                        Serial.println("Servo movement using built-in calculation: " + String(waitTime) + "ms");
+                        Serial.println("Waiting until: " + String(testDelay) + " (current: " + String(millis()) + ")");
+                    } else {
+                        // If servo is not idle, wait a bit more
+                        Serial.println("Servo not in idle state, waiting for stabilization...");
+                        delay(50);
+                    }
+                } else {
+                    // No servo movement needed, proceed immediately
+                    Serial.println("No servo movement needed - already at target position");
+                    servoMoving = false;
+                }
             }
             
             // Debug output
@@ -197,6 +244,23 @@ void executeTestState() {
             
                     // Move to next position when motor is complete AND servo move is complete
         if (motorComplete && (!servoMoving || (testServoController && testServoController->isMoveComplete()))) {
+            // Additional check to ensure servo has actually reached the target
+            if (testServoController) {
+                TestPosition currentPos = TEST_POSITIONS[currentPositionIndex];
+                float currentAngle = testServoController->getCurrentAngle();
+                float targetAngle = currentPos.angle_degrees;
+                float angleDifference = abs(currentAngle - targetAngle);
+                
+                if (angleDifference > 2.0) { // If more than 2 degrees off target
+                    Serial.println("Servo position check failed - Current: " + String(currentAngle) + "°, Target: " + String(targetAngle) + "°, Difference: " + String(angleDifference) + "°");
+                    // Wait a bit more for servo to settle
+                    delay(100);
+                    return; // Don't proceed yet
+                }
+                
+                Serial.println("Position " + String(currentPositionIndex + 1) + " servo check passed - Current: " + String(currentAngle) + "°, Target: " + String(targetAngle) + "°");
+            }
+            
             if (!cylinderOperating) {
                 // Start cylinder sequence
                 TestPosition currentPos = TEST_POSITIONS[currentPositionIndex];
@@ -288,6 +352,15 @@ void resetTestState() {
     testDelay = 0;
     cylinderDelay = 0;
     cylinderStep = 0;
+    
+    //! ************************************************************************
+    //! RESET SERVO CONTROLLER STATE
+    //! ************************************************************************
+    if (testServoController) {
+        // Reset servo controller to idle state
+        testServoController->stop();
+        Serial.println("Test state reset - servo controller stopped");
+    }
 }
 
 void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* servoController, CylinderControl* cylinder) {
