@@ -73,7 +73,7 @@ static String inputBuffer = "";       // Buffer for incoming serial commands
 
 // Servo completion tracking - simplified to fixed delay only
 static unsigned long servoMoveStartTime = 0;  // When servo movement started
-static const unsigned long SERVO_MOVE_DELAY = 2000;  // 2 second fixed delay for servo movement
+static const unsigned long SERVO_MOVE_DELAY = 500;  // 0.5 second fixed delay for servo movement
 
 // Stepper motor test settings
 static const float Z_TEST_MAX_SPEED = 20000;     // Stepper max speed for test (steps/sec)
