@@ -56,7 +56,7 @@ void setHomeReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch);
 void setHomeServoReferences(ServoControl* servo, ServoAccelerationController* controller);
 void setRetrieveReferences(FastAccelStepper* motor);
 void setStoreReferences(FastAccelStepper* motor);
-void setTestReferences(FastAccelStepper* motor, ServoControl* servo, CylinderControl* cylinder);
+void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* servoController, CylinderControl* cylinder);
 void setIdleReferences(ServoAccelerationController* servoController);
 
 // Test state manual mode functions
