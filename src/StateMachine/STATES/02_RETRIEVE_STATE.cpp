@@ -15,7 +15,7 @@
 //* ************************************************************************
 static bool retrieveStateInitialized = false;
 static bool retrieveComplete = false;
-static FastAccelStepper* retrieveZMotor = NULL;
+static FastAccelStepper* retrieveLoaderHeightMotor = NULL;
 
 //* ************************************************************************
 //* ************************ RETRIEVE STATE FUNCTIONS ********************
@@ -36,9 +36,9 @@ void executeRetrieveState() {
         //! ************************************************************************
         //! STEP 1: SET RETRIEVING SPEED
         //! ************************************************************************
-        if (retrieveZMotor) {
-            retrieveZMotor->setSpeedInHz(Z_MAX_SPEED);
-            Serial.println("Z Motor speed set to: " + String(Z_MAX_SPEED) + " Hz");
+        if (retrieveLoaderHeightMotor) {
+            retrieveLoaderHeightMotor->setSpeedInHz(Z_MAX_SPEED);
+            Serial.println("Loader Height Motor speed set to: " + String(Z_MAX_SPEED) + " Hz");
         }
     }
     
@@ -54,21 +54,21 @@ void executeRetrieveState() {
     //! ************************************************************************
     //! STEP 3: PERFORM RETRIEVING SEQUENCE
     //! ************************************************************************
-    if (retrieveZMotor) {
+    if (retrieveLoaderHeightMotor) {
         //! ************************************************************************
         //! STEP 3A: MOVE TO RETRIEVAL POSITION
         //! ************************************************************************
-        if (!retrieveZMotor->isRunning()) {
+        if (!retrieveLoaderHeightMotor->isRunning()) {
             // Move to retrieval position (example: 5 inches from home)
             int retrievalPosition = 5 * STEPS_PER_INCH; // 5 inches
-            retrieveZMotor->moveTo(retrievalPosition);
+            retrieveLoaderHeightMotor->moveTo(retrievalPosition);
             Serial.println("Moving to retrieval position: " + String(retrievalPosition) + " steps");
         }
         
         //! ************************************************************************
         //! STEP 3B: CHECK IF MOVEMENT COMPLETE
         //! ************************************************************************
-        if (!retrieveZMotor->isRunning()) {
+        if (!retrieveLoaderHeightMotor->isRunning()) {
             Serial.println("Reached retrieval position");
             
             //! ************************************************************************
@@ -81,7 +81,7 @@ void executeRetrieveState() {
             retrieveComplete = true;
         }
     } else {
-        Serial.println("ERROR: Z motor not available");
+        Serial.println("ERROR: Loader height motor not available");
         setState(IDLE_STATE);
     }
 }
@@ -98,5 +98,5 @@ void setRetrieveReferences(FastAccelStepper* motor) {
     //! ************************************************************************
     //! SET REFERENCES TO MOTOR OBJECTS
     //! ************************************************************************
-    retrieveZMotor = motor;
+    retrieveLoaderHeightMotor = motor;
 } 

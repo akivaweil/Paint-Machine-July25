@@ -52,7 +52,7 @@ static const TestPosition TEST_POSITIONS[5] = {
 //* ************************************************************************
 static bool testStateInitialized = false;
 static bool testComplete = false;
-static FastAccelStepper* testZMotor = NULL;
+static FastAccelStepper* testLoaderHeightMotor = NULL;
 static ServoAccelerationController* testServoController = NULL;
 static CylinderControl* testCylinder = NULL;
 
@@ -134,10 +134,10 @@ void executeTestState() {
     //! ************************************************************************
     if (manualMode) {
         // Update manual movement status
-        if (testZMotor && manualMotorMoving) {
-            if (!testZMotor->isRunning()) {
+        if (testLoaderHeightMotor && manualMotorMoving) {
+            if (!testLoaderHeightMotor->isRunning()) {
                 manualMotorMoving = false;
-                Serial.println("Manual Z movement complete");
+                Serial.println("Manual loader height movement complete");
             }
         }
         
@@ -158,18 +158,18 @@ void executeTestState() {
     if (currentPositionIndex >= 5) {
         // Move back to home offset position
         if (!motorMoving) {
-            if (testZMotor) {
-                testZMotor->setSpeedInHz(Z_TEST_MAX_SPEED);
-                testZMotor->setAcceleration(Z_TEST_ACCELERATION);
-                testZMotor->moveTo(Z_HOME_OFFSET_STEPS);
+            if (testLoaderHeightMotor) {
+                testLoaderHeightMotor->setSpeedInHz(Z_TEST_MAX_SPEED);
+                testLoaderHeightMotor->setAcceleration(Z_TEST_ACCELERATION);
+                testLoaderHeightMotor->moveTo(Z_HOME_OFFSET_STEPS);
                 motorMoving = true;
                 Serial.println("Returning to home offset position: " + String(Z_HOME_OFFSET_STEPS) + " steps (" + String(Z_HOME_OFFSET_INCHES) + " inches)");
             }
         }
         
         // Check if motor has returned to home offset position
-        if (testZMotor && !testZMotor->isRunning()) {
-            int currentPos = testZMotor->getCurrentPosition();
+        if (testLoaderHeightMotor && !testLoaderHeightMotor->isRunning()) {
+            int currentPos = testLoaderHeightMotor->getCurrentPosition();
             Serial.println("Motor stopped at position: " + String(currentPos) + " steps, target was: " + String(Z_HOME_OFFSET_STEPS) + " steps");
             
             // Simplified check - just mark as complete when motor stops
@@ -184,11 +184,11 @@ void executeTestState() {
             Serial.println("Moving to " + String(currentPos.height_inches) + " inches with servo at " + String(currentPos.angle_degrees) + "°");
             
             // Move motor to target height
-            if (testZMotor) {
+            if (testLoaderHeightMotor) {
                 int targetPosition = (int)(currentPos.height_inches * STEPS_PER_INCH);
-                testZMotor->setSpeedInHz(Z_TEST_MAX_SPEED);
-                testZMotor->setAcceleration(Z_TEST_ACCELERATION);
-                testZMotor->moveTo(targetPosition);
+                testLoaderHeightMotor->setSpeedInHz(Z_TEST_MAX_SPEED);
+                testLoaderHeightMotor->setAcceleration(Z_TEST_ACCELERATION);
+                testLoaderHeightMotor->moveTo(targetPosition);
                 motorMoving = true;
                 Serial.println("Motor moving to: " + String(targetPosition) + " steps (" + String(currentPos.height_inches) + " inches)");
             }
@@ -203,8 +203,8 @@ void executeTestState() {
         }
         
         // Check if motor movement is complete and wait for servo time
-        if (testZMotor) {
-            bool motorComplete = !testZMotor->isRunning();
+        if (testLoaderHeightMotor) {
+            bool motorComplete = !testLoaderHeightMotor->isRunning();
             
             // Check if servo has reached target using calculated completion time
             if (motorComplete && servoMoving && testServoController) {
@@ -257,22 +257,22 @@ void executeTestState() {
                     
                 case 1: // Wait 1 second, then move motor up 0.5 inches
                     if (currentTime >= cylinderDelay) {
-                        if (testZMotor) {
-                            int currentPos = testZMotor->getCurrentPosition();
-                            int targetPos = currentPos + (int)(CYLINDER_MOVE_DISTANCE * STEPS_PER_INCH);
-                            Serial.println("Cylinder Step 1: Moving motor up " + String(CYLINDER_MOVE_DISTANCE) + " inches");
-                            Serial.println("From: " + String(currentPos) + " steps to: " + String(targetPos) + " steps");
-                            Serial.println("Cylinder move speed: " + String(CYLINDER_MOVE_SPEED) + " steps/sec, accel: " + String(CYLINDER_MOVE_ACCELERATION) + " steps/sec²");
-                            testZMotor->setSpeedInHz(CYLINDER_MOVE_SPEED);
-                            testZMotor->setAcceleration(CYLINDER_MOVE_ACCELERATION);
-                            testZMotor->moveTo(targetPos);
-                            cylinderStep = 2;
-                        }
+                                            if (testLoaderHeightMotor) {
+                        int currentPos = testLoaderHeightMotor->getCurrentPosition();
+                        int targetPos = currentPos + (int)(CYLINDER_MOVE_DISTANCE * STEPS_PER_INCH);
+                        Serial.println("Cylinder Step 1: Moving motor up " + String(CYLINDER_MOVE_DISTANCE) + " inches");
+                        Serial.println("From: " + String(currentPos) + " steps to: " + String(targetPos) + " steps");
+                        Serial.println("Cylinder move speed: " + String(CYLINDER_MOVE_SPEED) + " steps/sec, accel: " + String(CYLINDER_MOVE_ACCELERATION) + " steps/sec²");
+                        testLoaderHeightMotor->setSpeedInHz(CYLINDER_MOVE_SPEED);
+                        testLoaderHeightMotor->setAcceleration(CYLINDER_MOVE_ACCELERATION);
+                        testLoaderHeightMotor->moveTo(targetPos);
+                        cylinderStep = 2;
+                    }
                     }
                     break;
                     
                 case 2: // Wait for motor to complete, then retract cylinder
-                    if (testZMotor && !testZMotor->isRunning()) {
+                    if (testLoaderHeightMotor && !testLoaderHeightMotor->isRunning()) {
                         if (testCylinder) {
                             Serial.println("Cylinder Step 2: Retracting cylinder");
                             testCylinder->retract();
@@ -331,7 +331,7 @@ void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* ser
     //! ************************************************************************
     //! SET REFERENCES TO MOTOR, SERVO CONTROLLER, AND CYLINDER OBJECTS
     //! ************************************************************************
-    testZMotor = motor;
+    testLoaderHeightMotor = motor;
     testServoController = servoController;
     testCylinder = cylinder;
     Serial.println("Test references set - Motor: " + String(motor ? "VALID" : "NULL") + 
@@ -361,12 +361,12 @@ void parseManualCommand(String command) {
     float value = valueStr.toFloat();
     
     switch (commandType) {
-        case 'z': // Z-axis height command
+        case 'h': // Loader height command
             if (value > 0 && value <= 50) { // Reasonable height limits
-                Serial.println("Manual Z command: Moving to " + String(value) + " inches");
+                Serial.println("Manual loader height command: Moving to " + String(value) + " inches");
                 moveToManualHeight(value);
             } else {
-                Serial.println("Invalid Z height. Must be between 0.1 and 50 inches");
+                Serial.println("Invalid loader height. Must be between 0.1 and 50 inches");
             }
             break;
             
@@ -399,17 +399,17 @@ void parseManualCommand(String command) {
             
         default:
             Serial.println("Unknown command: " + command);
-            Serial.println("Use: z<height>, a<angle>, help, status, mode");
+            Serial.println("Use: h<height>, a<angle>, help, status, mode");
             break;
     }
 }
 
 void moveToManualHeight(float heightInches) {
     //! ************************************************************************
-    //! MOVE Z-AXIS TO SPECIFIED HEIGHT IN MANUAL MODE
+    //! MOVE LOADER HEIGHT TO SPECIFIED HEIGHT IN MANUAL MODE
     //! ************************************************************************
-    if (!testZMotor) {
-        Serial.println("ERROR: Z motor not available");
+    if (!testLoaderHeightMotor) {
+        Serial.println("ERROR: Loader height motor not available");
         return;
     }
     
@@ -419,12 +419,12 @@ void moveToManualHeight(float heightInches) {
     }
     
     int targetSteps = (int)(heightInches * STEPS_PER_INCH);
-    testZMotor->setSpeedInHz(Z_TEST_MAX_SPEED);
-    testZMotor->setAcceleration(Z_TEST_ACCELERATION);
-    testZMotor->moveTo(targetSteps);
+    testLoaderHeightMotor->setSpeedInHz(Z_TEST_MAX_SPEED);
+    testLoaderHeightMotor->setAcceleration(Z_TEST_ACCELERATION);
+    testLoaderHeightMotor->moveTo(targetSteps);
     manualMotorMoving = true;
     
-    Serial.println("Moving Z to: " + String(targetSteps) + " steps (" + String(heightInches) + " inches)");
+    Serial.println("Moving loader height to: " + String(targetSteps) + " steps (" + String(heightInches) + " inches)");
     Serial.println("Speed: " + String(Z_TEST_MAX_SPEED) + " steps/sec, Accel: " + String(Z_TEST_ACCELERATION) + " steps/sec²");
 }
 
@@ -454,8 +454,8 @@ void printManualModeHelp() {
     //! PRINT MANUAL MODE HELP INFORMATION
     //! ************************************************************************
     Serial.println("=== MANUAL MODE COMMANDS ===");
-    Serial.println("z<height>  - Move Z-axis to height (inches)");
-    Serial.println("           Example: z1.3, z5.0, z10.5");
+    Serial.println("h<height>  - Move loader height to height (inches)");
+    Serial.println("           Example: h1.3, h5.0, h10.5");
     Serial.println("a<angle>   - Move servo to angle (degrees)");
     Serial.println("           Example: a30, a90, a135");
     Serial.println("help       - Show this help message");
@@ -471,13 +471,13 @@ void printManualModeStatus() {
     //! ************************************************************************
     Serial.println("=== MANUAL MODE STATUS ===");
     
-    if (testZMotor) {
-        int currentSteps = testZMotor->getCurrentPosition();
+    if (testLoaderHeightMotor) {
+        int currentSteps = testLoaderHeightMotor->getCurrentPosition();
         float currentInches = (float)currentSteps / STEPS_PER_INCH;
-        Serial.println("Z Position: " + String(currentSteps) + " steps (" + String(currentInches, 2) + " inches)");
-        Serial.println("Z Motor running: " + String(testZMotor->isRunning() ? "YES" : "NO"));
+        Serial.println("Loader Height Position: " + String(currentSteps) + " steps (" + String(currentInches, 2) + " inches)");
+        Serial.println("Loader Height Motor running: " + String(testLoaderHeightMotor->isRunning() ? "YES" : "NO"));
     } else {
-        Serial.println("Z Motor: NOT AVAILABLE");
+        Serial.println("Loader Height Motor: NOT AVAILABLE");
     }
     
     if (testServoController) {

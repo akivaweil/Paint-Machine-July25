@@ -1,7 +1,7 @@
 //* ************************************************************************
 //* ************************ HOME STATE **********************************
 //* ************************************************************************
-//! HOME state - Performs homing sequence for Z-axis
+//! HOME state - Performs homing sequence for loader height
 //! Moves toward home switch until triggered, then moves away from home
 //!
 //! ⚠️  IMPORTANT: DO NOT ADD TIMEOUT CHECKS TO THIS STATE MACHINE
@@ -26,8 +26,8 @@ static bool homeComplete = false;
 static bool homeFound = false;
 static bool movingAwayFromHome = false;
 static bool testMotionComplete = false;
-static FastAccelStepper* homeZMotor = NULL;
-static Bounce2::Button* homeZHomeSwitch = NULL;
+static FastAccelStepper* homeLoaderHeightMotor = NULL;
+static Bounce2::Button* homeLoaderHeightHomeSwitch = NULL;
 static ServoControl* homeServo = NULL;
 static ServoAccelerationController* homeServoController = NULL;
 
@@ -37,13 +37,13 @@ static ServoAccelerationController* homeServoController = NULL;
 
 void executeHomeState() {
     //! ************************************************************************
-    //! EXECUTE HOME STATE - Z-AXIS HOMING SEQUENCE
+    //! EXECUTE HOME STATE - LOADER HEIGHT HOMING SEQUENCE
     //! ************************************************************************
     
     // Initialize home state on first entry
     if (!homeStateInitialized) {
         Serial.println("=== ENTERING HOME STATE ===");
-        Serial.println("Starting Z-axis homing sequence...");
+        Serial.println("Starting loader height homing sequence...");
         homeStateInitialized = true;
         homeComplete = false;
         homeFound = false;
@@ -53,16 +53,16 @@ void executeHomeState() {
         //! ************************************************************************
         //! STEP 1: SET HOMING SPEED
         //! ************************************************************************
-        if (homeZMotor) {
-            homeZMotor->setSpeedInHz(Z_HOMING_SPEED);
-            Serial.println("Z Motor homing speed set to: " + String(Z_HOMING_SPEED) + " Hz");
+        if (homeLoaderHeightMotor) {
+            homeLoaderHeightMotor->setSpeedInHz(Z_HOMING_SPEED);
+            Serial.println("Loader Height Motor homing speed set to: " + String(Z_HOMING_SPEED) + " Hz");
         }
         
         //! ************************************************************************
         //! STEP 2: START MOVING TOWARD HOME
         //! ************************************************************************
-        if (homeZMotor) {
-            homeZMotor->runBackward();
+        if (homeLoaderHeightMotor) {
+            homeLoaderHeightMotor->runBackward();
             Serial.println("Moving toward home switch...");
         }
     }
@@ -90,13 +90,13 @@ void executeHomeState() {
     //! ************************************************************************
     //! STEP 4: PERFORM HOMING SEQUENCE
     //! ************************************************************************
-    if (homeZMotor && homeZHomeSwitch) {
+    if (homeLoaderHeightMotor && homeLoaderHeightHomeSwitch) {
         // Update the home switch state
-        homeZHomeSwitch->update();
+        homeLoaderHeightHomeSwitch->update();
         
         // Debug: Print switch state
         static bool lastSwitchState = false;
-        bool currentSwitchState = homeZHomeSwitch->read();
+        bool currentSwitchState = homeLoaderHeightHomeSwitch->read();
         if (currentSwitchState != lastSwitchState) {
             Serial.println("Home switch state changed to: " + String(currentSwitchState ? "TRIGGERED" : "NOT TRIGGERED"));
             lastSwitchState = currentSwitchState;
@@ -107,10 +107,10 @@ void executeHomeState() {
             //! ************************************************************************
             //! STEP 5: HOME SWITCH TRIGGERED - STOP AND SET HOME
             //! ************************************************************************
-            homeZMotor->forceStop();
-            homeZMotor->setCurrentPosition(0); // Set current position as home (0)
+            homeLoaderHeightMotor->forceStop();
+            homeLoaderHeightMotor->setCurrentPosition(0); // Set current position as home (0)
             
-            Serial.println("Home switch triggered - Z-axis homed");
+            Serial.println("Home switch triggered - loader height homed");
             Serial.println("Current position set to 0");
             
             homeFound = true;
@@ -121,11 +121,11 @@ void executeHomeState() {
             Serial.println("Moving " + String(Z_HOME_OFFSET_INCHES) + " inches away from home...");
             
             // Set normal operating speed for moving away
-            homeZMotor->setSpeedInHz(Z_MAX_SPEED);
+            homeLoaderHeightMotor->setSpeedInHz(Z_MAX_SPEED);
             Serial.println("Motor speed set to: " + String(Z_MAX_SPEED) + " Hz");
             
             // Move to the offset position (2 inches away from home)
-            homeZMotor->moveTo(Z_HOME_OFFSET_STEPS);
+            homeLoaderHeightMotor->moveTo(Z_HOME_OFFSET_STEPS);
             Serial.println("Movement command sent to position: " + String(Z_HOME_OFFSET_STEPS) + " steps");
             
             movingAwayFromHome = true;
@@ -134,16 +134,16 @@ void executeHomeState() {
         //! ************************************************************************
         //! STEP 7: CHECK IF MOVEMENT AWAY FROM HOME IS COMPLETE
         //! ************************************************************************
-        if (movingAwayFromHome && !homeZMotor->isRunning()) {
+        if (movingAwayFromHome && !homeLoaderHeightMotor->isRunning()) {
             Serial.println("Movement away from home complete");
-            Serial.println("Final position: " + String(homeZMotor->getCurrentPosition()) + " steps");
+            Serial.println("Final position: " + String(homeLoaderHeightMotor->getCurrentPosition()) + " steps");
             homeComplete = true;
         }
     }
     
     // Only show error if we don't have the required components
-    if (!homeZMotor || !homeZHomeSwitch) {
-        Serial.println("ERROR: Z motor or home switch not available");
+    if (!homeLoaderHeightMotor || !homeLoaderHeightHomeSwitch) {
+        Serial.println("ERROR: Loader height motor or home switch not available");
         setState(IDLE_STATE);
     }
 }
@@ -202,8 +202,8 @@ void setHomeReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch) {
     //! ************************************************************************
     //! SET REFERENCES TO MOTOR AND SWITCH OBJECTS
     //! ************************************************************************
-    homeZMotor = motor;
-    homeZHomeSwitch = homeSwitch;
+    homeLoaderHeightMotor = motor;
+    homeLoaderHeightHomeSwitch = homeSwitch;
     
     Serial.println("Home motor/switch references set - Motor: " + String(motor ? "VALID" : "NULL") + 
                   ", Switch: " + String(homeSwitch ? "VALID" : "NULL"));

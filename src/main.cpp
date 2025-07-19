@@ -19,7 +19,7 @@ void handleOTA();
 //* *********************** PAINT MACHINE LOADER **************************
 //* ************************************************************************
 // Paint Machine Loader Control System with OTA Support
-// Z-axis stepper motor homing and servo sequence control
+// Loader height stepper motor homing and servo sequence control
 // Start button triggers 2-inch down/up cycle
 // OTA functionality integrated for remote updates
 //!
@@ -32,7 +32,7 @@ void handleOTA();
 //* *********************** MOTOR & SERVO OBJECTS *************************
 //* ************************************************************************
 FastAccelStepperEngine engine = FastAccelStepperEngine();
-FastAccelStepper *zMotor = NULL;      // Z-axis stepper motor (up/down)
+FastAccelStepper *loaderHeightMotor = NULL;      // Loader height stepper motor (up/down)
 ServoControl loaderServo;             // Loader servo
 ServoAccelerationController mainServoController(&loaderServo); // Servo acceleration controller
 
@@ -45,7 +45,7 @@ CylinderControl extensionCylinder;    // Extension cylinder control
 //* *********************** BUTTON CONTROL ********************************
 //* ************************************************************************
 Bounce2::Button startButton = Bounce2::Button();
-Bounce2::Button zHomeSwitch = Bounce2::Button();
+Bounce2::Button loaderHeightHomeSwitch = Bounce2::Button();
 
 //* ************************************************************************
 //* *********************** STATE VARIABLES *******************************
@@ -63,7 +63,7 @@ void initializeButtons();
 void updateButtons();
 void performStartupSequence();
 void setupStateMachineReferences();
-void homeZAxis();
+void homeLoaderHeight();
 void moveAwayFromHome();
 void performServoSequence();
 void performCycle();
@@ -155,23 +155,23 @@ void loop() {
     String command = Serial.readStringUntil('\n');
     command.trim();
     
-    // Check for manual commands first (z1.3, a30, etc.)
+    // Check for manual commands first (h1.3, a30, etc.)
     if (command.length() >= 2) {
       char commandType = command.charAt(0);
       String valueStr = command.substring(1);
       float value = valueStr.toFloat();
       
-      if (commandType == 'z' && value > 0 && value <= 50) {
-        // Manual Z height command
-        Serial.println("Manual Z command: Moving to " + String(value) + " inches");
-        if (zMotor) {
+      if (commandType == 'h' && value > 0 && value <= 50) {
+        // Manual loader height command
+        Serial.println("Manual loader height command: Moving to " + String(value) + " inches");
+        if (loaderHeightMotor) {
           int targetSteps = (int)(value * STEPS_PER_INCH);
-          zMotor->setSpeedInHz(Z_MAX_SPEED);
-          zMotor->setAcceleration(Z_ACCELERATION);
-          zMotor->moveTo(targetSteps);
-          Serial.println("Moving Z to: " + String(targetSteps) + " steps (" + String(value) + " inches)");
+          loaderHeightMotor->setSpeedInHz(Z_MAX_SPEED);
+          loaderHeightMotor->setAcceleration(Z_ACCELERATION);
+          loaderHeightMotor->moveTo(targetSteps);
+          Serial.println("Moving loader height to: " + String(targetSteps) + " steps (" + String(value) + " inches)");
         } else {
-          Serial.println("ERROR: Z motor not available");
+          Serial.println("ERROR: Loader height motor not available");
         }
         return; // Skip other command processing
       } else if (commandType == 'a' && value >= 0 && value <= 180) {
@@ -220,7 +220,7 @@ void loop() {
       // The test state will handle the manual mode toggle
     } else if (command == "help") {
       Serial.println("=== AVAILABLE COMMANDS ===");
-      Serial.println("z<height>  - Move Z-axis to height (inches) - Example: z1.3, z20");
+      Serial.println("h<height>  - Move loader height to height (inches) - Example: h1.3, h20");
       Serial.println("a<angle>   - Move servo to angle (degrees) - Example: a30, a90");
       Serial.println("help       - Show this help message");
       Serial.println("test_manual - Enter test state");
@@ -228,11 +228,11 @@ void loop() {
       Serial.println("cylinder_status - Show cylinder status");
     } else if (command == "status") {
       Serial.println("=== SYSTEM STATUS ===");
-      if (zMotor) {
-        int currentSteps = zMotor->getCurrentPosition();
+      if (loaderHeightMotor) {
+        int currentSteps = loaderHeightMotor->getCurrentPosition();
         float currentInches = (float)currentSteps / STEPS_PER_INCH;
-        Serial.println("Z Position: " + String(currentSteps) + " steps (" + String(currentInches, 2) + " inches)");
-        Serial.println("Z Motor running: " + String(zMotor->isRunning() ? "YES" : "NO"));
+        Serial.println("Loader Height Position: " + String(currentSteps) + " steps (" + String(currentInches, 2) + " inches)");
+        Serial.println("Loader Height Motor running: " + String(loaderHeightMotor->isRunning() ? "YES" : "NO"));
       }
       Serial.println("Servo Angle: " + String(mainServoController.getCurrentAngle(), 1) + " degrees");
       Serial.println("Servo moving: " + String(mainServoController.isMoving() ? "YES" : "NO"));
@@ -263,36 +263,36 @@ void initializeButtons() {
   startButton.attach(START_BUTTON_PIN, INPUT_PULLDOWN);
   startButton.interval(START_BUTTON_DEBOUNCE);
   
-  // Z home switch: Active HIGH (input pulldown)
-  zHomeSwitch.attach(Z_HOME_SWITCH_PIN, INPUT_PULLDOWN);
-  zHomeSwitch.interval(HOME_SWITCH_DEBOUNCE);
+  // Loader height home switch: Active HIGH (input pulldown)
+  loaderHeightHomeSwitch.attach(Z_HOME_SWITCH_PIN, INPUT_PULLDOWN);
+  loaderHeightHomeSwitch.interval(HOME_SWITCH_DEBOUNCE);
   
   Serial.println("Buttons and switches setup complete");
 }
 
 void initializeMotor() {
   //! ************************************************************************
-  //! INITIALIZE Z-AXIS STEPPER MOTOR ENGINE AND CONFIGURATION
+  //! INITIALIZE LOADER HEIGHT STEPPER MOTOR ENGINE AND CONFIGURATION
   //! ************************************************************************
-  Serial.println("Setting up Z-axis stepper motor...");
+  Serial.println("Setting up loader height stepper motor...");
   
   engine.init();
   
-  // Create Z-axis motor instance
-  zMotor = engine.stepperConnectToPin(Z_MOTOR_STEP_PIN);
-  if (zMotor) {
-    zMotor->setDirectionPin(Z_MOTOR_DIR_PIN);
-    zMotor->setSpeedInHz(Z_MAX_SPEED);
-    zMotor->setAcceleration(Z_ACCELERATION);
-    zMotor->setCurrentPosition(0);
-    zMotor->enableOutputs(); // Enable motor outputs
+  // Create loader height motor instance
+  loaderHeightMotor = engine.stepperConnectToPin(Z_MOTOR_STEP_PIN);
+  if (loaderHeightMotor) {
+    loaderHeightMotor->setDirectionPin(Z_MOTOR_DIR_PIN);
+    loaderHeightMotor->setSpeedInHz(Z_MAX_SPEED);
+    loaderHeightMotor->setAcceleration(Z_ACCELERATION);
+    loaderHeightMotor->setCurrentPosition(0);
+    loaderHeightMotor->enableOutputs(); // Enable motor outputs
     
-    Serial.println("Z-axis motor configured successfully");
-    Serial.println("Z Motor speed: " + String(Z_MAX_SPEED) + " Hz");
-    Serial.println("Z Motor acceleration: " + String(Z_ACCELERATION) + " steps/s²");
+    Serial.println("Loader height motor configured successfully");
+    Serial.println("Loader Height Motor speed: " + String(Z_MAX_SPEED) + " Hz");
+    Serial.println("Loader Height Motor acceleration: " + String(Z_ACCELERATION) + " steps/s²");
     Serial.println("Steps per inch: " + String(STEPS_PER_INCH));
   } else {
-    Serial.println("ERROR: Failed to create Z-axis motor instance");
+    Serial.println("ERROR: Failed to create loader height motor instance");
   }
 }
 
@@ -341,7 +341,7 @@ void updateButtons() {
   //! UPDATE ALL BUTTON STATES
   //! ************************************************************************
   startButton.update();
-  zHomeSwitch.update();
+  loaderHeightHomeSwitch.update();
 }
 
 void setupStateMachineReferences() {
@@ -351,17 +351,17 @@ void setupStateMachineReferences() {
   Serial.println("Setting up state machine references...");
   
   // Set references for home state
-  setHomeReferences(zMotor, &zHomeSwitch);
+  setHomeReferences(loaderHeightMotor, &loaderHeightHomeSwitch);
   setHomeServoReferences(&loaderServo, &mainServoController);
   
   // Set references for retrieve state
-  setRetrieveReferences(zMotor);
+  setRetrieveReferences(loaderHeightMotor);
   
   // Set references for store state
-  setStoreReferences(zMotor);
+  setStoreReferences(loaderHeightMotor);
   
   // Set references for test state
-  setTestReferences(zMotor, &mainServoController, &extensionCylinder);
+  setTestReferences(loaderHeightMotor, &mainServoController, &extensionCylinder);
   
   // Set references for idle state
   setIdleReferences(&mainServoController);
@@ -380,11 +380,11 @@ void performStartupSequence() {
   
   // Step 2: Check if already at home position
   updateButtons(); // Update button states
-  if (zHomeSwitch.read()) {
+  if (loaderHeightHomeSwitch.read()) {
     Serial.println("Already at home position - skipping homing");
     // Set home position without moving
-    if (zMotor) {
-      zMotor->setCurrentPosition(0);
+    if (loaderHeightMotor) {
+      loaderHeightMotor->setCurrentPosition(0);
     }
     
     // Move away from home position
@@ -418,19 +418,19 @@ void performStartupSequence() {
 //* ************************************************************************
 // Homes the Z-axis by moving toward the home switch until it's triggered
 
-void homeZAxis() {
+void homeLoaderHeight() {
   //! ************************************************************************
   //! STEP 1: START HOMING SEQUENCE
   //! ************************************************************************
-  Serial.println("Starting Z-axis homing...");
+  Serial.println("Starting loader height homing...");
   
-  if (!zMotor) {
-    Serial.println("ERROR: Z motor not initialized");
+  if (!loaderHeightMotor) {
+    Serial.println("ERROR: Loader height motor not initialized");
     return;
   }
   
   // Set homing speed
-  zMotor->setSpeedInHz(Z_HOMING_SPEED);
+  loaderHeightMotor->setSpeedInHz(Z_HOMING_SPEED);
   
   //! ************************************************************************
   //! STEP 2: MOVE IN NEGATIVE DIRECTION UNTIL HOME SWITCH IS TRIGGERED
@@ -438,11 +438,11 @@ void homeZAxis() {
   Serial.println("Moving toward home switch...");
   
   // Start moving in negative direction (toward home)
-  zMotor->runBackward();
+  loaderHeightMotor->runBackward();
   Serial.println("Motor started moving backward");
   
   // Wait until home switch is triggered (active high)
-  while (!zHomeSwitch.read()) {
+  while (!loaderHeightHomeSwitch.read()) {
     updateButtons();
     // handleOTA(); // Continue handling OTA during homing
     delay(1);
@@ -451,10 +451,10 @@ void homeZAxis() {
   //! ************************************************************************
   //! STEP 3: STOP MOTOR AND SET HOME POSITION
   //! ************************************************************************
-  zMotor->forceStop();
-  zMotor->setCurrentPosition(0); // Set current position as home (0)
+  loaderHeightMotor->forceStop();
+  loaderHeightMotor->setCurrentPosition(0); // Set current position as home (0)
   
-  Serial.println("Z-axis homing complete - at home position");
+  Serial.println("Loader height homing complete - at home position");
 }
 
 void moveAwayFromHome() {
@@ -463,31 +463,31 @@ void moveAwayFromHome() {
   //! ************************************************************************
   Serial.println("Moving " + String(Z_HOME_OFFSET_INCHES) + " inches away from home...");
   
-  if (!zMotor) {
-    Serial.println("ERROR: Z motor not initialized");
+  if (!loaderHeightMotor) {
+    Serial.println("ERROR: Loader height motor not initialized");
     return;
   }
   
   // Debug: Print current position and target
-  int currentPos = zMotor->getCurrentPosition();
+  int currentPos = loaderHeightMotor->getCurrentPosition();
   Serial.println("Current position: " + String(currentPos) + " steps");
   Serial.println("Target position: " + String(Z_HOME_OFFSET_STEPS) + " steps");
   Serial.println("Steps per inch: " + String(STEPS_PER_INCH));
   
   // Set normal operating speed
-  zMotor->setSpeedInHz(Z_MAX_SPEED);
+  loaderHeightMotor->setSpeedInHz(Z_MAX_SPEED);
   Serial.println("Motor speed set to: " + String(Z_MAX_SPEED) + " Hz");
   
   // Move to the offset position (2 inches away from home)
-  zMotor->moveTo(Z_HOME_OFFSET_STEPS);
+  loaderHeightMotor->moveTo(Z_HOME_OFFSET_STEPS);
   Serial.println("Movement command sent");
   
   // Wait for movement to complete
-  while (zMotor->isRunning()) {
+  while (loaderHeightMotor->isRunning()) {
     delay(1);
   }
   
-  int finalPos = zMotor->getCurrentPosition();
+  int finalPos = loaderHeightMotor->getCurrentPosition();
   Serial.println("Final position: " + String(finalPos) + " steps");
   Serial.println("Moved to position: " + String(Z_HOME_OFFSET_INCHES) + " inches from home");
 }
@@ -546,14 +546,14 @@ void performCycle() {
   cycleInProgress = true;
   Serial.println("=== STARTING CYCLE OPERATION ===");
   
-  if (!zMotor) {
-    Serial.println("ERROR: Z motor not initialized");
+  if (!loaderHeightMotor) {
+    Serial.println("ERROR: Loader height motor not initialized");
     cycleInProgress = false;
     return;
   }
   
   // Store current position
-  int currentPosition = zMotor->getCurrentPosition();
+  int currentPosition = loaderHeightMotor->getCurrentPosition();
   
   //! ************************************************************************
   //! STEP 2: MOVE DOWN 2 INCHES
@@ -562,10 +562,10 @@ void performCycle() {
   
   // Calculate target position (current position + 2 inches in steps)
   int downPosition = currentPosition + Z_CYCLE_DISTANCE_STEPS;
-  zMotor->moveTo(downPosition);
+  loaderHeightMotor->moveTo(downPosition);
   
   // Wait for downward movement to complete
-  while (zMotor->isRunning()) {
+  while (loaderHeightMotor->isRunning()) {
     updateButtons(); // Continue monitoring buttons
     // handleOTA(); // Continue handling OTA during movement
     delay(1);
@@ -579,10 +579,10 @@ void performCycle() {
   Serial.println("Moving up " + String(Z_CYCLE_DISTANCE_INCHES) + " inches...");
   
   // Move back to original position
-  zMotor->moveTo(currentPosition);
+  loaderHeightMotor->moveTo(currentPosition);
   
   // Wait for upward movement to complete
-  while (zMotor->isRunning()) {
+  while (loaderHeightMotor->isRunning()) {
     updateButtons(); // Continue monitoring buttons
     // handleOTA(); // Continue handling OTA during movement
     delay(1);

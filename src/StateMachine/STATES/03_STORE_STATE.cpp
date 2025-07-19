@@ -15,7 +15,7 @@
 //* ************************************************************************
 static bool storeStateInitialized = false;
 static bool storeComplete = false;
-static FastAccelStepper* storeZMotor = NULL;
+static FastAccelStepper* storeLoaderHeightMotor = NULL;
 
 //* ************************************************************************
 //* ************************ STORE STATE FUNCTIONS ***********************
@@ -36,9 +36,9 @@ void executeStoreState() {
         //! ************************************************************************
         //! STEP 1: SET STORING SPEED
         //! ************************************************************************
-        if (storeZMotor) {
-            storeZMotor->setSpeedInHz(Z_MAX_SPEED);
-            Serial.println("Z Motor speed set to: " + String(Z_MAX_SPEED) + " Hz");
+        if (storeLoaderHeightMotor) {
+            storeLoaderHeightMotor->setSpeedInHz(Z_MAX_SPEED);
+            Serial.println("Loader Height Motor speed set to: " + String(Z_MAX_SPEED) + " Hz");
         }
     }
     
@@ -54,21 +54,21 @@ void executeStoreState() {
     //! ************************************************************************
     //! STEP 3: PERFORM STORING SEQUENCE
     //! ************************************************************************
-    if (storeZMotor) {
+    if (storeLoaderHeightMotor) {
         //! ************************************************************************
         //! STEP 3A: MOVE TO STORAGE POSITION
         //! ************************************************************************
-        if (!storeZMotor->isRunning()) {
+        if (!storeLoaderHeightMotor->isRunning()) {
             // Move to storage position (example: 10 inches from home)
             int storagePosition = 10 * STEPS_PER_INCH; // 10 inches
-            storeZMotor->moveTo(storagePosition);
+            storeLoaderHeightMotor->moveTo(storagePosition);
             Serial.println("Moving to storage position: " + String(storagePosition) + " steps");
         }
         
         //! ************************************************************************
         //! STEP 3B: CHECK IF MOVEMENT COMPLETE
         //! ************************************************************************
-        if (!storeZMotor->isRunning()) {
+        if (!storeLoaderHeightMotor->isRunning()) {
             Serial.println("Reached storage position");
             
             //! ************************************************************************
@@ -81,7 +81,7 @@ void executeStoreState() {
             storeComplete = true;
         }
     } else {
-        Serial.println("ERROR: Z motor not available");
+        Serial.println("ERROR: Loader height motor not available");
         setState(IDLE_STATE);
     }
 }
@@ -98,5 +98,5 @@ void setStoreReferences(FastAccelStepper* motor) {
     //! ************************************************************************
     //! SET REFERENCES TO MOTOR OBJECTS
     //! ************************************************************************
-    storeZMotor = motor;
+    storeLoaderHeightMotor = motor;
 } 
