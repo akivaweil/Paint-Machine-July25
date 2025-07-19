@@ -155,6 +155,35 @@ void loop() {
     String command = Serial.readStringUntil('\n');
     command.trim();
     
+    // Check for manual commands first (z1.3, a30, etc.)
+    if (command.length() >= 2) {
+      char commandType = command.charAt(0);
+      String valueStr = command.substring(1);
+      float value = valueStr.toFloat();
+      
+      if (commandType == 'z' && value > 0 && value <= 50) {
+        // Manual Z height command
+        Serial.println("Manual Z command: Moving to " + String(value) + " inches");
+        if (zMotor) {
+          int targetSteps = (int)(value * STEPS_PER_INCH);
+          zMotor->setSpeedInHz(Z_MAX_SPEED);
+          zMotor->setAcceleration(Z_ACCELERATION);
+          zMotor->moveTo(targetSteps);
+          Serial.println("Moving Z to: " + String(targetSteps) + " steps (" + String(value) + " inches)");
+        } else {
+          Serial.println("ERROR: Z motor not available");
+        }
+        return; // Skip other command processing
+      } else if (commandType == 'a' && value >= 0 && value <= 180) {
+        // Manual servo angle command
+        Serial.println("Manual angle command: Moving servo to " + String(value) + " degrees");
+        mainServoController.moveTo(value);
+        Serial.println("Moving servo to: " + String(value) + " degrees");
+        return; // Skip other command processing
+      }
+    }
+    
+    // Handle other commands
     if (command == "test_servo") {
       Serial.println("Manual servo test triggered");
       testServoAccelerationController();
@@ -189,6 +218,28 @@ void loop() {
       Serial.println("Switching to TEST state with manual mode");
       setState(TEST_STATE);
       // The test state will handle the manual mode toggle
+    } else if (command == "help") {
+      Serial.println("=== AVAILABLE COMMANDS ===");
+      Serial.println("z<height>  - Move Z-axis to height (inches) - Example: z1.3, z20");
+      Serial.println("a<angle>   - Move servo to angle (degrees) - Example: a30, a90");
+      Serial.println("help       - Show this help message");
+      Serial.println("test_manual - Enter test state");
+      Serial.println("servo_status - Show servo status");
+      Serial.println("cylinder_status - Show cylinder status");
+    } else if (command == "status") {
+      Serial.println("=== SYSTEM STATUS ===");
+      if (zMotor) {
+        int currentSteps = zMotor->getCurrentPosition();
+        float currentInches = (float)currentSteps / STEPS_PER_INCH;
+        Serial.println("Z Position: " + String(currentSteps) + " steps (" + String(currentInches, 2) + " inches)");
+        Serial.println("Z Motor running: " + String(zMotor->isRunning() ? "YES" : "NO"));
+      }
+      Serial.println("Servo Angle: " + String(mainServoController.getCurrentAngle(), 1) + " degrees");
+      Serial.println("Servo moving: " + String(mainServoController.isMoving() ? "YES" : "NO"));
+      Serial.println("Current State: " + getStateName(getCurrentState()));
+    } else if (command.length() > 0) {
+      Serial.println("Unknown command: " + command);
+      Serial.println("Type 'help' for available commands");
     }
   }
 
