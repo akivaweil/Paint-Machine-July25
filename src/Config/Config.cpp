@@ -47,4 +47,4 @@ int HOME_SWITCH_DEBOUNCE = 5;         // Home switch debounce time in millisecon
 // Loader height stepper motor settings
 float Z_MAX_SPEED = 5000.0;      // Maximum speed in steps per second
 float Z_ACCELERATION = 5000.0;   // Acceleration in steps per second^2
-float Z_HOMING_SPEED = 1000.0;    // Slow homing speed 
+float Z_HOMING_SPEED = 2000.0;    // Slow homing speed 
