@@ -185,6 +185,10 @@ void loop() {
       Serial.println("=== CYLINDER STATUS ===");
       Serial.println("Current state: " + String(extensionCylinder.getState() ? "EXTENDED" : "RETRACTED"));
       Serial.println("Is extended: " + String(extensionCylinder.isCylinderExtended() ? "YES" : "NO"));
+    } else if (command == "test_manual") {
+      Serial.println("Switching to TEST state with manual mode");
+      setState(TEST_STATE);
+      // The test state will handle the manual mode toggle
     }
   }
 

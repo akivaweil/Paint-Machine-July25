@@ -59,4 +59,13 @@ void setStoreReferences(FastAccelStepper* motor);
 void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* servoController, CylinderControl* cylinder);
 void setIdleReferences(ServoAccelerationController* servoController);
 
+// Test state manual mode functions
+void parseManualCommand(String command);
+void moveToManualHeight(float heightInches);
+void moveToManualAngle(float angleDegrees);
+void printManualModeHelp();
+void printManualModeStatus();
+void toggleManualMode();
+void checkSerialCommands();
+
 #endif // STATE_MACHINE_H 

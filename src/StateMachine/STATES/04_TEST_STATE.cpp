@@ -65,6 +65,12 @@ static unsigned long cylinderDelay = 0;
 static int currentPositionIndex = 0;  // Current position in the test sequence
 static int cylinderStep = 0;  // Current step in cylinder sequence (0-3)
 
+// Manual command mode variables
+static bool manualMode = false;       // Flag to enable manual command mode
+static bool manualMotorMoving = false; // Track manual motor movement
+static bool manualServoMoving = false; // Track manual servo movement
+static String inputBuffer = "";       // Buffer for incoming serial commands
+
 // Servo test settings
 static const int SERVO_TEST_ACCEL = 300;    // Servo acceleration for test
 static const int SERVO_TEST_MAX_SPEED = 4000; // Servo max speed for test
@@ -93,12 +99,18 @@ void executeTestState() {
         Serial.println("=== ENTERING TEST STATE ===");
         Serial.println("Manual testing mode activated");
         Serial.println("Test sequence: 5 positions with height and angle settings");
+        Serial.println("Type 'mode' to switch to manual command mode");
+        Serial.println("Manual commands: z<height>, a<angle>, help, status");
         testStateInitialized = true;
         testComplete = false;
         currentPositionIndex = 0;
         motorMoving = false;
         servoMoving = false;
         testDelay = 0;
+        manualMode = false; // Start in auto test mode
+        manualMotorMoving = false;
+        manualServoMoving = false;
+        inputBuffer = "";
         
         //! ************************************************************************
         //! STEP 1: START TEST SEQUENCE
@@ -107,14 +119,41 @@ void executeTestState() {
     }
     
     //! ************************************************************************
-    //! STEP 2: UPDATE SERVO CONTROLLER
+    //! STEP 2: CHECK FOR SERIAL COMMANDS
+    //! ************************************************************************
+    checkSerialCommands();
+    
+    //! ************************************************************************
+    //! STEP 3: UPDATE SERVO CONTROLLER
     //! ************************************************************************
     if (testServoController) {
         testServoController->update();
     }
     
     //! ************************************************************************
-    //! STEP 3: EXECUTE TEST SEQUENCE
+    //! STEP 4: HANDLE MANUAL MODE
+    //! ************************************************************************
+    if (manualMode) {
+        // Update manual movement status
+        if (testZMotor && manualMotorMoving) {
+            if (!testZMotor->isRunning()) {
+                manualMotorMoving = false;
+                Serial.println("Manual Z movement complete");
+            }
+        }
+        
+        if (testServoController && manualServoMoving) {
+            if (testServoController->isMoveComplete()) {
+                manualServoMoving = false;
+                Serial.println("Manual servo movement complete");
+            }
+        }
+        
+        return; // Skip auto test sequence in manual mode
+    }
+    
+    //! ************************************************************************
+    //! STEP 5: EXECUTE AUTO TEST SEQUENCE
     //! ************************************************************************
     // Check if we've completed all positions
     if (currentPositionIndex >= 5) {
@@ -288,6 +327,12 @@ void resetTestState() {
     testDelay = 0;
     cylinderDelay = 0;
     cylinderStep = 0;
+    
+    // Reset manual mode variables
+    manualMode = false;
+    manualMotorMoving = false;
+    manualServoMoving = false;
+    inputBuffer = "";
 }
 
 void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* servoController, CylinderControl* cylinder) {
@@ -300,4 +345,195 @@ void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* ser
     Serial.println("Test references set - Motor: " + String(motor ? "VALID" : "NULL") + 
                    ", ServoController: " + String(servoController ? "VALID" : "NULL") +
                    ", Cylinder: " + String(cylinder ? "VALID" : "NULL"));
+} 
+
+//! ************************************************************************
+//! COMMAND PARSING FUNCTIONS FOR MANUAL MODE
+//! ************************************************************************
+
+void parseManualCommand(String command) {
+    //! ************************************************************************
+    //! PARSE MANUAL COMMANDS: z1.3, a30, etc.
+    //! ************************************************************************
+    command.trim();
+    command.toLowerCase();
+    
+    if (command.length() < 2) {
+        Serial.println("Invalid command format. Use: z<height> or a<angle>");
+        Serial.println("Examples: z1.3, a30, z5.0, a90");
+        return;
+    }
+    
+    char commandType = command.charAt(0);
+    String valueStr = command.substring(1);
+    float value = valueStr.toFloat();
+    
+    switch (commandType) {
+        case 'z': // Z-axis height command
+            if (value > 0 && value <= 50) { // Reasonable height limits
+                Serial.println("Manual Z command: Moving to " + String(value) + " inches");
+                moveToManualHeight(value);
+            } else {
+                Serial.println("Invalid Z height. Must be between 0.1 and 50 inches");
+            }
+            break;
+            
+        case 'a': // Servo angle command
+            if (value >= 0 && value <= 180) { // Servo angle limits
+                Serial.println("Manual angle command: Moving servo to " + String(value) + " degrees");
+                moveToManualAngle(value);
+            } else {
+                Serial.println("Invalid angle. Must be between 0 and 180 degrees");
+            }
+            break;
+            
+        case 'h': // Help command
+            if (command == "help") {
+                printManualModeHelp();
+            }
+            break;
+            
+        case 's': // Status command
+            if (command == "status") {
+                printManualModeStatus();
+            }
+            break;
+            
+        case 'm': // Mode toggle
+            if (command == "mode") {
+                toggleManualMode();
+            }
+            break;
+            
+        default:
+            Serial.println("Unknown command: " + command);
+            Serial.println("Use: z<height>, a<angle>, help, status, mode");
+            break;
+    }
+}
+
+void moveToManualHeight(float heightInches) {
+    //! ************************************************************************
+    //! MOVE Z-AXIS TO SPECIFIED HEIGHT IN MANUAL MODE
+    //! ************************************************************************
+    if (!testZMotor) {
+        Serial.println("ERROR: Z motor not available");
+        return;
+    }
+    
+    if (manualMotorMoving) {
+        Serial.println("Motor already moving - command ignored");
+        return;
+    }
+    
+    int targetSteps = (int)(heightInches * STEPS_PER_INCH);
+    testZMotor->setSpeedInHz(Z_TEST_MAX_SPEED);
+    testZMotor->setAcceleration(Z_TEST_ACCELERATION);
+    testZMotor->moveTo(targetSteps);
+    manualMotorMoving = true;
+    
+    Serial.println("Moving Z to: " + String(targetSteps) + " steps (" + String(heightInches) + " inches)");
+    Serial.println("Speed: " + String(Z_TEST_MAX_SPEED) + " steps/sec, Accel: " + String(Z_TEST_ACCELERATION) + " steps/sec²");
+}
+
+void moveToManualAngle(float angleDegrees) {
+    //! ************************************************************************
+    //! MOVE SERVO TO SPECIFIED ANGLE IN MANUAL MODE
+    //! ************************************************************************
+    if (!testServoController) {
+        Serial.println("ERROR: Servo controller not available");
+        return;
+    }
+    
+    if (manualServoMoving) {
+        Serial.println("Servo already moving - command ignored");
+        return;
+    }
+    
+    testServoController->setAccelerationProfile(SERVO_TEST_ACCEL, SERVO_TEST_MAX_SPEED);
+    testServoController->moveTo(angleDegrees);
+    manualServoMoving = true;
+    
+    Serial.println("Moving servo to: " + String(angleDegrees) + " degrees");
+    Serial.println("Accel: " + String(SERVO_TEST_ACCEL) + ", Max Speed: " + String(SERVO_TEST_MAX_SPEED));
+}
+
+void printManualModeHelp() {
+    //! ************************************************************************
+    //! PRINT MANUAL MODE HELP INFORMATION
+    //! ************************************************************************
+    Serial.println("=== MANUAL MODE COMMANDS ===");
+    Serial.println("z<height>  - Move Z-axis to height (inches)");
+    Serial.println("           Example: z1.3, z5.0, z10.5");
+    Serial.println("a<angle>   - Move servo to angle (degrees)");
+    Serial.println("           Example: a30, a90, a135");
+    Serial.println("help       - Show this help message");
+    Serial.println("status     - Show current positions and status");
+    Serial.println("mode       - Toggle between manual and auto test mode");
+    Serial.println("");
+    Serial.println("Current mode: " + String(manualMode ? "MANUAL" : "AUTO TEST"));
+}
+
+void printManualModeStatus() {
+    //! ************************************************************************
+    //! PRINT CURRENT STATUS IN MANUAL MODE
+    //! ************************************************************************
+    Serial.println("=== MANUAL MODE STATUS ===");
+    
+    if (testZMotor) {
+        int currentSteps = testZMotor->getCurrentPosition();
+        float currentInches = (float)currentSteps / STEPS_PER_INCH;
+        Serial.println("Z Position: " + String(currentSteps) + " steps (" + String(currentInches, 2) + " inches)");
+        Serial.println("Z Motor running: " + String(testZMotor->isRunning() ? "YES" : "NO"));
+    } else {
+        Serial.println("Z Motor: NOT AVAILABLE");
+    }
+    
+    if (testServoController) {
+        Serial.println("Servo Angle: " + String(testServoController->getCurrentAngle(), 1) + " degrees");
+        Serial.println("Servo moving: " + String(testServoController->isMoving() ? "YES" : "NO"));
+        Serial.println("Servo velocity: " + String(testServoController->getCurrentVelocity(), 1) + " deg/s");
+    } else {
+        Serial.println("Servo Controller: NOT AVAILABLE");
+    }
+    
+    Serial.println("Mode: " + String(manualMode ? "MANUAL" : "AUTO TEST"));
+}
+
+void toggleManualMode() {
+    //! ************************************************************************
+    //! TOGGLE BETWEEN MANUAL AND AUTO TEST MODE
+    //! ************************************************************************
+    manualMode = !manualMode;
+    
+    if (manualMode) {
+        Serial.println("=== SWITCHING TO MANUAL MODE ===");
+        Serial.println("Type commands like: z1.3, a30, help, status");
+        Serial.println("Use 'mode' to switch back to auto test");
+    } else {
+        Serial.println("=== SWITCHING TO AUTO TEST MODE ===");
+        Serial.println("Auto test sequence will continue");
+    }
+}
+
+void checkSerialCommands() {
+    //! ************************************************************************
+    //! CHECK FOR INCOMING SERIAL COMMANDS IN MANUAL MODE
+    //! ************************************************************************
+    if (!manualMode) {
+        return; // Only process commands in manual mode
+    }
+    
+    while (Serial.available()) {
+        char c = Serial.read();
+        
+        if (c == '\n' || c == '\r') {
+            if (inputBuffer.length() > 0) {
+                parseManualCommand(inputBuffer);
+                inputBuffer = "";
+            }
+        } else {
+            inputBuffer += c;
+        }
+    }
 } 
