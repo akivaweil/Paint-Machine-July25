@@ -356,6 +356,7 @@ void setupStateMachineReferences() {
   
   // Set references for test state
   setTestReferences(loaderHeightMotor, &extensionCylinder);
+  setTestServoReference(&loaderServo);
   
   // Set references for idle state
 

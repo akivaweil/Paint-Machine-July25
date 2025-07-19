@@ -16,6 +16,7 @@
 #include <FastAccelStepper.h>
 
 #include "CylinderControl.h"
+#include "ServoControl.h"
 
 //* ************************************************************************
 //* ************************ TEST POSITION CONFIGURATION *******************
@@ -53,7 +54,7 @@ static const TestPosition TEST_POSITIONS[5] = {
 static bool testStateInitialized = false;
 static bool testComplete = false;
 static FastAccelStepper* testLoaderHeightMotor = NULL;
-
+static ServoControl* testServo = NULL;
 static CylinderControl* testCylinder = NULL;
 
 // Test sequence variables
@@ -183,12 +184,26 @@ void executeTestState() {
                 Serial.println("Motor moving to: " + String(targetPosition) + " steps (" + String(currentPos.height_inches) + " inches)");
             }
             
+            // Move servo to target angle
+            if (testServo) {
+                Serial.println("Moving servo to: " + String(currentPos.angle_degrees) + " degrees");
+                testServo->write(currentPos.angle_degrees);
+                servoMoving = true;
+                servoMoveStartTime = millis();
+            }
+            
 
         }
         
         // Check if motor movement is complete and wait for servo time
         if (testLoaderHeightMotor) {
             bool motorComplete = !testLoaderHeightMotor->isRunning();
+            
+            // Check if servo movement is complete (wait 1 second for servo to reach position)
+            if (servoMoving && (millis() - servoMoveStartTime > 1000)) {
+                servoMoving = false;
+                Serial.println("Servo movement complete");
+            }
             
 
             
@@ -311,6 +326,14 @@ void setTestReferences(FastAccelStepper* motor, CylinderControl* cylinder) {
     testCylinder = cylinder;
     Serial.println("Test references set - Motor: " + String(motor ? "VALID" : "NULL") + 
                    ", Cylinder: " + String(cylinder ? "VALID" : "NULL"));
+}
+
+void setTestServoReference(ServoControl* servo) {
+    //! ************************************************************************
+    //! SET REFERENCE TO SERVO OBJECT
+    //! ************************************************************************
+    testServo = servo;
+    Serial.println("Test servo reference set - Servo: " + String(servo ? "VALID" : "NULL"));
 } 
 
 //! ************************************************************************
