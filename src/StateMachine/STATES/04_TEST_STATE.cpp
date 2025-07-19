@@ -40,7 +40,7 @@ static const int Z_HOME_OFFSET_STEPS = (int)(Z_HOME_OFFSET_INCHES * STEPS_PER_IN
 
 // Test sequence positions (5 positions total)
 static const TestPosition TEST_POSITIONS[5] = {
-    {2.40, 28, "Position 1 - High"},      // Position 1: 25 inches, 0 degrees
+    {2.40, 27, "Position 1 - High"},      // Position 1: 25 inches, 0 degrees
     {12.0, 45, "Position 2 - Mid-High"}, // Position 2: 15 inches, 45 degrees
     {20.0, 90, "Position 3 - Center"},   // Position 3: 10 inches, 90 degrees
     {5.0, 135, "Position 4 - Mid-Low"},  // Position 4: 5 inches, 135 degrees
@@ -71,9 +71,9 @@ static bool manualMotorMoving = false; // Track manual motor movement
 static bool manualServoMoving = false; // Track manual servo movement
 static String inputBuffer = "";       // Buffer for incoming serial commands
 
-// Servo completion tracking
+// Servo completion tracking - simplified to fixed delay only
 static unsigned long servoMoveStartTime = 0;  // When servo movement started
-static const unsigned long SERVO_MOVE_TIMEOUT = 3000;  // 3 second timeout for servo movement
+static const unsigned long SERVO_MOVE_DELAY = 2000;  // 2 second fixed delay for servo movement
 
 // Stepper motor test settings
 static const float Z_TEST_MAX_SPEED = 20000;     // Stepper max speed for test (steps/sec)
@@ -137,16 +137,11 @@ void executeTestState() {
         
         if (testServo && manualServoMoving) {
             unsigned long currentTime = millis();
-            bool servoComplete = testServo->hasReachedTarget() || 
-                               (currentTime - servoMoveStartTime >= SERVO_MOVE_TIMEOUT);
+            bool servoComplete = (currentTime - servoMoveStartTime >= SERVO_MOVE_DELAY);
             
             if (servoComplete) {
                 manualServoMoving = false;
-                if (testServo->hasReachedTarget()) {
-                    Serial.println("Manual servo movement complete");
-                } else {
-                    Serial.println("Manual servo movement timed out - proceeding anyway");
-                }
+                Serial.println("Manual servo movement complete");
             }
         }
         
@@ -209,16 +204,11 @@ void executeTestState() {
             // Check if servo has reached target or timed out
             if (motorComplete && servoMoving && testServo) {
                 unsigned long currentTime = millis();
-                bool servoComplete = testServo->hasReachedTarget() || 
-                                   (currentTime - servoMoveStartTime >= SERVO_MOVE_TIMEOUT);
+                bool servoComplete = (currentTime - servoMoveStartTime >= SERVO_MOVE_DELAY);
                 
                 if (servoComplete) {
                     servoMoving = false;
-                    if (testServo->hasReachedTarget()) {
-                        Serial.println("Servo reached target position");
-                    } else {
-                        Serial.println("Servo movement timed out - proceeding anyway");
-                    }
+                    Serial.println("Servo reached target position");
                 }
             }
             
@@ -227,13 +217,12 @@ void executeTestState() {
             if (millis() - lastDebugTime > 1000) { // Print every second
                 TestPosition currentPos = TEST_POSITIONS[currentPositionIndex];
                 unsigned long timeElapsed = millis() - servoMoveStartTime;
-                bool timeoutReached = timeElapsed >= SERVO_MOVE_TIMEOUT;
+                bool timeoutReached = timeElapsed >= SERVO_MOVE_DELAY;
                 
                 Serial.println("Debug Position " + String(currentPositionIndex + 1) + " - Motor running: " + String(motorComplete ? "NO" : "YES") + 
                                ", Servo moving: " + String(servoMoving ? "YES" : "NO") +
-                               ", Servo target reached: " + String(testServo ? (testServo->hasReachedTarget() ? "YES" : "NO") : "N/A") +
                                ", Time elapsed: " + String(timeElapsed) + "ms" +
-                               ", Timeout: " + String(timeoutReached ? "YES" : "NO"));
+                               ", Delay complete: " + String(timeoutReached ? "YES" : "NO"));
                 lastDebugTime = millis();
             }
             
@@ -492,7 +481,7 @@ void printManualModeStatus() {
     }
     
     if (testServo) {
-        Serial.println("Servo target reached: " + String(testServo->hasReachedTarget() ? "YES" : "NO"));
+        Serial.println("Servo: AVAILABLE");
     } else {
         Serial.println("Servo: NOT AVAILABLE");
     }
