@@ -15,6 +15,7 @@
 #include "Config/Pins_Definitions.h"
 #include <FastAccelStepper.h>
 #include "ServoAccelerationController.h"
+#include "CylinderControl.h"
 
 //* ************************************************************************
 //* ************************ TEST POSITION CONFIGURATION *******************
@@ -53,12 +54,16 @@ static bool testStateInitialized = false;
 static bool testComplete = false;
 static FastAccelStepper* testZMotor = NULL;
 static ServoAccelerationController* testServoController = NULL;
+static CylinderControl* testCylinder = NULL;
 
 // Test sequence variables
 static bool motorMoving = false;
 static bool servoMoving = false;
+static bool cylinderOperating = false;
 static unsigned long testDelay = 0;
+static unsigned long cylinderDelay = 0;
 static int currentPositionIndex = 0;  // Current position in the test sequence
+static int cylinderStep = 0;  // Current step in cylinder sequence (0-3)
 
 // Servo test settings
 static const int SERVO_TEST_ACCEL = 300;    // Servo acceleration for test
@@ -67,6 +72,10 @@ static const int SERVO_TEST_MAX_SPEED = 4000; // Servo max speed for test
 // Stepper motor test settings
 static const float Z_TEST_MAX_SPEED = 20000;     // Stepper max speed for test (steps/sec)
 static const float Z_TEST_ACCELERATION = 15000;   // Stepper acceleration for test (steps/sec^2)
+
+// Cylinder sequence settings
+static const unsigned long CYLINDER_WAIT_TIME = 1000;  // 1 second wait time
+static const float CYLINDER_MOVE_DISTANCE = 0.5;       // 0.5 inches up movement
 
 //* ************************************************************************
 //* ************************ TEST STATE FUNCTIONS ************************
@@ -184,14 +193,71 @@ void executeTestState() {
                 lastDebugTime = millis();
             }
             
-            // Move to next position when motor is complete AND servo move is complete
-            if (motorComplete && (!servoMoving || (testServoController && testServoController->isMoveComplete()))) {
+                    // Move to next position when motor is complete AND servo move is complete
+        if (motorComplete && (!servoMoving || (testServoController && testServoController->isMoveComplete()))) {
+            if (!cylinderOperating) {
+                // Start cylinder sequence
                 TestPosition currentPos = TEST_POSITIONS[currentPositionIndex];
-                Serial.println("Position " + String(currentPositionIndex + 1) + " complete - Motor at: " + String(testZMotor->getCurrentPosition()) + " steps");
-                motorMoving = false;
-                servoMoving = false;
-                currentPositionIndex++; // Move to next position
-                Serial.println("Moving to next position...");
+                Serial.println("Position " + String(currentPositionIndex + 1) + " complete - Starting cylinder sequence");
+                cylinderOperating = true;
+                cylinderStep = 0;
+                cylinderDelay = 0;
+            }
+        }
+        }
+        
+        //! ************************************************************************
+        //! STEP 3A: EXECUTE CYLINDER SEQUENCE
+        //! ************************************************************************
+        if (cylinderOperating) {
+            unsigned long currentTime = millis();
+            
+            switch (cylinderStep) {
+                case 0: // Extend cylinder
+                    if (testCylinder) {
+                        Serial.println("Cylinder Step 0: Extending cylinder");
+                        testCylinder->extend();
+                        cylinderDelay = currentTime + CYLINDER_WAIT_TIME;
+                        cylinderStep = 1;
+                    }
+                    break;
+                    
+                case 1: // Wait 1 second, then move motor up 0.5 inches
+                    if (currentTime >= cylinderDelay) {
+                        if (testZMotor) {
+                            int currentPos = testZMotor->getCurrentPosition();
+                            int targetPos = currentPos + (int)(CYLINDER_MOVE_DISTANCE * STEPS_PER_INCH);
+                            Serial.println("Cylinder Step 1: Moving motor up " + String(CYLINDER_MOVE_DISTANCE) + " inches");
+                            Serial.println("From: " + String(currentPos) + " steps to: " + String(targetPos) + " steps");
+                            testZMotor->setSpeedInHz(Z_TEST_MAX_SPEED);
+                            testZMotor->setAcceleration(Z_TEST_ACCELERATION);
+                            testZMotor->moveTo(targetPos);
+                            cylinderStep = 2;
+                        }
+                    }
+                    break;
+                    
+                case 2: // Wait for motor to complete, then retract cylinder
+                    if (testZMotor && !testZMotor->isRunning()) {
+                        if (testCylinder) {
+                            Serial.println("Cylinder Step 2: Retracting cylinder");
+                            testCylinder->retract();
+                            cylinderDelay = currentTime + CYLINDER_WAIT_TIME;
+                            cylinderStep = 3;
+                        }
+                    }
+                    break;
+                    
+                case 3: // Wait 1 second, then move to next position
+                    if (currentTime >= cylinderDelay) {
+                        Serial.println("Cylinder sequence complete - moving to next position");
+                        cylinderOperating = false;
+                        motorMoving = false;
+                        servoMoving = false;
+                        currentPositionIndex++; // Move to next position
+                        Serial.println("Moving to next position...");
+                    }
+                    break;
             }
         }
     }
@@ -215,15 +281,20 @@ void resetTestState() {
     currentPositionIndex = 0;
     motorMoving = false;
     servoMoving = false;
+    cylinderOperating = false;
     testDelay = 0;
+    cylinderDelay = 0;
+    cylinderStep = 0;
 }
 
-void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* servoController) {
+void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* servoController, CylinderControl* cylinder) {
     //! ************************************************************************
-    //! SET REFERENCES TO MOTOR AND SERVO CONTROLLER OBJECTS
+    //! SET REFERENCES TO MOTOR, SERVO CONTROLLER, AND CYLINDER OBJECTS
     //! ************************************************************************
     testZMotor = motor;
     testServoController = servoController;
+    testCylinder = cylinder;
     Serial.println("Test references set - Motor: " + String(motor ? "VALID" : "NULL") + 
-                   ", ServoController: " + String(servoController ? "VALID" : "NULL"));
+                   ", ServoController: " + String(servoController ? "VALID" : "NULL") +
+                   ", Cylinder: " + String(cylinder ? "VALID" : "NULL"));
 } 

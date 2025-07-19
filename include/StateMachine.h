@@ -8,6 +8,7 @@
 // Forward declarations
 class ServoControl;
 class ServoAccelerationController;
+class CylinderControl;
 
 //* ************************************************************************
 //* ************************ STATE DEFINITIONS ****************************
@@ -55,7 +56,7 @@ void setHomeReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch);
 void setHomeServoReferences(ServoControl* servo, ServoAccelerationController* controller);
 void setRetrieveReferences(FastAccelStepper* motor);
 void setStoreReferences(FastAccelStepper* motor);
-void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* servoController);
+void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* servoController, CylinderControl* cylinder);
 void setIdleReferences(ServoAccelerationController* servoController);
 
 #endif // STATE_MACHINE_H 
