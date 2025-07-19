@@ -32,9 +32,15 @@ extern int SERVO_MAX_PULSE;            // Maximum pulse width in microseconds
 extern int SERVO_MIN_ANGLE;            // Minimum servo angle in degrees
 extern int SERVO_MAX_ANGLE;            // Maximum servo angle in degrees
 
+// Servo sequence positions
+extern int SERVO_START_POS;            // First position in sequence
+extern int SERVO_SECOND_POS;           // Second position in sequence
+extern int SERVO_THIRD_POS;            // Third position in sequence
+
 //* ************************ TIMING SETTINGS ******************************
 // Button and switch debounce settings
 extern int BUTTON_DEBOUNCE;            // Button debounce time in milliseconds
+extern int START_BUTTON_DEBOUNCE;      // Start button debounce time in milliseconds
 extern int HOME_SWITCH_DEBOUNCE;       // Home switch debounce time in milliseconds
 
 //* ************************ LOADER HEIGHT MOTOR SETTINGS ************************

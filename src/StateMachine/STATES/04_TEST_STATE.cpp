@@ -361,14 +361,7 @@ void parseManualCommand(String command) {
     float value = valueStr.toFloat();
     
     switch (commandType) {
-        case 'h': // Loader height command
-            if (value > 0 && value <= 50) { // Reasonable height limits
-                Serial.println("Manual loader height command: Moving to " + String(value) + " inches");
-                moveToManualHeight(value);
-            } else {
-                Serial.println("Invalid loader height. Must be between 0.1 and 50 inches");
-            }
-            break;
+
             
         case 'a': // Servo angle command
             if (value >= 0 && value <= 180) { // Servo angle limits
@@ -382,6 +375,14 @@ void parseManualCommand(String command) {
         case 'h': // Help command
             if (command == "help") {
                 printManualModeHelp();
+            } else {
+                // This is a height command, not help
+                if (value > 0 && value <= 50) { // Reasonable height limits
+                    Serial.println("Manual loader height command: Moving to " + String(value) + " inches");
+                    moveToManualHeight(value);
+                } else {
+                    Serial.println("Invalid loader height. Must be between 0.1 and 50 inches");
+                }
             }
             break;
             

@@ -31,9 +31,15 @@ int SERVO_MAX_PULSE = 2500;            // Maximum pulse width in microseconds
 int SERVO_MIN_ANGLE = 0;               // Minimum servo angle in degrees
 int SERVO_MAX_ANGLE = 180;             // Maximum servo angle in degrees
 
+// Servo sequence positions (in degrees)
+int SERVO_START_POS = 90;              // First position in sequence
+int SERVO_SECOND_POS = 45;             // Second position in sequence
+int SERVO_THIRD_POS = 70;              // Third position in sequence
+
 //* ************************ TIMING SETTINGS ******************************
 // Button and switch debounce settings
 int BUTTON_DEBOUNCE = 50;              // Button debounce time in milliseconds
+int START_BUTTON_DEBOUNCE = 50;        // Start button debounce time in milliseconds
 int HOME_SWITCH_DEBOUNCE = 5;         // Home switch debounce time in milliseconds
 
 //* ************************ LOADER HEIGHT MOTOR SETTINGS ************************
