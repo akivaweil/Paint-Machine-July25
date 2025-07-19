@@ -40,7 +40,7 @@ static const int Z_HOME_OFFSET_STEPS = (int)(Z_HOME_OFFSET_INCHES * STEPS_PER_IN
 
 // Test sequence positions (5 positions total)
 static const TestPosition TEST_POSITIONS[5] = {
-    {27.0, 0.0, "Position 1 - High"},      // Position 1: 25 inches, 0 degrees
+    {2.40, 28.0, "Position 1 - High"},      // Position 1: 25 inches, 0 degrees
     {12.0, 45.0, "Position 2 - Mid-High"}, // Position 2: 15 inches, 45 degrees
     {20.0, 90.0, "Position 3 - Center"},   // Position 3: 10 inches, 90 degrees
     {5.0, 135.0, "Position 4 - Mid-Low"},  // Position 4: 5 inches, 135 degrees
