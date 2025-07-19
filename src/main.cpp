@@ -361,7 +361,7 @@ void setupStateMachineReferences() {
   setStoreReferences(zMotor);
   
   // Set references for test state
-  setTestReferences(zMotor, &mainServoController, &extensionCylinder);
+  setTestReferences(zMotor, &loaderServo, &extensionCylinder);
   
   // Set references for idle state
   setIdleReferences(&mainServoController);
