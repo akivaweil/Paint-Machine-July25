@@ -71,6 +71,10 @@ static bool manualMotorMoving = false; // Track manual motor movement
 static bool manualServoMoving = false; // Track manual servo movement
 static String inputBuffer = "";       // Buffer for incoming serial commands
 
+// Servo completion tracking
+static unsigned long servoMoveStartTime = 0;  // When servo movement started
+static const unsigned long SERVO_MOVE_TIMEOUT = 3000;  // 3 second timeout for servo movement
+
 // Stepper motor test settings
 static const float Z_TEST_MAX_SPEED = 20000;     // Stepper max speed for test (steps/sec)
 static const float Z_TEST_ACCELERATION = 15000;   // Stepper acceleration for test (steps/sec^2)
@@ -132,9 +136,17 @@ void executeTestState() {
         }
         
         if (testServo && manualServoMoving) {
-            if (testServo->hasReachedTarget()) {
+            unsigned long currentTime = millis();
+            bool servoComplete = testServo->hasReachedTarget() || 
+                               (currentTime - servoMoveStartTime >= SERVO_MOVE_TIMEOUT);
+            
+            if (servoComplete) {
                 manualServoMoving = false;
-                Serial.println("Manual servo movement complete");
+                if (testServo->hasReachedTarget()) {
+                    Serial.println("Manual servo movement complete");
+                } else {
+                    Serial.println("Manual servo movement timed out - proceeding anyway");
+                }
             }
         }
         
@@ -185,6 +197,7 @@ void executeTestState() {
             if (testServo) {
                 testServo->write(currentPos.angle_degrees);
                 servoMoving = true;
+                servoMoveStartTime = millis();  // Record when servo movement started
                 Serial.println("Servo moving to: " + String(currentPos.angle_degrees) + " degrees");
             }
         }
@@ -193,11 +206,19 @@ void executeTestState() {
         if (testZMotor) {
             bool motorComplete = !testZMotor->isRunning();
             
-            // Check if servo has reached target
+            // Check if servo has reached target or timed out
             if (motorComplete && servoMoving && testServo) {
-                if (testServo->hasReachedTarget()) {
+                unsigned long currentTime = millis();
+                bool servoComplete = testServo->hasReachedTarget() || 
+                                   (currentTime - servoMoveStartTime >= SERVO_MOVE_TIMEOUT);
+                
+                if (servoComplete) {
                     servoMoving = false;
-                    Serial.println("Servo reached target position");
+                    if (testServo->hasReachedTarget()) {
+                        Serial.println("Servo reached target position");
+                    } else {
+                        Serial.println("Servo movement timed out - proceeding anyway");
+                    }
                 }
             }
             
@@ -205,9 +226,14 @@ void executeTestState() {
             static unsigned long lastDebugTime = 0;
             if (millis() - lastDebugTime > 1000) { // Print every second
                 TestPosition currentPos = TEST_POSITIONS[currentPositionIndex];
+                unsigned long timeElapsed = millis() - servoMoveStartTime;
+                bool timeoutReached = timeElapsed >= SERVO_MOVE_TIMEOUT;
+                
                 Serial.println("Debug Position " + String(currentPositionIndex + 1) + " - Motor running: " + String(motorComplete ? "NO" : "YES") + 
                                ", Servo moving: " + String(servoMoving ? "YES" : "NO") +
-                               ", Servo target reached: " + String(testServo ? (testServo->hasReachedTarget() ? "YES" : "NO") : "N/A"));
+                               ", Servo target reached: " + String(testServo ? (testServo->hasReachedTarget() ? "YES" : "NO") : "N/A") +
+                               ", Time elapsed: " + String(timeElapsed) + "ms" +
+                               ", Timeout: " + String(timeoutReached ? "YES" : "NO"));
                 lastDebugTime = millis();
             }
             
@@ -429,6 +455,7 @@ void moveToManualAngle(int angleDegrees) {
     
     testServo->write(angleDegrees);
     manualServoMoving = true;
+    servoMoveStartTime = millis();  // Record when servo movement started
     
     Serial.println("Moving servo to: " + String(angleDegrees) + " degrees");
 }
