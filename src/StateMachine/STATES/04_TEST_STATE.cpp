@@ -4,13 +4,47 @@
 //! TEST state - Manual testing state for development and debugging
 //! This state is entered by pressing the manual start button
 //! Provides a safe environment for testing individual components
+//!
+//! ⚠️  IMPORTANT: DO NOT ADD TIMEOUT CHECKS TO THIS STATE MACHINE
+//! ⚠️  Timeout checks were removed because they cause freezing issues
+//! ⚠️  Only add timeout checks if specifically instructed to do so
+//! ⚠️  The servo controller and motor have their own completion detection
 
 #include <Arduino.h>
 #include "StateMachine.h"
-#include "Config/Config.h"
 #include "Config/Pins_Definitions.h"
 #include <FastAccelStepper.h>
 #include "ServoAccelerationController.h"
+
+//* ************************************************************************
+//* ************************ TEST POSITION CONFIGURATION *******************
+//* ************************************************************************
+// Test position structure for height and angle settings
+struct TestPosition {
+    float height_inches;     // Height position in inches
+    float angle_degrees;     // Servo angle in degrees
+    const char* name;        // Position name for identification
+};
+
+// Mechanical settings needed for test calculations
+static const int STEPS_PER_REV = 400;       // Standard stepper motor steps per revolution (1.8° per step)
+static const int PULLEY_TEETH = 20;         // GT2 pulley teeth count (20-tooth pulley)
+static const float BELT_PITCH = 2.0;        // GT2 belt pitch in mm
+static const float STEPS_PER_MM = ((float)STEPS_PER_REV / (PULLEY_TEETH * BELT_PITCH));
+static const float STEPS_PER_INCH = (STEPS_PER_MM * 25.4);
+
+// Z-axis position settings needed for test
+static const float Z_HOME_OFFSET_INCHES = 1.0;    // Distance to move away from home switch after homing
+static const int Z_HOME_OFFSET_STEPS = (int)(Z_HOME_OFFSET_INCHES * STEPS_PER_INCH);
+
+// Test sequence positions (5 positions total)
+static const TestPosition TEST_POSITIONS[5] = {
+    {27.0, 0.0, "Position 1 - High"},      // Position 1: 25 inches, 0 degrees
+    {12.0, 45.0, "Position 2 - Mid-High"}, // Position 2: 15 inches, 45 degrees
+    {20.0, 90.0, "Position 3 - Center"},   // Position 3: 10 inches, 90 degrees
+    {5.0, 135.0, "Position 4 - Mid-Low"},  // Position 4: 5 inches, 135 degrees
+    {1.0, 180.0, "Position 5 - Low"}       // Position 5: 1 inch, 180 degrees
+};
 
 //* ************************************************************************
 //* ************************ TEST STATE VARIABLES ************************
@@ -21,21 +55,18 @@ static FastAccelStepper* testZMotor = NULL;
 static ServoAccelerationController* testServoController = NULL;
 
 // Test sequence variables
-static int testStep = 0;
 static bool motorMoving = false;
 static bool servoMoving = false;
 static unsigned long testDelay = 0;
-static unsigned long stepStartTime = 0; // Timeout tracking
-
-// Test positions
-static const int TEST_POSITION_1_INCHES = 10;  // First position: 10 inches
-static const int TEST_POSITION_2_INCHES = 1;   // Second position: 1 inch (home offset)
-static const int SERVO_POSITION_1_DEGREES = 70; // First servo position: 70 degrees
-static const int SERVO_POSITION_2_DEGREES = 130; // Second servo position: 130 degrees
+static int currentPositionIndex = 0;  // Current position in the test sequence
 
 // Servo test settings
-static const int SERVO_TEST_ACCEL = 500;    // Servo acceleration for test
-static const int SERVO_TEST_MAX_SPEED = 3000; // Servo max speed for test
+static const int SERVO_TEST_ACCEL = 300;    // Servo acceleration for test
+static const int SERVO_TEST_MAX_SPEED = 4000; // Servo max speed for test
+
+// Stepper motor test settings
+static const float Z_TEST_MAX_SPEED = 20000;     // Stepper max speed for test (steps/sec)
+static const float Z_TEST_ACCELERATION = 15000;   // Stepper acceleration for test (steps/sec^2)
 
 //* ************************************************************************
 //* ************************ TEST STATE FUNCTIONS ************************
@@ -50,20 +81,18 @@ void executeTestState() {
     if (!testStateInitialized) {
         Serial.println("=== ENTERING TEST STATE ===");
         Serial.println("Manual testing mode activated");
-        Serial.println("Test sequence: 10\" @ 70° -> 1\" @ 130°");
+        Serial.println("Test sequence: 5 positions with height and angle settings");
         testStateInitialized = true;
         testComplete = false;
-            testStep = 0;
-    motorMoving = false;
-    servoMoving = false;
-    testDelay = 0;
-    stepStartTime = 0;
+        currentPositionIndex = 0;
+        motorMoving = false;
+        servoMoving = false;
+        testDelay = 0;
         
         //! ************************************************************************
         //! STEP 1: START TEST SEQUENCE
         //! ************************************************************************
-        Serial.println("Starting test sequence...");
-        testStep = 1;
+        Serial.println("Starting 5-position test sequence...");
     }
     
     //! ************************************************************************
@@ -76,160 +105,95 @@ void executeTestState() {
     //! ************************************************************************
     //! STEP 3: EXECUTE TEST SEQUENCE
     //! ************************************************************************
-    switch (testStep) {
-        case 1: // Move to 10 inches with servo at 70 degrees
-            if (!motorMoving && !servoMoving) {
-                Serial.println("Test Step 1: Moving to 10 inches with servo at 70°");
-                stepStartTime = millis(); // Start timeout timer
-                
-                // Move motor to 10 inches
-                if (testZMotor) {
-                    int targetPosition = TEST_POSITION_1_INCHES * STEPS_PER_INCH;
-                    testZMotor->setSpeedInHz(Z_MAX_SPEED);
-                    testZMotor->setAcceleration(Z_ACCELERATION);
-                    testZMotor->moveTo(targetPosition);
-                    motorMoving = true;
-                    Serial.println("Motor moving to: " + String(targetPosition) + " steps (" + String(TEST_POSITION_1_INCHES) + " inches)");
-                }
-                
-                // Move servo to 70 degrees with specified acceleration and speed
-                if (testServoController) {
-                    testServoController->setAccelerationProfile(SERVO_TEST_ACCEL, SERVO_TEST_MAX_SPEED);
-                    testServoController->moveTo(SERVO_POSITION_1_DEGREES);
-                    servoMoving = true;
-                    Serial.println("Servo moving to: " + String(SERVO_POSITION_1_DEGREES) + " degrees (accel: " + String(SERVO_TEST_ACCEL) + ", max speed: " + String(SERVO_TEST_MAX_SPEED) + ")");
-                }
+    // Check if we've completed all positions
+    if (currentPositionIndex >= 5) {
+        // Move back to home offset position
+        if (!motorMoving) {
+            if (testZMotor) {
+                testZMotor->setSpeedInHz(Z_TEST_MAX_SPEED);
+                testZMotor->setAcceleration(Z_TEST_ACCELERATION);
+                testZMotor->moveTo(Z_HOME_OFFSET_STEPS);
+                motorMoving = true;
+                Serial.println("Returning to home offset position: " + String(Z_HOME_OFFSET_STEPS) + " steps (" + String(Z_HOME_OFFSET_INCHES) + " inches)");
+            }
+        }
+        
+        // Check if motor has returned to home offset position
+        if (testZMotor && !testZMotor->isRunning()) {
+            if (testZMotor->getCurrentPosition() == Z_HOME_OFFSET_STEPS) {
+                Serial.println("Test sequence complete - returned to home offset position");
+                testComplete = true;
+            }
+        }
+    } else {
+        // Execute current position
+        if (!motorMoving && !servoMoving) {
+            TestPosition currentPos = TEST_POSITIONS[currentPositionIndex];
+            Serial.println("Test Position " + String(currentPositionIndex + 1) + ": " + String(currentPos.name));
+            Serial.println("Moving to " + String(currentPos.height_inches) + " inches with servo at " + String(currentPos.angle_degrees) + "°");
+            
+            // Move motor to target height
+            if (testZMotor) {
+                int targetPosition = (int)(currentPos.height_inches * STEPS_PER_INCH);
+                testZMotor->setSpeedInHz(Z_TEST_MAX_SPEED);
+                testZMotor->setAcceleration(Z_TEST_ACCELERATION);
+                testZMotor->moveTo(targetPosition);
+                motorMoving = true;
+                Serial.println("Motor moving to: " + String(targetPosition) + " steps (" + String(currentPos.height_inches) + " inches)");
             }
             
-            // Check if both movements are complete
-            if (testZMotor && testServoController) {
-                bool motorComplete = !testZMotor->isRunning();
-                bool servoComplete = testServoController->hasReachedTarget() || 
-                                   (abs(testServoController->getCurrentAngle() - SERVO_POSITION_1_DEGREES) < 2.0 && 
-                                    !testServoController->isMoving());
-                
-                // Debug output
-                static unsigned long lastDebugTime = 0;
-                if (millis() - lastDebugTime > 1000) { // Print every second
-                    Serial.println("Debug - Motor running: " + String(motorComplete ? "NO" : "YES") + 
-                                   ", Servo target reached: " + String(servoComplete ? "YES" : "NO") +
-                                   ", Servo angle: " + String(testServoController->getCurrentAngle()) +
-                                   ", Target: " + String(SERVO_POSITION_1_DEGREES) +
-                                   ", State: " + String(testServoController->getMotionState()) +
-                                   ", Distance: " + String(abs(testServoController->getCurrentAngle() - SERVO_POSITION_1_DEGREES)) +
-                                   ", Velocity: " + String(testServoController->getCurrentVelocity()) +
-                                   ", IsMoving: " + String(testServoController->isMoving() ? "YES" : "NO"));
-                    lastDebugTime = millis();
-                }
-                
-                // Check for timeout (30 seconds)
-                if (millis() - stepStartTime > 30000) {
-                    Serial.println("WARNING: Step 1 timeout - forcing completion");
-                    motorMoving = false;
-                    servoMoving = false;
-                    testStep = 2;
-                    testDelay = millis();
-                    Serial.println("Waiting 2 seconds before next movement...");
-                }
-                else if (motorComplete && servoComplete) {
-                    Serial.println("Test Step 1 complete - Motor at: " + String(testZMotor->getCurrentPosition()) + " steps");
-                    motorMoving = false;
-                    servoMoving = false;
-                    testStep = 3; // Go directly to step 3, skip delay
-                    Serial.println("Moving directly to Step 2 (no delay)...");
-                }
+            // Move servo to target angle
+            if (testServoController) {
+                testServoController->setAccelerationProfile(SERVO_TEST_ACCEL, SERVO_TEST_MAX_SPEED);
+                testServoController->moveTo(currentPos.angle_degrees);
+                servoMoving = true;
+                Serial.println("Servo moving to: " + String(currentPos.angle_degrees) + " degrees (accel: " + String(SERVO_TEST_ACCEL) + ", max speed: " + String(SERVO_TEST_MAX_SPEED) + ")");
             }
-            break;
+        }
+        
+        // Check if motor movement is complete and wait for servo time
+        if (testZMotor) {
+            bool motorComplete = !testZMotor->isRunning();
             
-        case 2: // Removed - no longer needed
-            break;
-            
-        case 3: // Move to 1 inch (home offset) with servo at 130 degrees
-            if (!motorMoving && !servoMoving) {
-                Serial.println("Test Step 2: Moving to 1 inch (home offset) with servo at 130°");
-                stepStartTime = millis(); // Start timeout timer
+            // Use servo controller's built-in completion time calculation
+            if (motorComplete && !servoMoving && testServoController) {
+                TestPosition currentPos = TEST_POSITIONS[currentPositionIndex];
+                float targetAngle = currentPos.angle_degrees;
                 
-                // Move motor to 2 inches
-                if (testZMotor) {
-                    int targetPosition = TEST_POSITION_2_INCHES * STEPS_PER_INCH;
-                    testZMotor->setSpeedInHz(Z_MAX_SPEED);
-                    testZMotor->setAcceleration(Z_ACCELERATION);
-                    testZMotor->moveTo(targetPosition);
-                    motorMoving = true;
-                    Serial.println("Motor moving to: " + String(targetPosition) + " steps (" + String(TEST_POSITION_2_INCHES) + " inches)");
-                }
+                // Get completion time from servo controller
+                unsigned long completionTime = testServoController->getMoveCompletionTime();
+                testDelay = completionTime;
+                servoMoving = true;
                 
-                // Move servo to 130 degrees with specified acceleration and speed
-                if (testServoController) {
-                    testServoController->setAccelerationProfile(SERVO_TEST_ACCEL, SERVO_TEST_MAX_SPEED);
-                    testServoController->moveTo(SERVO_POSITION_2_DEGREES);
-                    servoMoving = true;
-                    Serial.println("Servo moving to: " + String(SERVO_POSITION_2_DEGREES) + " degrees (accel: " + String(SERVO_TEST_ACCEL) + ", max speed: " + String(SERVO_TEST_MAX_SPEED) + ")");
-                }
+                unsigned long waitTime = testServoController->calculateMoveTimeToTarget(targetAngle);
+                Serial.println("Servo movement using built-in calculation: " + String(waitTime) + "ms");
+                Serial.println("Waiting until: " + String(testDelay) + " (current: " + String(millis()) + ")");
             }
             
-            // Check if both movements are complete
-            if (testZMotor && testServoController) {
-                bool motorComplete = !testZMotor->isRunning();
-                bool servoComplete = testServoController->hasReachedTarget() || 
-                                   (abs(testServoController->getCurrentAngle() - SERVO_POSITION_2_DEGREES) < 2.0 && 
-                                    !testServoController->isMoving());
-                
-                // Debug output
-                static unsigned long lastDebugTime2 = 0;
-                if (millis() - lastDebugTime2 > 1000) { // Print every second
-                    Serial.println("Debug Step 2 - Motor running: " + String(motorComplete ? "NO" : "YES") + 
-                                   ", Servo target reached: " + String(servoComplete ? "YES" : "NO") +
-                                   ", Servo angle: " + String(testServoController->getCurrentAngle()) +
-                                   ", Target: " + String(SERVO_POSITION_2_DEGREES) +
-                                   ", State: " + String(testServoController->getMotionState()) +
-                                   ", Distance: " + String(abs(testServoController->getCurrentAngle() - SERVO_POSITION_2_DEGREES)) +
-                                   ", Velocity: " + String(testServoController->getCurrentVelocity()) +
-                                   ", IsMoving: " + String(testServoController->isMoving() ? "YES" : "NO"));
-                    lastDebugTime2 = millis();
-                }
-                
-                // Check for timeout (30 seconds)
-                if (millis() - stepStartTime > 30000) {
-                    Serial.println("WARNING: Step 2 timeout - forcing completion");
-                    motorMoving = false;
-                    servoMoving = false;
-                    testStep = 4;
-                    testDelay = millis();
-                    Serial.println("Waiting 2 seconds before returning to home...");
-                }
-                else if (motorComplete && servoComplete) {
-                    Serial.println("Test Step 2 complete - Motor at: " + String(testZMotor->getCurrentPosition()) + " steps");
-                    motorMoving = false;
-                    servoMoving = false;
-                    testStep = 5; // Go directly to home return, skip delay
-                    Serial.println("Moving directly to home position (no delay)...");
-                }
-            }
-            break;
-            
-        case 4: // Removed - no longer needed
-            break;
-            
-        case 5: // Return to home offset position
-            if (!motorMoving) {
-                if (testZMotor) {
-                    testZMotor->setSpeedInHz(Z_MAX_SPEED);
-                    testZMotor->setAcceleration(Z_ACCELERATION);
-                    testZMotor->moveTo(Z_HOME_OFFSET_STEPS);
-                    motorMoving = true;
-                    Serial.println("Motor returning to home offset position: " + String(Z_HOME_OFFSET_STEPS) + " steps (" + String(Z_HOME_OFFSET_INCHES) + " inches)");
-                }
+            // Debug output
+            static unsigned long lastDebugTime = 0;
+            if (millis() - lastDebugTime > 1000) { // Print every second
+                TestPosition currentPos = TEST_POSITIONS[currentPositionIndex];
+                unsigned long timeRemaining = testServoController ? testServoController->getRemainingMoveTime() : 0;
+                Serial.println("Debug Position " + String(currentPositionIndex + 1) + " - Motor running: " + String(motorComplete ? "NO" : "YES") + 
+                               ", Servo waiting: " + String(servoMoving ? "YES" : "NO") +
+                               ", Time remaining: " + String(timeRemaining) + "ms" +
+                               ", Servo angle: " + String(testServoController ? testServoController->getCurrentAngle() : 0.0) +
+                               ", Target: " + String(currentPos.angle_degrees) +
+                               ", Move complete: " + String(testServoController ? (testServoController->isMoveComplete() ? "YES" : "NO") : "N/A"));
+                lastDebugTime = millis();
             }
             
-            // Check if motor has returned to home offset position
-            if (testZMotor && !testZMotor->isRunning()) {
-                if (testZMotor->getCurrentPosition() == Z_HOME_OFFSET_STEPS) {
-                    Serial.println("Test sequence complete - returned to home offset position");
-                    testComplete = true;
-                }
+            // Move to next position when motor is complete AND servo move is complete
+            if (motorComplete && (!servoMoving || (testServoController && testServoController->isMoveComplete()))) {
+                TestPosition currentPos = TEST_POSITIONS[currentPositionIndex];
+                Serial.println("Position " + String(currentPositionIndex + 1) + " complete - Motor at: " + String(testZMotor->getCurrentPosition()) + " steps");
+                motorMoving = false;
+                servoMoving = false;
+                currentPositionIndex++; // Move to next position
+                Serial.println("Moving to next position...");
             }
-            break;
+        }
     }
     
     //! ************************************************************************
@@ -248,7 +212,7 @@ void resetTestState() {
     //! ************************************************************************
     testStateInitialized = false;
     testComplete = false;
-    testStep = 0;
+    currentPositionIndex = 0;
     motorMoving = false;
     servoMoving = false;
     testDelay = 0;

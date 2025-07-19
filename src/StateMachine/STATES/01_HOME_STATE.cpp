@@ -3,6 +3,11 @@
 //* ************************************************************************
 //! HOME state - Performs homing sequence for Z-axis
 //! Moves toward home switch until triggered, then moves away from home
+//!
+//! ⚠️  IMPORTANT: DO NOT ADD TIMEOUT CHECKS TO THIS STATE MACHINE
+//! ⚠️  Timeout checks were removed because they cause freezing issues
+//! ⚠️  Only add timeout checks if specifically instructed to do so
+//! ⚠️  The servo controller and motor have their own completion detection
 
 #include <Arduino.h>
 #include "StateMachine.h"
@@ -173,16 +178,9 @@ void performTestMotionSequence() {
     homeServoController->setAccelerationProfile(500, 3000);
     homeServoController->moveTo(150);
     
-    unsigned long startTime = millis();
     while (homeServoController->isMoving()) {
         homeServoController->update();
         delay(10);
-        
-        // Add timeout protection
-        if (millis() - startTime > 10000) { // 10 second timeout
-            Serial.println("WARNING: Servo movement timeout - forcing completion");
-            break;
-        }
     }
     Serial.println("Servo reached 130 degrees with accel 10");
     

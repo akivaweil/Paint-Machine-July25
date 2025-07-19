@@ -66,6 +66,12 @@ public:
     float getCurrentVelocity();
     MotionState getMotionState();
     
+    // Position verification methods
+    unsigned long getMoveCompletionTime(); // Returns millis() timestamp when move will complete
+    bool isMoveComplete(); // Returns true if current time >= completion time
+    unsigned long getRemainingMoveTime(); // Returns remaining time in milliseconds
+    unsigned long calculateMoveTimeToTarget(float targetAngle); // Calculate time to reach specific target
+    
     // Reset methods
     void reset();
     void setCurrentAngle(float angle);

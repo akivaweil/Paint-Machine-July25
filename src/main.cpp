@@ -21,6 +21,11 @@ void handleOTA();
 // Z-axis stepper motor homing and servo sequence control
 // Start button triggers 2-inch down/up cycle
 // OTA functionality integrated for remote updates
+//!
+//! ⚠️  IMPORTANT: DO NOT ADD TIMEOUT CHECKS TO THIS SYSTEM
+//! ⚠️  Timeout checks were removed because they cause freezing issues
+//! ⚠️  Only add timeout checks if specifically instructed to do so
+//! ⚠️  The servo controller and motor have their own completion detection
 
 //* ************************************************************************
 //* *********************** MOTOR & SERVO OBJECTS *************************
@@ -346,18 +351,10 @@ void homeZAxis() {
   Serial.println("Motor started moving backward");
   
   // Wait until home switch is triggered (active high)
-  int homingTimeout = 0;
-  while (!zHomeSwitch.read() && homingTimeout < 30000) { // 30 second timeout
+  while (!zHomeSwitch.read()) {
     updateButtons();
     // handleOTA(); // Continue handling OTA during homing
     delay(1);
-    homingTimeout++;
-  }
-  
-  if (homingTimeout >= 30000) {
-    Serial.println("ERROR: Homing timeout - home switch not triggered");
-    zMotor->forceStop();
-    return;
   }
   
   //! ************************************************************************
@@ -395,14 +392,8 @@ void moveAwayFromHome() {
   Serial.println("Movement command sent");
   
   // Wait for movement to complete
-  int timeout = 0;
-  while (zMotor->isRunning() && timeout < 10000) { // 10 second timeout
+  while (zMotor->isRunning()) {
     delay(1);
-    timeout++;
-  }
-  
-  if (timeout >= 10000) {
-    Serial.println("WARNING: Movement timeout - motor may be stuck");
   }
   
   int finalPos = zMotor->getCurrentPosition();
@@ -420,8 +411,9 @@ void performServoSequence() {
   //! STEP 1: MOVE TO 90 DEGREES
   //! ************************************************************************
   Serial.println("Moving servo to " + String(SERVO_START_POS) + " degrees");
-  loaderServo.write(SERVO_START_POS);
-  while (!loaderServo.hasReachedTarget()) {
+  mainServoController.moveTo(SERVO_START_POS);
+  while (!mainServoController.isMoveComplete()) {
+    mainServoController.update();
     // handleOTA();
     delay(10);
   }
@@ -430,8 +422,9 @@ void performServoSequence() {
   //! STEP 2: MOVE TO 45 DEGREES
   //! ************************************************************************
   Serial.println("Moving servo to " + String(SERVO_SECOND_POS) + " degrees");
-  loaderServo.write(SERVO_SECOND_POS);
-  while (!loaderServo.hasReachedTarget()) {
+  mainServoController.moveTo(SERVO_SECOND_POS);
+  while (!mainServoController.isMoveComplete()) {
+    mainServoController.update();
     // handleOTA();
     delay(10);
   }
@@ -440,8 +433,9 @@ void performServoSequence() {
   //! STEP 3: MOVE TO 70 DEGREES
   //! ************************************************************************
   Serial.println("Moving servo to " + String(SERVO_THIRD_POS) + " degrees");
-  loaderServo.write(SERVO_THIRD_POS);
-  while (!loaderServo.hasReachedTarget()) {
+  mainServoController.moveTo(SERVO_THIRD_POS);
+  while (!mainServoController.isMoveComplete()) {
+    mainServoController.update();
     // handleOTA();
     delay(10);
   }
@@ -550,8 +544,8 @@ void performServoAccelerationSequence() {
                   " - Moving to " + String(targetAngle) + 
                   " degrees with acceleration " + String(currentAccel));
     
-    // Wait for movement to complete
-    while (mainServoController.isMoving()) {
+    // Wait for movement to complete using new position verification
+    while (!mainServoController.isMoveComplete()) {
       mainServoController.update();
       delay(10);
     }
@@ -586,8 +580,8 @@ void testServoAccelerationController() {
   mainServoController.setAccelerationProfile(5.0, 15.0); // Slow and smooth
   mainServoController.moveTo(120.0);
   
-  unsigned long startTime = millis();
-  while (mainServoController.isMoving() && (millis() - startTime) < 10000) {
+  // Use new position verification method
+  while (!mainServoController.isMoveComplete()) {
     mainServoController.update();
     delay(10);
   }
@@ -603,8 +597,8 @@ void testServoAccelerationController() {
   mainServoController.setAccelerationProfile(20.0, 60.0); // Fast and aggressive
   mainServoController.moveTo(60.0);
   
-  startTime = millis();
-  while (mainServoController.isMoving() && (millis() - startTime) < 10000) {
+  // Use new position verification method
+  while (!mainServoController.isMoveComplete()) {
     mainServoController.update();
     delay(10);
   }
@@ -620,8 +614,8 @@ void testServoAccelerationController() {
   mainServoController.setAccelerationProfile(10.0, 30.0); // Medium settings
   mainServoController.moveTo(90.0);
   
-  startTime = millis();
-  while (mainServoController.isMoving() && (millis() - startTime) < 10000) {
+  // Use new position verification method
+  while (!mainServoController.isMoveComplete()) {
     mainServoController.update();
     delay(10);
   }
@@ -638,8 +632,8 @@ void testServoAccelerationController() {
   delay(100); // Let it start moving
   mainServoController.stop();
   
-  startTime = millis();
-  while (mainServoController.isMoving() && (millis() - startTime) < 5000) {
+  // Use new position verification method
+  while (!mainServoController.isMoveComplete()) {
     mainServoController.update();
     delay(10);
   }

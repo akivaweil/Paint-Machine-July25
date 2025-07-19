@@ -34,6 +34,8 @@ extern int SERVO_START_POS;      // First position in sequence (90 degrees)
 extern int SERVO_SECOND_POS;     // Second position in sequence (45 degrees)
 extern int SERVO_THIRD_POS;      // Third position in sequence (70 degrees)
 
+
+
 //* ************************************************************************
 //* ************************ TIMING SETTINGS *******************************
 //* ************************************************************************

@@ -32,7 +32,7 @@ void executeIdleState() {
         
         // Set servo to boot-up position (90 degrees)
         if (idleServoController) {
-            idleServoController->setAccelerationProfile(100, 200); // Conservative settings
+            idleServoController->setAccelerationProfile(300, 2000); // Conservative settings
             idleServoController->moveTo(90);
             Serial.println("Setting servo to boot-up position (90 degrees)");
         }

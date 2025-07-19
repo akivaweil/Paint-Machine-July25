@@ -323,6 +323,111 @@ ServoAccelerationController::MotionState ServoAccelerationController::getMotionS
 }
 
 //* ************************************************************************
+//* ************************ POSITION VERIFICATION METHODS ***************************
+//* ************************************************************************
+
+unsigned long ServoAccelerationController::getMoveCompletionTime() {
+    //! ************************************************************************
+    //! CALCULATE MOVE COMPLETION TIME BASED ON ACCELERATION PROFILE
+    //! ************************************************************************
+    
+    if (currentState == IDLE) {
+        return millis(); // Already complete
+    }
+    
+    // Calculate time to reach target from current position
+    float distanceToTarget = abs(targetAngle - currentAngle);
+    
+    if (distanceToTarget < 0.1) {
+        return millis(); // Already at target
+    }
+    
+    // Calculate time based on acceleration profile
+    float accelTime = maxVelocity / accelerationRate; // Time to reach max speed
+    float accelDistance = 0.5 * accelerationRate * accelTime * accelTime; // Distance covered during acceleration
+    
+    float totalTime;
+    if (distanceToTarget <= 2 * accelDistance) {
+        // Triangular profile (accelerate then decelerate)
+        totalTime = 2 * sqrt(distanceToTarget / accelerationRate);
+    } else {
+        // Trapezoidal profile (accelerate, constant speed, decelerate)
+        float constantSpeedDistance = distanceToTarget - 2 * accelDistance;
+        float constantSpeedTime = constantSpeedDistance / maxVelocity;
+        totalTime = 2 * accelTime + constantSpeedTime;
+    }
+    
+    // Add 0.5 second buffer for safety
+    unsigned long bufferTime = 500; // 0.5 seconds in milliseconds
+    unsigned long completionTime = moveStartTime + (unsigned long)(totalTime * 1000) + bufferTime;
+    
+    return completionTime;
+}
+
+bool ServoAccelerationController::isMoveComplete() {
+    //! ************************************************************************
+    //! CHECK IF CURRENT TIME HAS PASSED THE CALCULATED COMPLETION TIME
+    //! ************************************************************************
+    
+    if (currentState == IDLE) {
+        return true; // Already complete
+    }
+    
+    unsigned long completionTime = getMoveCompletionTime();
+    return millis() >= completionTime;
+}
+
+unsigned long ServoAccelerationController::getRemainingMoveTime() {
+    //! ************************************************************************
+    //! CALCULATE REMAINING TIME UNTIL MOVE COMPLETION
+    //! ************************************************************************
+    
+    if (currentState == IDLE) {
+        return 0; // Already complete
+    }
+    
+    unsigned long completionTime = getMoveCompletionTime();
+    unsigned long currentTime = millis();
+    
+    if (currentTime >= completionTime) {
+        return 0; // Move should be complete
+    }
+    
+    return completionTime - currentTime;
+}
+
+unsigned long ServoAccelerationController::calculateMoveTimeToTarget(float targetAngle) {
+    //! ************************************************************************
+    //! CALCULATE TIME TO REACH SPECIFIC TARGET ANGLE FROM CURRENT POSITION
+    //! ************************************************************************
+    
+    float distanceToTarget = abs(targetAngle - currentAngle);
+    
+    if (distanceToTarget < 0.1) {
+        return 0; // Already at target
+    }
+    
+    // Calculate time based on acceleration profile
+    float accelTime = maxVelocity / accelerationRate; // Time to reach max speed
+    float accelDistance = 0.5 * accelerationRate * accelTime * accelTime; // Distance covered during acceleration
+    
+    float totalTime;
+    if (distanceToTarget <= 2 * accelDistance) {
+        // Triangular profile (accelerate then decelerate)
+        totalTime = 2 * sqrt(distanceToTarget / accelerationRate);
+    } else {
+        // Trapezoidal profile (accelerate, constant speed, decelerate)
+        float constantSpeedDistance = distanceToTarget - 2 * accelDistance;
+        float constantSpeedTime = constantSpeedDistance / maxVelocity;
+        totalTime = 2 * accelTime + constantSpeedTime;
+    }
+    
+    // Add 0.5 second buffer for safety
+    unsigned long bufferTime = 500; // 0.5 seconds in milliseconds
+    return (unsigned long)(totalTime * 1000) + bufferTime;
+}
+
+//* ************************************************************************
 //* ************************ RESET METHODS ***************************
 //* ************************************************************************
 
