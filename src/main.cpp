@@ -140,6 +140,19 @@ void loop() {
   //! ************************************************************************
   //! STEP 5: HANDLE START BUTTON PRESS
   //! ************************************************************************
+  // Debug: Check start button conditions
+  static unsigned long lastButtonDebugTime = 0;
+  if (millis() - lastButtonDebugTime > 2000) { // Print every 2 seconds
+    Serial.println("=== START BUTTON DEBUG ===");
+    Serial.println("systemInitialized: " + String(systemInitialized ? "YES" : "NO"));
+    Serial.println("startButton.pressed(): " + String(startButton.pressed() ? "YES" : "NO"));
+    Serial.println("startButton.read(): " + String(startButton.read() ? "HIGH" : "LOW"));
+    Serial.println("Current state: " + getStateName(getCurrentState()));
+    Serial.println("IDLE_STATE: " + String(IDLE_STATE));
+    Serial.println("==========================");
+    lastButtonDebugTime = millis();
+  }
+  
   if (systemInitialized && startButton.pressed() && getCurrentState() == IDLE_STATE) {
     Serial.println("Start button pressed - entering TEST state");
     setState(TEST_STATE);
