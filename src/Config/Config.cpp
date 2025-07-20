@@ -47,7 +47,7 @@ int RETRIEVE_2_HEIGHT_STEPS = (int)(RETRIEVE_2_HEIGHT_INCHES * STEPS_PER_INCH);
 int RETRIEVE_2_ANGLE_DEGREES = STORE_ANGLE_DEGREES;      // Servo angle for second retrieve operation
 
 // Second store state settings
-float STORE_2_HEIGHT_INCHES = (2 * RETRIEVE_2_HEIGHT_INCHES) + 0.8;  // Height to move to for second store operation
+float STORE_2_HEIGHT_INCHES = RETRIEVE_HEIGHT_INCHES + 0.7;  // Height to move to for second store operation
 int STORE_2_HEIGHT_STEPS = (int)(STORE_2_HEIGHT_INCHES * STEPS_PER_INCH);
 int STORE_2_ANGLE_DEGREES = RETRIEVE_ANGLE_DEGREES;       // Servo angle for second store operation
 
