@@ -53,7 +53,7 @@ int STORE_2_ANGLE_DEGREES = RETRIEVE_ANGLE_DEGREES;       // Servo angle for sec
 
 // Height adjustment settings
 float HEIGHT_ADJUSTMENT_INCHES = 0.7; // Height adjustment during sequence (.7 inches)
-int HEIGHT_ADJUSTMENT_STEPS = (int)(HEIGHT_ADJUSTMENT_INCHES * STEPS_PER_INCH);3
+int HEIGHT_ADJUSTMENT_STEPS = (int)(HEIGHT_ADJUSTMENT_INCHES * STEPS_PER_INCH);
 
 // Idle state settings
 float IDLE_HEIGHT_INCHES = 2.0;        // Height for idle state (5 inches)
