@@ -235,39 +235,45 @@ float ServoAccelerationController::calculateNextPosition() {
     // Determine direction (1 for positive, -1 for negative)
     int direction = (targetAngle > currentAngle) ? 1 : -1;
     
+    float averageVelocity = 0.0; // Declare outside switch to avoid compilation issues
+    
     switch (currentState) {
-        case ACCELERATING:
+        case ACCELERATING: {
             // Apply acceleration in the correct direction
             newVelocity = currentVelocity + (accelerationRate * deltaTimeSeconds);
             if (newVelocity > maxVelocity) {
                 newVelocity = maxVelocity;
             }
-            // Apply velocity in the correct direction
-            newAngle = currentAngle + (direction * currentVelocity * deltaTimeSeconds) + 
-                      (0.5 * direction * accelerationRate * deltaTimeSeconds * deltaTimeSeconds);
+            // Apply velocity in the correct direction (use average velocity for smooth motion)
+            averageVelocity = (currentVelocity + newVelocity) / 2.0;
+            newAngle = currentAngle + (direction * averageVelocity * deltaTimeSeconds);
             break;
+        }
             
-        case CONSTANT_VELOCITY:
+        case CONSTANT_VELOCITY: {
             // Maintain constant velocity in the correct direction
             newAngle = currentAngle + (direction * maxVelocity * deltaTimeSeconds);
             break;
+        }
             
-        case DECELERATING:
+        case DECELERATING: {
             // Apply deceleration in the correct direction
             newVelocity = currentVelocity - (decelerationRate * deltaTimeSeconds);
             if (newVelocity < 0) {
                 newVelocity = 0;
             }
-            // Apply velocity in the correct direction
-            newAngle = currentAngle + (direction * currentVelocity * deltaTimeSeconds) - 
-                      (0.5 * direction * decelerationRate * deltaTimeSeconds * deltaTimeSeconds);
+            // Apply velocity in the correct direction (use average velocity for smooth motion)
+            averageVelocity = (currentVelocity + newVelocity) / 2.0;
+            newAngle = currentAngle + (direction * averageVelocity * deltaTimeSeconds);
             break;
+        }
             
-        case IDLE:
+        case IDLE: {
             // No movement
             newAngle = currentAngle;
             newVelocity = 0;
             break;
+        }
     }
     
     // Ensure we don't overshoot the target
