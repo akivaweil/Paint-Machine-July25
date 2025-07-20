@@ -181,14 +181,94 @@ void executeRetrieveState() {
             //! STEP 7: WAIT 1000MS AFTER RETRACTING CYLINDER
             //! ************************************************************************
             if (currentTime - stepStartTime >= CYLINDER_RETRACT_WAIT) {
-                Serial.println("Step 7: Cylinder retract wait complete, retrieval sequence finished");
+                Serial.println("Step 7: Cylinder retract wait complete, starting servo jiggle");
+                currentStep = 8;
+                stepStartTime = currentTime;
+            }
+            break;
+        }
+            
+        case 8: {
+            //! ************************************************************************
+            //! STEP 8: JIGGLE SERVO LEFT (CURRENT ANGLE - JIGGLE ANGLE)
+            //! ************************************************************************
+            if (retrieveServoController) {
+                int jiggleLeftAngle = RETRIEVE_ANGLE_DEGREES - SERVO_JIGGLE_ANGLE;
+                retrieveServoController->moveTo(jiggleLeftAngle);
+                Serial.println("Step 8: Jiggling servo left to " + String(jiggleLeftAngle) + " degrees");
+            }
+            currentStep = 9;
+            stepStartTime = currentTime;
+            break;
+        }
+            
+        case 9: {
+            //! ************************************************************************
+            //! STEP 9: WAIT FOR SERVO TO REACH LEFT POSITION
+            //! ************************************************************************
+            bool servoReady = !retrieveServoController || retrieveServoController->hasReachedTarget();
+            if (servoReady && (currentTime - stepStartTime >= SERVO_JIGGLE_DELAY)) {
+                Serial.println("Step 9: Left jiggle complete, moving to right position");
+                currentStep = 10;
+                stepStartTime = currentTime;
+            }
+            break;
+        }
+            
+        case 10: {
+            //! ************************************************************************
+            //! STEP 10: JIGGLE SERVO RIGHT (CURRENT ANGLE + JIGGLE ANGLE)
+            //! ************************************************************************
+            if (retrieveServoController) {
+                int jiggleRightAngle = RETRIEVE_ANGLE_DEGREES + SERVO_JIGGLE_ANGLE;
+                retrieveServoController->moveTo(jiggleRightAngle);
+                Serial.println("Step 10: Jiggling servo right to " + String(jiggleRightAngle) + " degrees");
+            }
+            currentStep = 11;
+            stepStartTime = currentTime;
+            break;
+        }
+            
+        case 11: {
+            //! ************************************************************************
+            //! STEP 11: WAIT FOR SERVO TO REACH RIGHT POSITION
+            //! ************************************************************************
+            bool servoReady = !retrieveServoController || retrieveServoController->hasReachedTarget();
+            if (servoReady && (currentTime - stepStartTime >= SERVO_JIGGLE_DELAY)) {
+                Serial.println("Step 11: Right jiggle complete, returning to center position");
+                currentStep = 12;
+                stepStartTime = currentTime;
+            }
+            break;
+        }
+            
+        case 12: {
+            //! ************************************************************************
+            //! STEP 12: RETURN SERVO TO CENTER POSITION
+            //! ************************************************************************
+            if (retrieveServoController) {
+                retrieveServoController->moveTo(RETRIEVE_ANGLE_DEGREES);
+                Serial.println("Step 12: Returning servo to center position at " + String(RETRIEVE_ANGLE_DEGREES) + " degrees");
+            }
+            currentStep = 13;
+            stepStartTime = currentTime;
+            break;
+        }
+            
+        case 13: {
+            //! ************************************************************************
+            //! STEP 13: WAIT FOR SERVO TO REACH CENTER POSITION
+            //! ************************************************************************
+            bool servoReady = !retrieveServoController || retrieveServoController->hasReachedTarget();
+            if (servoReady) {
+                Serial.println("Step 13: Servo jiggle complete, retrieval sequence finished");
                 retrieveComplete = true;
             }
             break;
         }
             
         default: {
-            Serial.println("ERROR: Invalid step in retrieve sequence");
+            Serial.println("ERROR: Invalid step in retrieve sequence: " + String(currentStep));
             retrieveComplete = true;
             break;
         }

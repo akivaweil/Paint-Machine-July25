@@ -56,6 +56,10 @@ extern int SERVO_START_POS;      // First position in sequence (90 degrees)
 extern int SERVO_SECOND_POS;     // Second position in sequence (45 degrees)
 extern int SERVO_THIRD_POS;      // Third position in sequence (70 degrees)
 
+// Servo jiggle settings for wood positioning
+extern int SERVO_JIGGLE_ANGLE;   // Jiggle angle in degrees (5 degrees)
+extern int SERVO_JIGGLE_DELAY;   // Delay between jiggle movements (50ms)
+
 //* ************************************************************************
 //* ************************ TIMING SETTINGS *******************************
 //* ************************************************************************
