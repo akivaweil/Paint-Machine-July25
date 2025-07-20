@@ -1,8 +1,8 @@
 //* ************************************************************************
-//* ************************ STORE 2 STATE ********************************
+//* ************************ PICK STATE ********************************
 //* ************************************************************************
-//! STORE 2 state - Performs second storing operations with cylinder control
-//! This state handles the second storage sequence: move to position, extend cylinder, adjust height, retract
+//! PICK state - Performs picking operations with cylinder control
+//! This state handles the picking sequence: move to position, extend cylinder, adjust height, retract
 
 #include <Arduino.h>
 #include "StateMachine.h"
@@ -13,63 +13,72 @@
 #include <FastAccelStepper.h>
 
 //* ************************************************************************
-//* ************************ STORE 2 STATE VARIABLES **********************
+//* ************************ PICK STATE VARIABLES ********************
 //* ************************************************************************
-static bool store2StateInitialized = false;
-static bool store2Complete = false;
-static ServoAccelerationController* store2ServoController = NULL;
-static CylinderControl* store2Cylinder = NULL;
-static FastAccelStepper* store2ZMotor = NULL;
+static bool pickStateInitialized = false;
+static bool pickComplete = false;
+static ServoAccelerationController* pickServoController = NULL;
+static CylinderControl* pickCylinder = NULL;
+static FastAccelStepper* pickZMotor = NULL;
 static int currentStep = 0;
 static unsigned long stepStartTime = 0;
 static int targetHeightSteps = 0;
 
 //* ************************************************************************
-//* ************************ STORE 2 STATE FUNCTIONS **********************
+//* ************************ PICK STATE FUNCTIONS ********************
 //* ************************************************************************
 
-void executeStore2State() {
+void executePickState() {
     //! ************************************************************************
-    //! EXECUTE STORE 2 STATE - SECOND STORAGE OPERATION WITH CYLINDER CONTROL
+    //! EXECUTE PICK STATE - PICKING OPERATION WITH CYLINDER CONTROL
     //! ************************************************************************
     
-    // Initialize store 2 state on first entry
-    if (!store2StateInitialized) {
-        Serial.println("=== ENTERING STORE 2 STATE ===");
-        Serial.println("Starting second storage operation...");
-        store2StateInitialized = true;
-        store2Complete = false;
+    // Initialize pick state on first entry
+    if (!pickStateInitialized) {
+        Serial.println("=== ENTERING PICK STATE ===");
+        Serial.println("Starting picking operation...");
+        pickStateInitialized = true;
+        pickComplete = false;
         currentStep = 0;
         stepStartTime = millis();
         
         //! ************************************************************************
         //! STEP 0: SETUP INITIAL PARAMETERS
         //! ************************************************************************
-        targetHeightSteps = STORE_2_HEIGHT_STEPS;
+        targetHeightSteps = PICK_HEIGHT_STEPS;
+        
+        //! ************************************************************************
+        //! SLOT CONFIGURATION USAGE EXAMPLE:
+        //! ************************************************************************
+        // To use a specific slot instead of fixed positions:
+        // int slotNumber = 5; // Change this to use different slots
+        // SlotPosition slotPos = getSlotPosition(slotNumber);
+        // targetHeightSteps = getSlotHeightSteps(slotNumber);
+        // Then use slotPos.servo_angle instead of RETRIEVE_ANGLE_DEGREES
         
         // Set motor speed and acceleration
-        if (store2ZMotor) {
-            store2ZMotor->setSpeedInHz(Z_MAX_SPEED);
-            store2ZMotor->setAcceleration(Z_ACCELERATION);
+        if (retrieveZMotor) {
+            retrieveZMotor->setSpeedInHz(Z_MAX_SPEED);
+            retrieveZMotor->setAcceleration(Z_ACCELERATION);
         }
         
         // Set servo acceleration profile
-        if (store2ServoController) {
-            store2ServoController->setAccelerationProfile(300, 2000);
+        if (retrieveServoController) {
+            retrieveServoController->setAccelerationProfile(300, 2000);
         }
     }
     
     //! ************************************************************************
-    //! STEP 1: CHECK IF STORING IS COMPLETE
+    //! STEP 1: CHECK IF PICKING IS COMPLETE
     //! ************************************************************************
-    if (store2Complete) {
-        Serial.println("Second storage operation complete - transitioning to IDLE state");
-        setState(IDLE_STATE);
+    if (pickComplete) {
+        Serial.println("Picking operation complete - transitioning to PLACE state");
+        setState(PLACE_STATE);
         return;
     }
     
     //! ************************************************************************
-    //! STEP 2: PERFORM STORAGE SEQUENCE
+    //! STEP 2: PERFORM PICKING SEQUENCE
     //! ************************************************************************
     unsigned long currentTime = millis();
     
@@ -79,16 +88,16 @@ void executeStore2State() {
             //! STEP 0: MOVE TO SPECIFIC HEIGHT AND ANGLE
             //! ************************************************************************
             if (currentTime - stepStartTime >= 100) { // Small delay to ensure initialization
-                Serial.println("Step 0: Moving to second store position - Height: " + String(STORE_2_HEIGHT_INCHES) + " inches, Angle: " + String(STORE_2_ANGLE_DEGREES) + " degrees");
+                Serial.println("Step 0: Moving to pick position - Height: " + String(PICK_HEIGHT_INCHES) + " inches, Angle: " + String(PICK_ANGLE_DEGREES) + " degrees");
                 
-                // Move Z motor to store 2 height
-                if (store2ZMotor) {
-                    store2ZMotor->moveTo(targetHeightSteps);
+                // Move Z motor to pick height
+                if (pickZMotor) {
+                    pickZMotor->moveTo(targetHeightSteps);
                 }
                 
-                // Move servo to store 2 angle
-                if (store2ServoController) {
-                    store2ServoController->moveTo(STORE_2_ANGLE_DEGREES);
+                // Move servo to pick angle
+                if (pickServoController) {
+                    pickServoController->moveTo(PICK_ANGLE_DEGREES);
                 }
                 
                 currentStep = 1;
@@ -101,8 +110,8 @@ void executeStore2State() {
             //! ************************************************************************
             //! STEP 1: WAIT FOR MOTOR AND SERVO TO REACH POSITION
             //! ************************************************************************
-            bool zMotorReady = !store2ZMotor || !store2ZMotor->isRunning();
-            bool servoReady = !store2ServoController || store2ServoController->hasReachedTarget();
+            bool zMotorReady = !pickZMotor || !pickZMotor->isRunning();
+            bool servoReady = !pickServoController || pickServoController->hasReachedTarget();
             
             if (zMotorReady && servoReady) {
                 Serial.println("Step 1: Position reached, extending cylinder");
@@ -116,8 +125,8 @@ void executeStore2State() {
             //! ************************************************************************
             //! STEP 2: EXTEND THE CYLINDER
             //! ************************************************************************
-            if (store2Cylinder) {
-                store2Cylinder->extend();
+            if (pickCylinder) {
+                pickCylinder->extend();
                 Serial.println("Step 2: Cylinder extended");
             }
             currentStep = 3;
@@ -130,7 +139,7 @@ void executeStore2State() {
             //! STEP 3: WAIT 750MS AFTER EXTENDING CYLINDER
             //! ************************************************************************
             if (currentTime - stepStartTime >= CYLINDER_EXTEND_WAIT) {
-                Serial.println("Step 3: Wait complete, lowering height by " + String(HEIGHT_ADJUSTMENT_INCHES) + " inches");
+                Serial.println("Step 3: Wait complete, raising height by " + String(HEIGHT_ADJUSTMENT_INCHES) + " inches");
                 currentStep = 4;
                 stepStartTime = currentTime;
             }
@@ -139,12 +148,12 @@ void executeStore2State() {
             
         case 4: {
             //! ************************************************************************
-            //! STEP 4: LOWER HEIGHT BY .7 INCHES
+            //! STEP 4: RAISE HEIGHT BY .7 INCHES
             //! ************************************************************************
-            if (store2ZMotor) {
-                int newHeightSteps = targetHeightSteps - HEIGHT_ADJUSTMENT_STEPS;
-                store2ZMotor->moveTo(newHeightSteps);
-                Serial.println("Step 4: Lowering height to " + String((float)newHeightSteps / STEPS_PER_INCH) + " inches");
+            if (pickZMotor) {
+                int newHeightSteps = targetHeightSteps + HEIGHT_ADJUSTMENT_STEPS;
+                pickZMotor->moveTo(newHeightSteps);
+                Serial.println("Step 4: Raising height to " + String((float)newHeightSteps / STEPS_PER_INCH) + " inches");
             }
             currentStep = 5;
             stepStartTime = currentTime;
@@ -155,7 +164,7 @@ void executeStore2State() {
             //! ************************************************************************
             //! STEP 5: WAIT FOR HEIGHT ADJUSTMENT TO COMPLETE
             //! ************************************************************************
-            bool heightAdjustmentComplete = !store2ZMotor || !store2ZMotor->isRunning();
+            bool heightAdjustmentComplete = !pickZMotor || !pickZMotor->isRunning();
             if (heightAdjustmentComplete) {
                 Serial.println("Step 5: Height adjustment complete, waiting 100ms before retracting cylinder");
                 currentStep = 6;
@@ -180,8 +189,8 @@ void executeStore2State() {
             //! ************************************************************************
             //! STEP 7: RETRACT THE CYLINDER
             //! ************************************************************************
-            if (store2Cylinder) {
-                store2Cylinder->retract();
+            if (pickCylinder) {
+                pickCylinder->retract();
                 Serial.println("Step 7: Cylinder retracted");
             }
             currentStep = 8;
@@ -194,36 +203,36 @@ void executeStore2State() {
             //! STEP 8: WAIT 750MS AFTER RETRACTING CYLINDER
             //! ************************************************************************
             if (currentTime - stepStartTime >= CYLINDER_RETRACT_WAIT) {
-                Serial.println("Step 8: Cylinder retract wait complete, second storage sequence finished");
-                store2Complete = true;
+                Serial.println("Step 8: Cylinder retract wait complete, picking sequence finished");
+                pickComplete = true;
             }
             break;
         }
             
         default: {
-            Serial.println("ERROR: Invalid step in store 2 sequence");
-            store2Complete = true;
+            Serial.println("ERROR: Invalid step in picking sequence");
+            pickComplete = true;
             break;
         }
     }
 }
 
-void resetStore2State() {
+void resetPickState() {
     //! ************************************************************************
-    //! RESET STORE 2 STATE FLAGS
+    //! RESET PICK STATE FLAGS
     //! ************************************************************************
-    store2StateInitialized = false;
-    store2Complete = false;
+    pickStateInitialized = false;
+    pickComplete = false;
     currentStep = 0;
     stepStartTime = 0;
     targetHeightSteps = 0;
 }
 
-void setStore2References(ServoAccelerationController* servoController, CylinderControl* cylinder, FastAccelStepper* zMotor) {
+void setPickReferences(ServoAccelerationController* servoController, CylinderControl* cylinder, FastAccelStepper* zMotor) {
     //! ************************************************************************
     //! SET REFERENCES TO SERVO CONTROLLER, CYLINDER, AND Z MOTOR OBJECTS
     //! ************************************************************************
-    store2ServoController = servoController;
-    store2Cylinder = cylinder;
-    store2ZMotor = zMotor;
+    pickServoController = servoController;
+    pickCylinder = cylinder;
+    pickZMotor = zMotor;
 } 

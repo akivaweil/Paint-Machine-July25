@@ -27,30 +27,17 @@ extern float Z_CYCLE_DISTANCE_INCHES; // Distance to move down/up during cycle
 extern int Z_CYCLE_DISTANCE_STEPS;    // Cycle distance in steps
 
 //* ************************************************************************
-//* ************************ RETRIEVE/STORE SEQUENCE SETTINGS *************
+//* ************************ PICK/PLACE SEQUENCE SETTINGS *****************
 //* ************************************************************************
-// Retrieve state settings
-extern float RETRIEVE_HEIGHT_INCHES;  // Height to move to for retrieve operation
-extern int RETRIEVE_HEIGHT_STEPS;     // Retrieve height in steps
-extern int RETRIEVE_ANGLE_DEGREES;    // Servo angle for retrieve operation
+// Pick state settings
+extern float PICK_HEIGHT_INCHES;  // Height to move to for pick operation
+extern int PICK_HEIGHT_STEPS;     // Pick height in steps
+extern int PICK_ANGLE_DEGREES;    // Servo angle for pick operation
 
-// Store state settings  
-extern float STORE_HEIGHT_INCHES;     // Height to move to for store operation
-extern int STORE_HEIGHT_STEPS;        // Store height in steps
-extern int STORE_ANGLE_DEGREES;       // Servo angle for store operation
-
-//* ************************************************************************
-//* ************************ SECOND RETRIEVE/STORE SEQUENCE SETTINGS ******
-//* ************************************************************************
-// Second retrieve state settings
-extern float RETRIEVE_2_HEIGHT_INCHES;  // Height to move to for second retrieve operation
-extern int RETRIEVE_2_HEIGHT_STEPS;     // Second retrieve height in steps
-extern int RETRIEVE_2_ANGLE_DEGREES;    // Servo angle for second retrieve operation
-
-// Second store state settings
-extern float STORE_2_HEIGHT_INCHES;     // Height to move to for second store operation
-extern int STORE_2_HEIGHT_STEPS;        // Second store height in steps
-extern int STORE_2_ANGLE_DEGREES;       // Servo angle for second store operation
+// Place state settings  
+extern float PLACE_HEIGHT_INCHES;     // Height to move to for place operation
+extern int PLACE_HEIGHT_STEPS;        // Place height in steps
+extern int PLACE_ANGLE_DEGREES;       // Servo angle for place operation
 
 // Height adjustment settings
 extern float HEIGHT_ADJUSTMENT_INCHES; // Height adjustment during sequence (.4 inches)

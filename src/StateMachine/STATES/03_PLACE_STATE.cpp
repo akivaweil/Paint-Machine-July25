@@ -1,8 +1,8 @@
 //* ************************************************************************
-//* ************************ STORE STATE *********************************
+//* ************************ PLACE STATE *********************************
 //* ************************************************************************
-//! STORE state - Performs storing operations with cylinder control
-//! This state handles the storage sequence: move to position, extend cylinder, adjust height, retract
+//! PLACE state - Performs placing operations with cylinder control
+//! This state handles the placing sequence: move to position, extend cylinder, adjust height, retract
 
 #include <Arduino.h>
 #include "StateMachine.h"
@@ -13,63 +13,63 @@
 #include <FastAccelStepper.h>
 
 //* ************************************************************************
-//* ************************ STORE STATE VARIABLES ***********************
+//* ************************ PLACE STATE VARIABLES ***********************
 //* ************************************************************************
-static bool storeStateInitialized = false;
-static bool storeComplete = false;
-static ServoAccelerationController* storeServoController = NULL;
-static CylinderControl* storeCylinder = NULL;
-static FastAccelStepper* storeZMotor = NULL;
+static bool placeStateInitialized = false;
+static bool placeComplete = false;
+static ServoAccelerationController* placeServoController = NULL;
+static CylinderControl* placeCylinder = NULL;
+static FastAccelStepper* placeZMotor = NULL;
 static int currentStep = 0;
 static unsigned long stepStartTime = 0;
 static int targetHeightSteps = 0;
 
 //* ************************************************************************
-//* ************************ STORE STATE FUNCTIONS ***********************
+//* ************************ PLACE STATE FUNCTIONS ***********************
 //* ************************************************************************
 
-void executeStoreState() {
+void executePlaceState() {
     //! ************************************************************************
-    //! EXECUTE STORE STATE - STORAGE OPERATION WITH CYLINDER CONTROL
+    //! EXECUTE PLACE STATE - PLACING OPERATION WITH CYLINDER CONTROL
     //! ************************************************************************
     
-    // Initialize store state on first entry
-    if (!storeStateInitialized) {
-        Serial.println("=== ENTERING STORE STATE ===");
-        Serial.println("Starting storage operation...");
-        storeStateInitialized = true;
-        storeComplete = false;
+    // Initialize place state on first entry
+    if (!placeStateInitialized) {
+        Serial.println("=== ENTERING PLACE STATE ===");
+        Serial.println("Starting placing operation...");
+        placeStateInitialized = true;
+        placeComplete = false;
         currentStep = 0;
         stepStartTime = millis();
         
         //! ************************************************************************
         //! STEP 0: SETUP INITIAL PARAMETERS
         //! ************************************************************************
-        targetHeightSteps = STORE_HEIGHT_STEPS;
+        targetHeightSteps = PLACE_HEIGHT_STEPS;
         
         // Set motor speed and acceleration
-        if (storeZMotor) {
-            storeZMotor->setSpeedInHz(Z_MAX_SPEED);
-            storeZMotor->setAcceleration(Z_ACCELERATION);
+        if (placeZMotor) {
+            placeZMotor->setSpeedInHz(Z_MAX_SPEED);
+            placeZMotor->setAcceleration(Z_ACCELERATION);
         }
         
         // Set servo acceleration profile
-        if (storeServoController) {
-            storeServoController->setAccelerationProfile(300, 2000);
+        if (placeServoController) {
+            placeServoController->setAccelerationProfile(300, 2000);
         }
     }
     
     //! ************************************************************************
-    //! STEP 1: CHECK IF STORING IS COMPLETE
+    //! STEP 1: CHECK IF PLACING IS COMPLETE
     //! ************************************************************************
-    if (storeComplete) {
-        Serial.println("Storage operation complete - transitioning to RETRIEVE 2 state");
-        setState(RETRIEVE_2_STATE);
+    if (placeComplete) {
+        Serial.println("Placing operation complete - transitioning to IDLE state");
+        setState(IDLE_STATE);
         return;
     }
     
     //! ************************************************************************
-    //! STEP 2: PERFORM STORAGE SEQUENCE
+    //! STEP 2: PERFORM PLACING SEQUENCE
     //! ************************************************************************
     unsigned long currentTime = millis();
     
@@ -79,16 +79,16 @@ void executeStoreState() {
             //! STEP 0: MOVE TO SPECIFIC HEIGHT AND ANGLE
             //! ************************************************************************
             if (currentTime - stepStartTime >= 100) { // Small delay to ensure initialization
-                Serial.println("Step 0: Moving to store position - Height: " + String(STORE_HEIGHT_INCHES) + " inches, Angle: " + String(STORE_ANGLE_DEGREES) + " degrees");
+                Serial.println("Step 0: Moving to place position - Height: " + String(PLACE_HEIGHT_INCHES) + " inches, Angle: " + String(PLACE_ANGLE_DEGREES) + " degrees");
                 
-                // Move Z motor to store height
-                if (storeZMotor) {
-                    storeZMotor->moveTo(targetHeightSteps);
+                // Move Z motor to place height
+                if (placeZMotor) {
+                    placeZMotor->moveTo(targetHeightSteps);
                 }
                 
-                // Move servo to store angle
-                if (storeServoController) {
-                    storeServoController->moveTo(STORE_ANGLE_DEGREES);
+                // Move servo to place angle
+                if (placeServoController) {
+                    placeServoController->moveTo(PLACE_ANGLE_DEGREES);
                 }
                 
                 currentStep = 1;
@@ -101,8 +101,8 @@ void executeStoreState() {
             //! ************************************************************************
             //! STEP 1: WAIT FOR MOTOR AND SERVO TO REACH POSITION
             //! ************************************************************************
-            bool zMotorReady = !storeZMotor || !storeZMotor->isRunning();
-            bool servoReady = !storeServoController || storeServoController->hasReachedTarget();
+            bool zMotorReady = !placeZMotor || !placeZMotor->isRunning();
+            bool servoReady = !placeServoController || placeServoController->hasReachedTarget();
             
             if (zMotorReady && servoReady) {
                 Serial.println("Step 1: Position reached, extending cylinder");
@@ -116,8 +116,8 @@ void executeStoreState() {
             //! ************************************************************************
             //! STEP 2: EXTEND THE CYLINDER
             //! ************************************************************************
-            if (storeCylinder) {
-                storeCylinder->extend();
+            if (placeCylinder) {
+                placeCylinder->extend();
                 Serial.println("Step 2: Cylinder extended");
             }
             currentStep = 3;
@@ -141,9 +141,9 @@ void executeStoreState() {
             //! ************************************************************************
             //! STEP 4: LOWER HEIGHT BY .7 INCHES
             //! ************************************************************************
-            if (storeZMotor) {
+            if (placeZMotor) {
                 int newHeightSteps = targetHeightSteps - HEIGHT_ADJUSTMENT_STEPS;
-                storeZMotor->moveTo(newHeightSteps);
+                placeZMotor->moveTo(newHeightSteps);
                 Serial.println("Step 4: Lowering height to " + String((float)newHeightSteps / STEPS_PER_INCH) + " inches");
             }
             currentStep = 5;
@@ -155,7 +155,7 @@ void executeStoreState() {
             //! ************************************************************************
             //! STEP 5: WAIT FOR HEIGHT ADJUSTMENT TO COMPLETE
             //! ************************************************************************
-            bool heightAdjustmentComplete = !storeZMotor || !storeZMotor->isRunning();
+            bool heightAdjustmentComplete = !placeZMotor || !placeZMotor->isRunning();
             if (heightAdjustmentComplete) {
                 Serial.println("Step 5: Height adjustment complete, waiting 100ms before retracting cylinder");
                 currentStep = 6;
@@ -180,8 +180,8 @@ void executeStoreState() {
             //! ************************************************************************
             //! STEP 7: RETRACT THE CYLINDER
             //! ************************************************************************
-            if (storeCylinder) {
-                storeCylinder->retract();
+            if (placeCylinder) {
+                placeCylinder->retract();
                 Serial.println("Step 7: Cylinder retracted");
             }
             currentStep = 8;
@@ -194,36 +194,36 @@ void executeStoreState() {
             //! STEP 8: WAIT 750MS AFTER RETRACTING CYLINDER
             //! ************************************************************************
             if (currentTime - stepStartTime >= CYLINDER_RETRACT_WAIT) {
-                Serial.println("Step 8: Cylinder retract wait complete, storage sequence finished");
-                storeComplete = true;
+                Serial.println("Step 8: Cylinder retract wait complete, placing sequence finished");
+                placeComplete = true;
             }
             break;
         }
             
         default: {
-            Serial.println("ERROR: Invalid step in store sequence");
-            storeComplete = true;
+            Serial.println("ERROR: Invalid step in placing sequence");
+            placeComplete = true;
             break;
         }
     }
 }
 
-void resetStoreState() {
+void resetPlaceState() {
     //! ************************************************************************
-    //! RESET STORE STATE FLAGS
+    //! RESET PLACE STATE FLAGS
     //! ************************************************************************
-    storeStateInitialized = false;
-    storeComplete = false;
+    placeStateInitialized = false;
+    placeComplete = false;
     currentStep = 0;
     stepStartTime = 0;
     targetHeightSteps = 0;
 }
 
-void setStoreReferences(ServoAccelerationController* servoController, CylinderControl* cylinder, FastAccelStepper* zMotor) {
+void setPlaceReferences(ServoAccelerationController* servoController, CylinderControl* cylinder, FastAccelStepper* zMotor) {
     //! ************************************************************************
     //! SET REFERENCES TO SERVO CONTROLLER, CYLINDER, AND Z MOTOR OBJECTS
     //! ************************************************************************
-    storeServoController = servoController;
-    storeCylinder = cylinder;
-    storeZMotor = zMotor;
+    placeServoController = servoController;
+    placeCylinder = cylinder;
+    placeZMotor = zMotor;
 } 

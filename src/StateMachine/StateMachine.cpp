@@ -46,17 +46,11 @@ void updateStateMachine() {
             case HOME_STATE:
                 resetHomeState();
                 break;
-            case RETRIEVE_STATE:
-                resetRetrieveState();
+            case PICK_STATE:
+                resetPickState();
                 break;
-            case STORE_STATE:
-                resetStoreState();
-                break;
-            case RETRIEVE_2_STATE:
-                resetRetrieve2State();
-                break;
-            case STORE_2_STATE:
-                resetStore2State();
+            case PLACE_STATE:
+                resetPlaceState();
                 break;
             case TEST_STATE:
                 resetTestState();
@@ -76,17 +70,11 @@ void updateStateMachine() {
         case HOME_STATE:
             executeHomeState();
             break;
-        case RETRIEVE_STATE:
-            executeRetrieveState();
+        case PICK_STATE:
+            executePickState();
             break;
-        case STORE_STATE:
-            executeStoreState();
-            break;
-        case RETRIEVE_2_STATE:
-            executeRetrieve2State();
-            break;
-        case STORE_2_STATE:
-            executeStore2State();
+        case PLACE_STATE:
+            executePlaceState();
             break;
         case TEST_STATE:
             executeTestState();
@@ -130,14 +118,10 @@ String getStateName(StateMachineState state) {
             return "IDLE";
         case HOME_STATE:
             return "HOME";
-        case RETRIEVE_STATE:
-            return "RETRIEVE";
-        case STORE_STATE:
-            return "STORE";
-        case RETRIEVE_2_STATE:
-            return "RETRIEVE_2";
-        case STORE_2_STATE:
-            return "STORE_2";
+        case PICK_STATE:
+            return "PICK";
+        case PLACE_STATE:
+            return "PLACE";
         case TEST_STATE:
             return "TEST";
         default:

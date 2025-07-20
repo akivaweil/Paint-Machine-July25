@@ -151,8 +151,8 @@ void loop() {
   //! STEP 5: HANDLE START BUTTON PRESS
   //! ************************************************************************
   if (systemInitialized && startButton.pressed() && getCurrentState() == IDLE_STATE) {
-    Serial.println("Start button pressed - entering RETRIEVE state");
-    setState(RETRIEVE_STATE);
+    Serial.println("Start button pressed - entering PICK state");
+    setState(PICK_STATE);
   }
 
   //! ************************************************************************
@@ -410,17 +410,11 @@ void setupStateMachineReferences() {
   // Set references for home state
   setHomeReferences(zMotor, &zHomeSwitch);
   
-  // Set references for retrieve state
-  setRetrieveReferences(&mainServoController, &extensionCylinder, zMotor);
+  // Set references for pick state
+  setPickReferences(&mainServoController, &extensionCylinder, zMotor);
   
-  // Set references for store state
-  setStoreReferences(&mainServoController, &extensionCylinder, zMotor);
-  
-  // Set references for retrieve 2 state
-  setRetrieve2References(&mainServoController, &extensionCylinder, zMotor);
-  
-  // Set references for store 2 state
-  setStore2References(&mainServoController, &extensionCylinder, zMotor);
+  // Set references for place state
+  setPlaceReferences(&mainServoController, &extensionCylinder, zMotor);
   
   // Set references for test state
   setTestReferences(zMotor, &mainServoController, &extensionCylinder);
