@@ -25,11 +25,10 @@ static bool homeStateInitialized = false;
 static bool homeComplete = false;
 static bool homeFound = false;
 static bool movingAwayFromHome = false;
-static bool testMotionComplete = false;
+
 static FastAccelStepper* homeZMotor = NULL;
 static Bounce2::Button* homeZHomeSwitch = NULL;
-static ServoControl* homeServo = NULL;
-static ServoAccelerationController* homeServoController = NULL;
+
 
 //* ************************************************************************
 //* ************************ HOME STATE FUNCTIONS ************************
@@ -48,7 +47,6 @@ void executeHomeState() {
         homeComplete = false;
         homeFound = false;
         movingAwayFromHome = false;
-        testMotionComplete = false;
         
         //! ************************************************************************
         //! STEP 1: SET HOMING SPEED
@@ -71,20 +69,9 @@ void executeHomeState() {
     //! STEP 3: CHECK IF HOMING IS COMPLETE
     //! ************************************************************************
     if (homeComplete) {
-        //! ************************************************************************
-        //! STEP 8: PERFORM TEST MOTION SEQUENCE
-        //! ************************************************************************
-        if (!testMotionComplete && homeServo && homeServoController) {
-            performTestMotionSequence();
-            testMotionComplete = true;
-        }
-        
-        // Wait for test motion to complete before transitioning
-        if (testMotionComplete) {
-            Serial.println("Homing sequence and test motion complete - transitioning to IDLE");
-            setState(IDLE_STATE);
-            return;
-        }
+        Serial.println("Homing sequence complete - transitioning to IDLE");
+        setState(IDLE_STATE);
+        return;
     }
     
     //! ************************************************************************
@@ -148,44 +135,7 @@ void executeHomeState() {
     }
 }
 
-void performTestMotionSequence() {
-    //! ************************************************************************
-    //! PERFORM TEST MOTION SEQUENCE AFTER HOMING
-    //! ************************************************************************
-    Serial.println("=== STARTING TEST MOTION SEQUENCE ===");
-    
-    if (!homeServo || !homeServoController) {
-        Serial.println("ERROR: Servo or servo controller not available for test motion");
-        return;
-    }
-    
-    //! ************************************************************************
-    //! STEP 1: MOVE SERVO TO 70 DEGREES
-    //! ************************************************************************
-    Serial.println("Moving servo to 70 degrees...");
-    homeServoController->setAccelerationProfile(100, 150);
-    homeServoController->moveTo(50);
-    while (homeServoController->isMoving()) {
-        homeServoController->update();
-        delay(10);
-    }
-    Serial.println("Servo reached 70 degrees");
-    
-    //! ************************************************************************
-    //! STEP 2: MOVE FROM 70 TO 130 WITH ACCEL 10
-    //! ************************************************************************
-    Serial.println("Moving servo from 70 to 130 degrees with acceleration 10...");
-    homeServoController->setAccelerationProfile(500, 3000);
-    homeServoController->moveTo(150);
-    
-    while (homeServoController->isMoving()) {
-        homeServoController->update();
-        delay(10);
-    }
-    Serial.println("Servo reached 130 degrees with accel 10");
-    
-    Serial.println("=== TEST MOTION SEQUENCE COMPLETE ===");
-}
+
 
 void resetHomeState() {
     //! ************************************************************************
@@ -195,7 +145,6 @@ void resetHomeState() {
     homeComplete = false;
     homeFound = false;
     movingAwayFromHome = false;
-    testMotionComplete = false;
 }
 
 void setHomeReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch) {
@@ -209,13 +158,4 @@ void setHomeReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch) {
                   ", Switch: " + String(homeSwitch ? "VALID" : "NULL"));
 }
 
-void setHomeServoReferences(ServoControl* servo, ServoAccelerationController* controller) {
-    //! ************************************************************************
-    //! SET REFERENCES TO SERVO AND SERVO CONTROLLER OBJECTS
-    //! ************************************************************************
-    homeServo = servo;
-    homeServoController = controller;
-    
-    Serial.println("Home servo references set - Servo: " + String(servo ? "VALID" : "NULL") + 
-                  ", Controller: " + String(controller ? "VALID" : "NULL"));
-} 
+ 

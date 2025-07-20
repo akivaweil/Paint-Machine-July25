@@ -352,7 +352,6 @@ void setupStateMachineReferences() {
   
   // Set references for home state
   setHomeReferences(zMotor, &zHomeSwitch);
-  setHomeServoReferences(&loaderServo, &mainServoController);
   
   // Set references for retrieve state
   setRetrieveReferences(&mainServoController, &extensionCylinder, zMotor);
@@ -389,14 +388,6 @@ void performStartupSequence() {
     
     // Move away from home position
     moveAwayFromHome();
-    
-    // Test servo acceleration controller
-    Serial.println("Testing servo acceleration controller...");
-    testServoAccelerationController();
-    
-    // Perform servo acceleration sequence
-    Serial.println("Performing servo acceleration sequence...");
-    performServoAccelerationSequence();
   } else {
     // Step 3: Start home state (which now includes moving away from home)
     setState(HOME_STATE);
