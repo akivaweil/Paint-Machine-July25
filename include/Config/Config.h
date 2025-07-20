@@ -90,4 +90,10 @@ extern float Z_MAX_SPEED;         // Maximum speed in steps per second
 extern float Z_ACCELERATION;      // Acceleration in steps per second^2
 extern float Z_HOMING_SPEED;      // Homing speed in steps per second
 
+//* ************************************************************************
+//* ************************ SLOT CONFIGURATION ***************************
+//* ************************************************************************
+// Include slot configuration for 20 storage slots
+#include "Config/SlotConfig.h"
+
 #endif 

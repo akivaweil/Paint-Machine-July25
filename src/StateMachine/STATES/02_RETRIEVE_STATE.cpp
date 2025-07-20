@@ -47,6 +47,15 @@ void executeRetrieveState() {
         //! ************************************************************************
         targetHeightSteps = RETRIEVE_HEIGHT_STEPS;
         
+        //! ************************************************************************
+        //! SLOT CONFIGURATION USAGE EXAMPLE:
+        //! ************************************************************************
+        // To use a specific slot instead of fixed positions:
+        // int slotNumber = 5; // Change this to use different slots
+        // SlotPosition slotPos = getSlotPosition(slotNumber);
+        // targetHeightSteps = getSlotHeightSteps(slotNumber);
+        // Then use slotPos.servo_angle instead of RETRIEVE_ANGLE_DEGREES
+        
         // Set motor speed and acceleration
         if (retrieveZMotor) {
             retrieveZMotor->setSpeedInHz(Z_MAX_SPEED);
