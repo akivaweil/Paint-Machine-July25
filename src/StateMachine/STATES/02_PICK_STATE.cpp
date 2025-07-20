@@ -57,14 +57,14 @@ void executePickState() {
         // Then use slotPos.servo_angle instead of RETRIEVE_ANGLE_DEGREES
         
         // Set motor speed and acceleration
-        if (retrieveZMotor) {
-            retrieveZMotor->setSpeedInHz(Z_MAX_SPEED);
-            retrieveZMotor->setAcceleration(Z_ACCELERATION);
+        if (pickZMotor) {
+            pickZMotor->setSpeedInHz(Z_MAX_SPEED);
+            pickZMotor->setAcceleration(Z_ACCELERATION);
         }
         
         // Set servo acceleration profile
-        if (retrieveServoController) {
-            retrieveServoController->setAccelerationProfile(300, 2000);
+        if (pickServoController) {
+            pickServoController->setAccelerationProfile(300, 2000);
         }
     }
     
