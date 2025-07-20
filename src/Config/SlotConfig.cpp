@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include "Config/SlotConfig.h"
 #include "Config/Config.h"
 
