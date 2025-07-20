@@ -27,14 +27,29 @@ extern float Z_CYCLE_DISTANCE_INCHES; // Distance to move down/up during cycle
 extern int Z_CYCLE_DISTANCE_STEPS;    // Cycle distance in steps
 
 //* ************************************************************************
+//* ************************ RETRIEVE/STORE SEQUENCE SETTINGS *************
+//* ************************************************************************
+// Retrieve state settings
+extern float RETRIEVE_HEIGHT_INCHES;  // Height to move to for retrieve operation
+extern int RETRIEVE_HEIGHT_STEPS;     // Retrieve height in steps
+extern int RETRIEVE_ANGLE_DEGREES;    // Servo angle for retrieve operation
+
+// Store state settings  
+extern float STORE_HEIGHT_INCHES;     // Height to move to for store operation
+extern int STORE_HEIGHT_STEPS;        // Store height in steps
+extern int STORE_ANGLE_DEGREES;       // Servo angle for store operation
+
+// Height adjustment settings
+extern float HEIGHT_ADJUSTMENT_INCHES; // Height adjustment during sequence (.4 inches)
+extern int HEIGHT_ADJUSTMENT_STEPS;    // Height adjustment in steps
+
+//* ************************************************************************
 //* ************************ SERVO SETTINGS ********************************
 //* ************************************************************************
 // Servo sequence positions (in degrees)
 extern int SERVO_START_POS;      // First position in sequence (90 degrees)
 extern int SERVO_SECOND_POS;     // Second position in sequence (45 degrees)
 extern int SERVO_THIRD_POS;      // Third position in sequence (70 degrees)
-
-
 
 //* ************************************************************************
 //* ************************ TIMING SETTINGS *******************************
@@ -43,6 +58,11 @@ extern int SERVO_THIRD_POS;      // Third position in sequence (70 degrees)
 extern int SERVO_MOVE_DELAY;      // Wait time between servo movements
 extern int HOME_SWITCH_DEBOUNCE;  // Home switch debounce time
 extern int START_BUTTON_DEBOUNCE; // Start button debounce time
+
+// Sequence timing settings
+extern int CYLINDER_EXTEND_WAIT;  // Wait time after extending cylinder (750ms)
+extern int HEIGHT_ADJUST_WAIT;    // Wait time after height adjustment (100ms)
+extern int CYLINDER_RETRACT_WAIT; // Wait time after retracting cylinder (1000ms)
 
 //* ************************************************************************
 //* ************************ Z-AXIS MOTOR SETTINGS ************************
