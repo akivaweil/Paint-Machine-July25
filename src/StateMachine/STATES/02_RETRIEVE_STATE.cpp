@@ -190,12 +190,14 @@ void executeRetrieveState() {
             
         case 8: {
             //! ************************************************************************
-            //! STEP 8: JIGGLE SERVO LEFT (CURRENT ANGLE - JIGGLE ANGLE)
+            //! STEP 8: JIGGLE SERVO LEFT (CURRENT ANGLE - JIGGLE ANGLE) AT MAX SPEED
             //! ************************************************************************
             if (retrieveServoController) {
+                // Set maximum speed for jiggle movements
+                retrieveServoController->setAccelerationProfile(100.0, 180.0); // High acceleration and max speed
                 int jiggleLeftAngle = RETRIEVE_ANGLE_DEGREES - SERVO_JIGGLE_ANGLE;
                 retrieveServoController->moveTo(jiggleLeftAngle);
-                Serial.println("Step 8: Jiggling servo left to " + String(jiggleLeftAngle) + " degrees");
+                Serial.println("Step 8: Jiggling servo left to " + String(jiggleLeftAngle) + " degrees at max speed");
             }
             currentStep = 9;
             stepStartTime = currentTime;
@@ -217,12 +219,12 @@ void executeRetrieveState() {
             
         case 10: {
             //! ************************************************************************
-            //! STEP 10: JIGGLE SERVO RIGHT (CURRENT ANGLE + JIGGLE ANGLE)
+            //! STEP 10: JIGGLE SERVO RIGHT (CURRENT ANGLE + JIGGLE ANGLE) AT MAX SPEED
             //! ************************************************************************
             if (retrieveServoController) {
                 int jiggleRightAngle = RETRIEVE_ANGLE_DEGREES + SERVO_JIGGLE_ANGLE;
                 retrieveServoController->moveTo(jiggleRightAngle);
-                Serial.println("Step 10: Jiggling servo right to " + String(jiggleRightAngle) + " degrees");
+                Serial.println("Step 10: Jiggling servo right to " + String(jiggleRightAngle) + " degrees at max speed");
             }
             currentStep = 11;
             stepStartTime = currentTime;
@@ -244,11 +246,11 @@ void executeRetrieveState() {
             
         case 12: {
             //! ************************************************************************
-            //! STEP 12: RETURN SERVO TO CENTER POSITION
+            //! STEP 12: RETURN SERVO TO CENTER POSITION AT MAX SPEED
             //! ************************************************************************
             if (retrieveServoController) {
                 retrieveServoController->moveTo(RETRIEVE_ANGLE_DEGREES);
-                Serial.println("Step 12: Returning servo to center position at " + String(RETRIEVE_ANGLE_DEGREES) + " degrees");
+                Serial.println("Step 12: Returning servo to center position at " + String(RETRIEVE_ANGLE_DEGREES) + " degrees at max speed");
             }
             currentStep = 13;
             stepStartTime = currentTime;
