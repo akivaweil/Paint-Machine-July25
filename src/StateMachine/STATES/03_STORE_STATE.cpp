@@ -139,7 +139,7 @@ void executeStoreState() {
             
         case 4: {
             //! ************************************************************************
-            //! STEP 4: LOWER HEIGHT BY .4 INCHES
+            //! STEP 4: LOWER HEIGHT BY .7 INCHES
             //! ************************************************************************
             if (storeZMotor) {
                 int newHeightSteps = targetHeightSteps - HEIGHT_ADJUSTMENT_STEPS;

@@ -139,7 +139,7 @@ void executeRetrieveState() {
             
         case 4: {
             //! ************************************************************************
-            //! STEP 4: RAISE HEIGHT BY .4 INCHES
+            //! STEP 4: RAISE HEIGHT BY .7 INCHES
             //! ************************************************************************
             if (retrieveZMotor) {
                 int newHeightSteps = targetHeightSteps + HEIGHT_ADJUSTMENT_STEPS;
