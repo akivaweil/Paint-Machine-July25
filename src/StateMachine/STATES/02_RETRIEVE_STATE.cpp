@@ -194,7 +194,7 @@ void executeRetrieveState() {
             //! ************************************************************************
             if (retrieveServoController) {
                 // Set maximum speed for jiggle movements
-                retrieveServoController->setAccelerationProfile(100.0, 180.0); // High acceleration and max speed
+                retrieveServoController->setAccelerationProfile(1000.0, 20000.0); // High acceleration and max speed
                 int jiggleLeftAngle = RETRIEVE_ANGLE_DEGREES - SERVO_JIGGLE_ANGLE;
                 retrieveServoController->moveTo(jiggleLeftAngle);
                 Serial.println("Step 8: Jiggling servo left to " + String(jiggleLeftAngle) + " degrees at max speed");

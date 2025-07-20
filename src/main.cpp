@@ -306,7 +306,7 @@ void initializeServo() {
   Serial.println("Servo frequency: 50 Hz");
   Serial.println("Servo resolution: 14 bits");
   
-  loaderServo.init(LOADER_SERVO_PIN, 7, 50, 14); // Pin, channel, frequency, resolution
+  loaderServo.init(LOADER_SERVO_PIN, 7, 20, 14); // Pin, channel, frequency, resolution
   
   // Configure servo acceleration controller with conservative default settings
   mainServoController.setAccelerationProfile(
