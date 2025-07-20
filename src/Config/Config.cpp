@@ -29,12 +29,12 @@ int Z_CYCLE_DISTANCE_STEPS = (int)(Z_CYCLE_DISTANCE_INCHES * STEPS_PER_INCH);
 //* ************************ RETRIEVE/STORE SEQUENCE SETTINGS *************
 //* ************************************************************************
 // Retrieve state settings
-float RETRIEVE_HEIGHT_INCHES = 3.3;   // Height to move to for retrieve operation (5 inches)
+float RETRIEVE_HEIGHT_INCHES = 3.2;   // Height to move to for retrieve operation (5 inches)
 int RETRIEVE_HEIGHT_STEPS = (int)(RETRIEVE_HEIGHT_INCHES * STEPS_PER_INCH);
 int RETRIEVE_ANGLE_DEGREES = 21.5;      // Servo angle for retrieve operation (45 degrees)
 
 // Store state settings
-float STORE_HEIGHT_INCHES = 8.1;      // Height to move to for store operation (8 inches)
+float STORE_HEIGHT_INCHES = 8.0;      // Height to move to for store operation (8 inches)
 int STORE_HEIGHT_STEPS = (int)(STORE_HEIGHT_INCHES * STEPS_PER_INCH);
 int STORE_ANGLE_DEGREES = 91 ;         // Servo angle for store operation (90 degrees)
 
@@ -42,12 +42,12 @@ int STORE_ANGLE_DEGREES = 91 ;         // Servo angle for store operation (90 de
 //* ************************ SECOND RETRIEVE/STORE SEQUENCE SETTINGS ******
 //* ************************************************************************
 // Second retrieve state settings
-float RETRIEVE_2_HEIGHT_INCHES = 7.3;   // Height to move to for second retrieve operation 3.94
+float RETRIEVE_2_HEIGHT_INCHES = 7.2;   // Height to move to for second retrieve operation 3.94
 int RETRIEVE_2_HEIGHT_STEPS = (int)(RETRIEVE_2_HEIGHT_INCHES * STEPS_PER_INCH);
 int RETRIEVE_2_ANGLE_DEGREES = STORE_ANGLE_DEGREES;      // Servo angle for second retrieve operation
 
 // Second store state settings
-float STORE_2_HEIGHT_INCHES = 4.1;  // Height to move to for second store operation
+float STORE_2_HEIGHT_INCHES = 4.0;  // Height to move to for second store operation
 int STORE_2_HEIGHT_STEPS = (int)(STORE_2_HEIGHT_INCHES * STEPS_PER_INCH);
 int STORE_2_ANGLE_DEGREES = RETRIEVE_ANGLE_DEGREES;       // Servo angle for second store operation
 
@@ -85,6 +85,6 @@ int CYLINDER_RETRACT_WAIT = 750;   // Wait time after retracting cylinder (1000m
 //* ************************ Z-AXIS MOTOR SETTINGS ************************
 //* ************************************************************************
 // Z-axis stepper motor settings
-float Z_MAX_SPEED = 5000.0;      // Maximum speed in steps per second
-float Z_ACCELERATION = 5000.0;   // Acceleration in steps per second^2
+float Z_MAX_SPEED = 10000.0;      // Maximum speed in steps per second
+float Z_ACCELERATION = 50000.0;   // Acceleration in steps per second^2
 float Z_HOMING_SPEED = 1000.0;    // Slow homing speed 
