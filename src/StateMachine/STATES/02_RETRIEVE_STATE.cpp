@@ -209,7 +209,7 @@ void executeRetrieveState() {
             //! STEP 9: WAIT FOR SERVO TO REACH LEFT POSITION
             //! ************************************************************************
             bool servoReady = !retrieveDirectServo || retrieveDirectServo->hasReachedTarget();
-            if (servoReady && (currentTime - stepStartTime >= SERVO_JIGGLE_DELAY)) {
+            if (servoReady) {
                 Serial.println("Step 9: Left jiggle complete, moving to right position");
                 currentStep = 10;
                 stepStartTime = currentTime;
@@ -236,7 +236,7 @@ void executeRetrieveState() {
             //! STEP 11: WAIT FOR SERVO TO REACH RIGHT POSITION
             //! ************************************************************************
             bool servoReady = !retrieveDirectServo || retrieveDirectServo->hasReachedTarget();
-            if (servoReady && (currentTime - stepStartTime >= SERVO_JIGGLE_DELAY)) {
+            if (servoReady) {
                 Serial.println("Step 11: Right jiggle complete, returning to center position");
                 currentStep = 12;
                 stepStartTime = currentTime;
