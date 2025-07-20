@@ -43,6 +43,11 @@ extern int STORE_ANGLE_DEGREES;       // Servo angle for store operation
 extern float HEIGHT_ADJUSTMENT_INCHES; // Height adjustment during sequence (.4 inches)
 extern int HEIGHT_ADJUSTMENT_STEPS;    // Height adjustment in steps
 
+// Idle state settings
+extern float IDLE_HEIGHT_INCHES;       // Height for idle state (5 inches)
+extern int IDLE_HEIGHT_STEPS;          // Idle height in steps
+extern int IDLE_ANGLE_DEGREES;         // Servo angle for idle state (30 degrees)
+
 //* ************************************************************************
 //* ************************ SERVO SETTINGS ********************************
 //* ************************************************************************

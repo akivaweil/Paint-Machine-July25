@@ -42,6 +42,11 @@ int STORE_ANGLE_DEGREES = 90;         // Servo angle for store operation (90 deg
 float HEIGHT_ADJUSTMENT_INCHES = 0.4; // Height adjustment during sequence (.4 inches)
 int HEIGHT_ADJUSTMENT_STEPS = (int)(HEIGHT_ADJUSTMENT_INCHES * STEPS_PER_INCH);
 
+// Idle state settings
+float IDLE_HEIGHT_INCHES = 5.0;        // Height for idle state (5 inches)
+int IDLE_HEIGHT_STEPS = (int)(IDLE_HEIGHT_INCHES * STEPS_PER_INCH);
+int IDLE_ANGLE_DEGREES = 30;           // Servo angle for idle state (30 degrees)
+
 //* ************************************************************************
 //* ************************ SERVO SETTINGS ********************************
 //* ************************************************************************

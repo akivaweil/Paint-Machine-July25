@@ -9,12 +9,15 @@
 #include "Config/Config.h"
 #include "Config/Pins_Definitions.h"
 #include "ServoAccelerationController.h"
+#include <FastAccelStepper.h>
 
 //* ************************************************************************
 //* ************************ IDLE STATE VARIABLES *************************
 //* ************************************************************************
 static bool idleStateInitialized = false;
 static ServoAccelerationController* idleServoController = NULL;
+static FastAccelStepper* idleZMotor = NULL;
+static bool idlePositionReached = false;
 
 //* ************************************************************************
 //* ************************ IDLE STATE FUNCTIONS *************************
@@ -28,22 +31,38 @@ void executeIdleState() {
     // Initialize idle state on first entry
     if (!idleStateInitialized) {
         Serial.println("=== ENTERING IDLE STATE ===");
-        Serial.println("Machine ready - waiting for commands");
+        Serial.println("Moving to idle position - Height: " + String(IDLE_HEIGHT_INCHES) + " inches, Angle: " + String(IDLE_ANGLE_DEGREES) + " degrees");
         
-        // Set servo to idle position (0 degrees)
+        // Set motor speed and acceleration
+        if (idleZMotor) {
+            idleZMotor->setSpeedInHz(Z_MAX_SPEED);
+            idleZMotor->setAcceleration(Z_ACCELERATION);
+            idleZMotor->moveTo(IDLE_HEIGHT_STEPS);
+        }
+        
+        // Set servo to idle position (30 degrees)
         if (idleServoController) {
             idleServoController->setAccelerationProfile(300, 2000); // Conservative settings
-            idleServoController->moveTo(0);
-            Serial.println("Setting servo to idle position (0 degrees)");
+            idleServoController->moveTo(IDLE_ANGLE_DEGREES);
+            Serial.println("Setting servo to idle position (" + String(IDLE_ANGLE_DEGREES) + " degrees)");
         }
         
         idleStateInitialized = true;
+        idlePositionReached = false;
     }
     
     //! ************************************************************************
-    //! STEP 1: CHECK FOR START BUTTON PRESS
+    //! STEP 1: CHECK IF IDLE POSITION IS REACHED
     //! ************************************************************************
-    // This will be handled in main loop - idle state just waits
+    if (!idlePositionReached) {
+        bool zMotorReady = !idleZMotor || !idleZMotor->isRunning();
+        bool servoReady = !idleServoController || idleServoController->hasReachedTarget();
+        
+        if (zMotorReady && servoReady) {
+            Serial.println("Idle position reached - Machine ready for commands");
+            idlePositionReached = true;
+        }
+    }
     
     //! ************************************************************************
     //! STEP 2: UPDATE SERVO CONTROLLER
@@ -70,12 +89,14 @@ void resetIdleState() {
     //! RESET IDLE STATE FLAGS
     //! ************************************************************************
     idleStateInitialized = false;
+    idlePositionReached = false;
 }
 
-void setIdleReferences(ServoAccelerationController* servoController) {
+void setIdleReferences(ServoAccelerationController* servoController, FastAccelStepper* zMotor) {
     //! ************************************************************************
-    //! SET REFERENCES TO SERVO CONTROLLER OBJECT
+    //! SET REFERENCES TO SERVO CONTROLLER AND Z MOTOR OBJECTS
     //! ************************************************************************
     idleServoController = servoController;
-    Serial.println("Idle servo controller reference set - Controller: " + String(servoController ? "VALID" : "NULL"));
+    idleZMotor = zMotor;
+    Serial.println("Idle references set - Servo Controller: " + String(servoController ? "VALID" : "NULL") + ", Z Motor: " + String(zMotor ? "VALID" : "NULL"));
 } 

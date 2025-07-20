@@ -57,7 +57,7 @@ void setHomeServoReferences(ServoControl* servo, ServoAccelerationController* co
 void setRetrieveReferences(ServoAccelerationController* servoController, CylinderControl* cylinder, FastAccelStepper* zMotor);
 void setStoreReferences(ServoAccelerationController* servoController, CylinderControl* cylinder, FastAccelStepper* zMotor);
 void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* servoController, CylinderControl* cylinder);
-void setIdleReferences(ServoAccelerationController* servoController);
+void setIdleReferences(ServoAccelerationController* servoController, FastAccelStepper* zMotor);
 
 // Test state manual mode functions
 void parseManualCommand(String command);
