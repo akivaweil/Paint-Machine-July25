@@ -53,7 +53,7 @@ void performTestMotionSequence();
 
 // State reference setup functions
 void setHomeReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch);
-void setRetrieveReferences(ServoAccelerationController* servoController, CylinderControl* cylinder, FastAccelStepper* zMotor);
+void setRetrieveReferences(ServoAccelerationController* servoController, ServoControl* directServo, CylinderControl* cylinder, FastAccelStepper* zMotor);
 void setStoreReferences(ServoAccelerationController* servoController, CylinderControl* cylinder, FastAccelStepper* zMotor);
 void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* servoController, CylinderControl* cylinder);
 void setIdleReferences(ServoAccelerationController* servoController, FastAccelStepper* zMotor);

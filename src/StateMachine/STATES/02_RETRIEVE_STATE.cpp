@@ -9,6 +9,7 @@
 #include "Config/Config.h"
 #include "Config/Pins_Definitions.h"
 #include "ServoAccelerationController.h"
+#include "ServoControl.h"
 #include "CylinderControl.h"
 #include <FastAccelStepper.h>
 
@@ -18,6 +19,7 @@
 static bool retrieveStateInitialized = false;
 static bool retrieveComplete = false;
 static ServoAccelerationController* retrieveServoController = NULL;
+static ServoControl* retrieveDirectServo = NULL;  // Direct servo control for fast jiggle
 static CylinderControl* retrieveCylinder = NULL;
 static FastAccelStepper* retrieveZMotor = NULL;
 static int currentStep = 0;
@@ -190,14 +192,12 @@ void executeRetrieveState() {
             
         case 8: {
             //! ************************************************************************
-            //! STEP 8: JIGGLE SERVO LEFT (CURRENT ANGLE - JIGGLE ANGLE) AT MAX SPEED
+            //! STEP 8: JIGGLE SERVO LEFT (CURRENT ANGLE - JIGGLE ANGLE) USING DIRECT SERVO
             //! ************************************************************************
-            if (retrieveServoController) {
-                // Set maximum speed for jiggle movements
-                retrieveServoController->setAccelerationProfile(1000.0, 20000.0); // High acceleration and max speed
+            if (retrieveDirectServo) {
                 int jiggleLeftAngle = RETRIEVE_ANGLE_DEGREES - SERVO_JIGGLE_ANGLE;
-                retrieveServoController->moveTo(jiggleLeftAngle);
-                Serial.println("Step 8: Jiggling servo left to " + String(jiggleLeftAngle) + " degrees at max speed");
+                retrieveDirectServo->write(jiggleLeftAngle);
+                Serial.println("Step 8: Jiggling servo left to " + String(jiggleLeftAngle) + " degrees using direct servo");
             }
             currentStep = 9;
             stepStartTime = currentTime;
@@ -208,7 +208,7 @@ void executeRetrieveState() {
             //! ************************************************************************
             //! STEP 9: WAIT FOR SERVO TO REACH LEFT POSITION
             //! ************************************************************************
-            bool servoReady = !retrieveServoController || retrieveServoController->hasReachedTarget();
+            bool servoReady = !retrieveDirectServo || retrieveDirectServo->hasReachedTarget();
             if (servoReady && (currentTime - stepStartTime >= SERVO_JIGGLE_DELAY)) {
                 Serial.println("Step 9: Left jiggle complete, moving to right position");
                 currentStep = 10;
@@ -219,12 +219,12 @@ void executeRetrieveState() {
             
         case 10: {
             //! ************************************************************************
-            //! STEP 10: JIGGLE SERVO RIGHT (CURRENT ANGLE + JIGGLE ANGLE) AT MAX SPEED
+            //! STEP 10: JIGGLE SERVO RIGHT (CURRENT ANGLE + JIGGLE ANGLE) USING DIRECT SERVO
             //! ************************************************************************
-            if (retrieveServoController) {
+            if (retrieveDirectServo) {
                 int jiggleRightAngle = RETRIEVE_ANGLE_DEGREES + SERVO_JIGGLE_ANGLE;
-                retrieveServoController->moveTo(jiggleRightAngle);
-                Serial.println("Step 10: Jiggling servo right to " + String(jiggleRightAngle) + " degrees at max speed");
+                retrieveDirectServo->write(jiggleRightAngle);
+                Serial.println("Step 10: Jiggling servo right to " + String(jiggleRightAngle) + " degrees using direct servo");
             }
             currentStep = 11;
             stepStartTime = currentTime;
@@ -235,7 +235,7 @@ void executeRetrieveState() {
             //! ************************************************************************
             //! STEP 11: WAIT FOR SERVO TO REACH RIGHT POSITION
             //! ************************************************************************
-            bool servoReady = !retrieveServoController || retrieveServoController->hasReachedTarget();
+            bool servoReady = !retrieveDirectServo || retrieveDirectServo->hasReachedTarget();
             if (servoReady && (currentTime - stepStartTime >= SERVO_JIGGLE_DELAY)) {
                 Serial.println("Step 11: Right jiggle complete, returning to center position");
                 currentStep = 12;
@@ -246,11 +246,11 @@ void executeRetrieveState() {
             
         case 12: {
             //! ************************************************************************
-            //! STEP 12: RETURN SERVO TO CENTER POSITION AT MAX SPEED
+            //! STEP 12: RETURN SERVO TO CENTER POSITION USING DIRECT SERVO
             //! ************************************************************************
-            if (retrieveServoController) {
-                retrieveServoController->moveTo(RETRIEVE_ANGLE_DEGREES);
-                Serial.println("Step 12: Returning servo to center position at " + String(RETRIEVE_ANGLE_DEGREES) + " degrees at max speed");
+            if (retrieveDirectServo) {
+                retrieveDirectServo->write(RETRIEVE_ANGLE_DEGREES);
+                Serial.println("Step 12: Returning servo to center position at " + String(RETRIEVE_ANGLE_DEGREES) + " degrees using direct servo");
             }
             currentStep = 13;
             stepStartTime = currentTime;
@@ -261,7 +261,7 @@ void executeRetrieveState() {
             //! ************************************************************************
             //! STEP 13: WAIT FOR SERVO TO REACH CENTER POSITION
             //! ************************************************************************
-            bool servoReady = !retrieveServoController || retrieveServoController->hasReachedTarget();
+            bool servoReady = !retrieveDirectServo || retrieveDirectServo->hasReachedTarget();
             if (servoReady) {
                 Serial.println("Step 13: Servo jiggle complete, retrieval sequence finished");
                 retrieveComplete = true;
@@ -288,11 +288,12 @@ void resetRetrieveState() {
     targetHeightSteps = 0;
 }
 
-void setRetrieveReferences(ServoAccelerationController* servoController, CylinderControl* cylinder, FastAccelStepper* zMotor) {
+void setRetrieveReferences(ServoAccelerationController* servoController, ServoControl* directServo, CylinderControl* cylinder, FastAccelStepper* zMotor) {
     //! ************************************************************************
-    //! SET REFERENCES TO SERVO CONTROLLER, CYLINDER, AND Z MOTOR OBJECTS
+    //! SET REFERENCES TO SERVO CONTROLLER, DIRECT SERVO, CYLINDER, AND Z MOTOR OBJECTS
     //! ************************************************************************
     retrieveServoController = servoController;
+    retrieveDirectServo = directServo;
     retrieveCylinder = cylinder;
     retrieveZMotor = zMotor;
 } 
