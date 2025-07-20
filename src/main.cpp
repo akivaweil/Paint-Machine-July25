@@ -161,7 +161,7 @@ void loop() {
       String valueStr = command.substring(1);
       float value = valueStr.toFloat();
       
-      if (commandType == 'z' && value > 0 && value <= 50) {
+      if (commandType == 'z' && value > 0 && value <= 27) {
         // Manual Z height command
         Serial.println("Manual Z command: Moving to " + String(value) + " inches");
         if (zMotor) {
@@ -220,7 +220,7 @@ void loop() {
       // The test state will handle the manual mode toggle
     } else if (command == "help") {
       Serial.println("=== AVAILABLE COMMANDS ===");
-      Serial.println("z<height>  - Move Z-axis to height (inches) - Example: z1.3, z20");
+      Serial.println("z<height>  - Move Z-axis to height (inches) - Example: z1.3, z20 (max 27 inches)");
       Serial.println("a<angle>   - Move servo to angle (degrees) - Example: a30, a90");
       Serial.println("help       - Show this help message");
       Serial.println("test_manual - Enter test state");

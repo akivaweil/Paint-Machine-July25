@@ -362,11 +362,11 @@ void parseManualCommand(String command) {
     
     switch (commandType) {
         case 'z': // Z-axis height command
-            if (value > 0 && value <= 50) { // Reasonable height limits
+            if (value > 0 && value <= 27) { // Reasonable height limits for testing
                 Serial.println("Manual Z command: Moving to " + String(value) + " inches");
                 moveToManualHeight(value);
             } else {
-                Serial.println("Invalid Z height. Must be between 0.1 and 50 inches");
+                Serial.println("Invalid Z height. Must be between 0.1 and 27 inches");
             }
             break;
             
