@@ -1,8 +1,8 @@
 //* ************************************************************************
-//* ************************ RETRIEVE STATE ******************************
+//* ************************ RETRIEVE 2 STATE ****************************
 //* ************************************************************************
-//! RETRIEVE state - Performs retrieving operations with cylinder control
-//! This state handles the retrieval sequence: move to position, extend cylinder, adjust height, retract
+//! RETRIEVE 2 state - Performs second retrieving operations with cylinder control
+//! This state handles the second retrieval sequence: move to position, extend cylinder, adjust height, retract
 
 #include <Arduino.h>
 #include "StateMachine.h"
@@ -13,58 +13,58 @@
 #include <FastAccelStepper.h>
 
 //* ************************************************************************
-//* ************************ RETRIEVE STATE VARIABLES ********************
+//* ************************ RETRIEVE 2 STATE VARIABLES *******************
 //* ************************************************************************
-static bool retrieveStateInitialized = false;
-static bool retrieveComplete = false;
-static ServoAccelerationController* retrieveServoController = NULL;
-static CylinderControl* retrieveCylinder = NULL;
-static FastAccelStepper* retrieveZMotor = NULL;
+static bool retrieve2StateInitialized = false;
+static bool retrieve2Complete = false;
+static ServoAccelerationController* retrieve2ServoController = NULL;
+static CylinderControl* retrieve2Cylinder = NULL;
+static FastAccelStepper* retrieve2ZMotor = NULL;
 static int currentStep = 0;
 static unsigned long stepStartTime = 0;
 static int targetHeightSteps = 0;
 
 //* ************************************************************************
-//* ************************ RETRIEVE STATE FUNCTIONS ********************
+//* ************************ RETRIEVE 2 STATE FUNCTIONS *******************
 //* ************************************************************************
 
-void executeRetrieveState() {
+void executeRetrieve2State() {
     //! ************************************************************************
-    //! EXECUTE RETRIEVE STATE - RETRIEVAL OPERATION WITH CYLINDER CONTROL
+    //! EXECUTE RETRIEVE 2 STATE - SECOND RETRIEVAL OPERATION WITH CYLINDER CONTROL
     //! ************************************************************************
     
-    // Initialize retrieve state on first entry
-    if (!retrieveStateInitialized) {
-        Serial.println("=== ENTERING RETRIEVE STATE ===");
-        Serial.println("Starting retrieval operation...");
-        retrieveStateInitialized = true;
-        retrieveComplete = false;
+    // Initialize retrieve 2 state on first entry
+    if (!retrieve2StateInitialized) {
+        Serial.println("=== ENTERING RETRIEVE 2 STATE ===");
+        Serial.println("Starting second retrieval operation...");
+        retrieve2StateInitialized = true;
+        retrieve2Complete = false;
         currentStep = 0;
         stepStartTime = millis();
         
         //! ************************************************************************
         //! STEP 0: SETUP INITIAL PARAMETERS
         //! ************************************************************************
-        targetHeightSteps = RETRIEVE_HEIGHT_STEPS;
+        targetHeightSteps = RETRIEVE_2_HEIGHT_STEPS;
         
         // Set motor speed and acceleration
-        if (retrieveZMotor) {
-            retrieveZMotor->setSpeedInHz(Z_MAX_SPEED);
-            retrieveZMotor->setAcceleration(Z_ACCELERATION);
+        if (retrieve2ZMotor) {
+            retrieve2ZMotor->setSpeedInHz(Z_MAX_SPEED);
+            retrieve2ZMotor->setAcceleration(Z_ACCELERATION);
         }
         
         // Set servo acceleration profile
-        if (retrieveServoController) {
-            retrieveServoController->setAccelerationProfile(300, 2000);
+        if (retrieve2ServoController) {
+            retrieve2ServoController->setAccelerationProfile(300, 2000);
         }
     }
     
     //! ************************************************************************
     //! STEP 1: CHECK IF RETRIEVING IS COMPLETE
     //! ************************************************************************
-    if (retrieveComplete) {
-        Serial.println("Retrieval operation complete - transitioning to STORE state");
-        setState(STORE_STATE);
+    if (retrieve2Complete) {
+        Serial.println("Second retrieval operation complete - transitioning to STORE 2 state");
+        setState(STORE_2_STATE);
         return;
     }
     
@@ -79,16 +79,16 @@ void executeRetrieveState() {
             //! STEP 0: MOVE TO SPECIFIC HEIGHT AND ANGLE
             //! ************************************************************************
             if (currentTime - stepStartTime >= 100) { // Small delay to ensure initialization
-                Serial.println("Step 0: Moving to retrieve position - Height: " + String(RETRIEVE_HEIGHT_INCHES) + " inches, Angle: " + String(RETRIEVE_ANGLE_DEGREES) + " degrees");
+                Serial.println("Step 0: Moving to second retrieve position - Height: " + String(RETRIEVE_2_HEIGHT_INCHES) + " inches, Angle: " + String(RETRIEVE_2_ANGLE_DEGREES) + " degrees");
                 
-                // Move Z motor to retrieve height
-                if (retrieveZMotor) {
-                    retrieveZMotor->moveTo(targetHeightSteps);
+                // Move Z motor to retrieve 2 height
+                if (retrieve2ZMotor) {
+                    retrieve2ZMotor->moveTo(targetHeightSteps);
                 }
                 
-                // Move servo to retrieve angle
-                if (retrieveServoController) {
-                    retrieveServoController->moveTo(RETRIEVE_ANGLE_DEGREES);
+                // Move servo to retrieve 2 angle
+                if (retrieve2ServoController) {
+                    retrieve2ServoController->moveTo(RETRIEVE_2_ANGLE_DEGREES);
                 }
                 
                 currentStep = 1;
@@ -101,8 +101,8 @@ void executeRetrieveState() {
             //! ************************************************************************
             //! STEP 1: WAIT FOR MOTOR AND SERVO TO REACH POSITION
             //! ************************************************************************
-            bool zMotorReady = !retrieveZMotor || !retrieveZMotor->isRunning();
-            bool servoReady = !retrieveServoController || retrieveServoController->hasReachedTarget();
+            bool zMotorReady = !retrieve2ZMotor || !retrieve2ZMotor->isRunning();
+            bool servoReady = !retrieve2ServoController || retrieve2ServoController->hasReachedTarget();
             
             if (zMotorReady && servoReady) {
                 Serial.println("Step 1: Position reached, extending cylinder");
@@ -116,8 +116,8 @@ void executeRetrieveState() {
             //! ************************************************************************
             //! STEP 2: EXTEND THE CYLINDER
             //! ************************************************************************
-            if (retrieveCylinder) {
-                retrieveCylinder->extend();
+            if (retrieve2Cylinder) {
+                retrieve2Cylinder->extend();
                 Serial.println("Step 2: Cylinder extended");
             }
             currentStep = 3;
@@ -141,9 +141,9 @@ void executeRetrieveState() {
             //! ************************************************************************
             //! STEP 4: RAISE HEIGHT BY .4 INCHES
             //! ************************************************************************
-            if (retrieveZMotor) {
+            if (retrieve2ZMotor) {
                 int newHeightSteps = targetHeightSteps + HEIGHT_ADJUSTMENT_STEPS;
-                retrieveZMotor->moveTo(newHeightSteps);
+                retrieve2ZMotor->moveTo(newHeightSteps);
                 Serial.println("Step 4: Raising height to " + String((float)newHeightSteps / STEPS_PER_INCH) + " inches");
             }
             currentStep = 5;
@@ -167,8 +167,8 @@ void executeRetrieveState() {
             //! ************************************************************************
             //! STEP 6: RETRACT THE CYLINDER
             //! ************************************************************************
-            if (retrieveCylinder) {
-                retrieveCylinder->retract();
+            if (retrieve2Cylinder) {
+                retrieve2Cylinder->retract();
                 Serial.println("Step 6: Cylinder retracted");
             }
             currentStep = 7;
@@ -181,36 +181,36 @@ void executeRetrieveState() {
             //! STEP 7: WAIT 1000MS AFTER RETRACTING CYLINDER
             //! ************************************************************************
             if (currentTime - stepStartTime >= CYLINDER_RETRACT_WAIT) {
-                Serial.println("Step 7: Cylinder retract wait complete, retrieval sequence finished");
-                retrieveComplete = true;
+                Serial.println("Step 7: Cylinder retract wait complete, second retrieval sequence finished");
+                retrieve2Complete = true;
             }
             break;
         }
             
         default: {
-            Serial.println("ERROR: Invalid step in retrieve sequence");
-            retrieveComplete = true;
+            Serial.println("ERROR: Invalid step in retrieve 2 sequence");
+            retrieve2Complete = true;
             break;
         }
     }
 }
 
-void resetRetrieveState() {
+void resetRetrieve2State() {
     //! ************************************************************************
-    //! RESET RETRIEVE STATE FLAGS
+    //! RESET RETRIEVE 2 STATE FLAGS
     //! ************************************************************************
-    retrieveStateInitialized = false;
-    retrieveComplete = false;
+    retrieve2StateInitialized = false;
+    retrieve2Complete = false;
     currentStep = 0;
     stepStartTime = 0;
     targetHeightSteps = 0;
 }
 
-void setRetrieveReferences(ServoAccelerationController* servoController, CylinderControl* cylinder, FastAccelStepper* zMotor) {
+void setRetrieve2References(ServoAccelerationController* servoController, CylinderControl* cylinder, FastAccelStepper* zMotor) {
     //! ************************************************************************
     //! SET REFERENCES TO SERVO CONTROLLER, CYLINDER, AND Z MOTOR OBJECTS
     //! ************************************************************************
-    retrieveServoController = servoController;
-    retrieveCylinder = cylinder;
-    retrieveZMotor = zMotor;
+    retrieve2ServoController = servoController;
+    retrieve2Cylinder = cylinder;
+    retrieve2ZMotor = zMotor;
 } 

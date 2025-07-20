@@ -52,6 +52,12 @@ void updateStateMachine() {
             case STORE_STATE:
                 resetStoreState();
                 break;
+            case RETRIEVE_2_STATE:
+                resetRetrieve2State();
+                break;
+            case STORE_2_STATE:
+                resetStore2State();
+                break;
             case TEST_STATE:
                 resetTestState();
                 break;
@@ -75,6 +81,12 @@ void updateStateMachine() {
             break;
         case STORE_STATE:
             executeStoreState();
+            break;
+        case RETRIEVE_2_STATE:
+            executeRetrieve2State();
+            break;
+        case STORE_2_STATE:
+            executeStore2State();
             break;
         case TEST_STATE:
             executeTestState();
@@ -122,6 +134,10 @@ String getStateName(StateMachineState state) {
             return "RETRIEVE";
         case STORE_STATE:
             return "STORE";
+        case RETRIEVE_2_STATE:
+            return "RETRIEVE_2";
+        case STORE_2_STATE:
+            return "STORE_2";
         case TEST_STATE:
             return "TEST";
         default:

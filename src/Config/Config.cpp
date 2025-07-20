@@ -29,14 +29,27 @@ int Z_CYCLE_DISTANCE_STEPS = (int)(Z_CYCLE_DISTANCE_INCHES * STEPS_PER_INCH);
 //* ************************ RETRIEVE/STORE SEQUENCE SETTINGS *************
 //* ************************************************************************
 // Retrieve state settings
-float RETRIEVE_HEIGHT_INCHES = 3.55;   // Height to move to for retrieve operation (5 inches)
+float RETRIEVE_HEIGHT_INCHES = 3.65;   // Height to move to for retrieve operation (5 inches)
 int RETRIEVE_HEIGHT_STEPS = (int)(RETRIEVE_HEIGHT_INCHES * STEPS_PER_INCH);
-int RETRIEVE_ANGLE_DEGREES = 21;      // Servo angle for retrieve operation (45 degrees)
+int RETRIEVE_ANGLE_DEGREES = 22;      // Servo angle for retrieve operation (45 degrees)
 
 // Store state settings
 float STORE_HEIGHT_INCHES = (2 * RETRIEVE_HEIGHT_INCHES) + 0.7;      // Height to move to for store operation (8 inches)
 int STORE_HEIGHT_STEPS = (int)(STORE_HEIGHT_INCHES * STEPS_PER_INCH);
 int STORE_ANGLE_DEGREES = 91;         // Servo angle for store operation (90 degrees)
+
+//* ************************************************************************
+//* ************************ SECOND RETRIEVE/STORE SEQUENCE SETTINGS ******
+//* ************************************************************************
+// Second retrieve state settings
+float RETRIEVE_2_HEIGHT_INCHES = (2 * RETRIEVE_HEIGHT_INCHES);   // Height to move to for second retrieve operation
+int RETRIEVE_2_HEIGHT_STEPS = (int)(RETRIEVE_2_HEIGHT_INCHES * STEPS_PER_INCH);
+int RETRIEVE_2_ANGLE_DEGREES = STORE_ANGLE_DEGREES;      // Servo angle for second retrieve operation
+
+// Second store state settings
+float STORE_2_HEIGHT_INCHES = (2 * RETRIEVE_2_HEIGHT_INCHES) + 0.8;  // Height to move to for second store operation
+int STORE_2_HEIGHT_STEPS = (int)(STORE_2_HEIGHT_INCHES * STEPS_PER_INCH);
+int STORE_2_ANGLE_DEGREES = RETRIEVE_ANGLE_DEGREES;       // Servo angle for second store operation
 
 // Height adjustment settings
 float HEIGHT_ADJUSTMENT_INCHES = 0.4; // Height adjustment during sequence (.4 inches)
@@ -54,10 +67,6 @@ int IDLE_ANGLE_DEGREES = 56;           // Servo angle for idle state (30 degrees
 int SERVO_START_POS = 90;      // First position in sequence
 int SERVO_SECOND_POS = 45;     // Second position in sequence  
 int SERVO_THIRD_POS = 70;      // Third position in sequence
-
-// Servo jiggle settings for wood positioning
-int SERVO_JIGGLE_ANGLE = 5;    // Jiggle angle in degrees (5 degrees)
-int SERVO_JIGGLE_DELAY = 0;   // Delay between jiggle movements (50ms)
 
 //* ************************************************************************
 //* ************************ TIMING SETTINGS *******************************

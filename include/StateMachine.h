@@ -18,7 +18,9 @@ enum StateMachineState {
     HOME_STATE = 1,        // Homing sequence
     RETRIEVE_STATE = 2,    // Retrieving operation
     STORE_STATE = 3,       // Storing operation
-    TEST_STATE = 4         // Test state for manual testing
+    RETRIEVE_2_STATE = 4,  // Second retrieving operation
+    STORE_2_STATE = 5,     // Second storing operation
+    TEST_STATE = 6         // Test state for manual testing
 };
 
 //* ************************************************************************
@@ -39,6 +41,8 @@ void executeIdleState();
 void executeHomeState();
 void executeRetrieveState();
 void executeStoreState();
+void executeRetrieve2State();
+void executeStore2State();
 void executeTestState();
 
 // State reset functions
@@ -46,6 +50,8 @@ void resetIdleState();
 void resetHomeState();
 void resetRetrieveState();
 void resetStoreState();
+void resetRetrieve2State();
+void resetStore2State();
 void resetTestState();
 
 // Home state specific functions
@@ -53,8 +59,10 @@ void performTestMotionSequence();
 
 // State reference setup functions
 void setHomeReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch);
-void setRetrieveReferences(ServoAccelerationController* servoController, ServoControl* directServo, CylinderControl* cylinder, FastAccelStepper* zMotor);
+void setRetrieveReferences(ServoAccelerationController* servoController, CylinderControl* cylinder, FastAccelStepper* zMotor);
 void setStoreReferences(ServoAccelerationController* servoController, CylinderControl* cylinder, FastAccelStepper* zMotor);
+void setRetrieve2References(ServoAccelerationController* servoController, CylinderControl* cylinder, FastAccelStepper* zMotor);
+void setStore2References(ServoAccelerationController* servoController, CylinderControl* cylinder, FastAccelStepper* zMotor);
 void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* servoController, CylinderControl* cylinder);
 void setIdleReferences(ServoAccelerationController* servoController, FastAccelStepper* zMotor);
 

@@ -39,6 +39,19 @@ extern float STORE_HEIGHT_INCHES;     // Height to move to for store operation
 extern int STORE_HEIGHT_STEPS;        // Store height in steps
 extern int STORE_ANGLE_DEGREES;       // Servo angle for store operation
 
+//* ************************************************************************
+//* ************************ SECOND RETRIEVE/STORE SEQUENCE SETTINGS ******
+//* ************************************************************************
+// Second retrieve state settings
+extern float RETRIEVE_2_HEIGHT_INCHES;  // Height to move to for second retrieve operation
+extern int RETRIEVE_2_HEIGHT_STEPS;     // Second retrieve height in steps
+extern int RETRIEVE_2_ANGLE_DEGREES;    // Servo angle for second retrieve operation
+
+// Second store state settings
+extern float STORE_2_HEIGHT_INCHES;     // Height to move to for second store operation
+extern int STORE_2_HEIGHT_STEPS;        // Second store height in steps
+extern int STORE_2_ANGLE_DEGREES;       // Servo angle for second store operation
+
 // Height adjustment settings
 extern float HEIGHT_ADJUSTMENT_INCHES; // Height adjustment during sequence (.4 inches)
 extern int HEIGHT_ADJUSTMENT_STEPS;    // Height adjustment in steps
@@ -55,10 +68,6 @@ extern int IDLE_ANGLE_DEGREES;         // Servo angle for idle state (30 degrees
 extern int SERVO_START_POS;      // First position in sequence (90 degrees)
 extern int SERVO_SECOND_POS;     // Second position in sequence (45 degrees)
 extern int SERVO_THIRD_POS;      // Third position in sequence (70 degrees)
-
-// Servo jiggle settings for wood positioning
-extern int SERVO_JIGGLE_ANGLE;   // Jiggle angle in degrees (5 degrees)
-extern int SERVO_JIGGLE_DELAY;   // Delay between jiggle movements (50ms)
 
 //* ************************************************************************
 //* ************************ TIMING SETTINGS *******************************

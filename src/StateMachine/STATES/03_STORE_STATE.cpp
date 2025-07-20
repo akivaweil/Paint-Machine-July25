@@ -63,8 +63,8 @@ void executeStoreState() {
     //! STEP 1: CHECK IF STORING IS COMPLETE
     //! ************************************************************************
     if (storeComplete) {
-        Serial.println("Storage operation complete - transitioning to IDLE state");
-        setState(IDLE_STATE);
+        Serial.println("Storage operation complete - transitioning to RETRIEVE 2 state");
+        setState(RETRIEVE_2_STATE);
         return;
     }
     

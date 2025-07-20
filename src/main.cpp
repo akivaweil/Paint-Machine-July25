@@ -354,10 +354,16 @@ void setupStateMachineReferences() {
   setHomeReferences(zMotor, &zHomeSwitch);
   
   // Set references for retrieve state
-  setRetrieveReferences(&mainServoController, &loaderServo, &extensionCylinder, zMotor);
+  setRetrieveReferences(&mainServoController, &extensionCylinder, zMotor);
   
   // Set references for store state
   setStoreReferences(&mainServoController, &extensionCylinder, zMotor);
+  
+  // Set references for retrieve 2 state
+  setRetrieve2References(&mainServoController, &extensionCylinder, zMotor);
+  
+  // Set references for store 2 state
+  setStore2References(&mainServoController, &extensionCylinder, zMotor);
   
   // Set references for test state
   setTestReferences(zMotor, &mainServoController, &extensionCylinder);
