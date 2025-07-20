@@ -153,10 +153,11 @@ void executeRetrieveState() {
             
         case 5: {
             //! ************************************************************************
-            //! STEP 5: WAIT 100MS AFTER HEIGHT ADJUSTMENT
+            //! STEP 5: WAIT FOR HEIGHT ADJUSTMENT TO COMPLETE
             //! ************************************************************************
-            if (currentTime - stepStartTime >= HEIGHT_ADJUST_WAIT) {
-                Serial.println("Step 5: Height adjustment wait complete, retracting cylinder");
+            bool heightAdjustmentComplete = !retrieveZMotor || !retrieveZMotor->isRunning();
+            if (heightAdjustmentComplete) {
+                Serial.println("Step 5: Height adjustment complete, waiting 100ms before retracting cylinder");
                 currentStep = 6;
                 stepStartTime = currentTime;
             }
@@ -165,23 +166,35 @@ void executeRetrieveState() {
             
         case 6: {
             //! ************************************************************************
-            //! STEP 6: RETRACT THE CYLINDER
+            //! STEP 6: WAIT 100MS AFTER HEIGHT ADJUSTMENT
             //! ************************************************************************
-            if (retrieveCylinder) {
-                retrieveCylinder->retract();
-                Serial.println("Step 6: Cylinder retracted");
+            if (currentTime - stepStartTime >= HEIGHT_ADJUST_WAIT) {
+                Serial.println("Step 6: Height adjustment wait complete, retracting cylinder");
+                currentStep = 7;
+                stepStartTime = currentTime;
             }
-            currentStep = 7;
-            stepStartTime = currentTime;
             break;
         }
             
         case 7: {
             //! ************************************************************************
-            //! STEP 7: WAIT 1000MS AFTER RETRACTING CYLINDER
+            //! STEP 7: RETRACT THE CYLINDER
+            //! ************************************************************************
+            if (retrieveCylinder) {
+                retrieveCylinder->retract();
+                Serial.println("Step 7: Cylinder retracted");
+            }
+            currentStep = 8;
+            stepStartTime = currentTime;
+            break;
+        }
+            
+        case 8: {
+            //! ************************************************************************
+            //! STEP 8: WAIT 750MS AFTER RETRACTING CYLINDER
             //! ************************************************************************
             if (currentTime - stepStartTime >= CYLINDER_RETRACT_WAIT) {
-                Serial.println("Step 7: Cylinder retract wait complete, retrieval sequence finished");
+                Serial.println("Step 8: Cylinder retract wait complete, retrieval sequence finished");
                 retrieveComplete = true;
             }
             break;

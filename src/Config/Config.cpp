@@ -29,25 +29,25 @@ int Z_CYCLE_DISTANCE_STEPS = (int)(Z_CYCLE_DISTANCE_INCHES * STEPS_PER_INCH);
 //* ************************ RETRIEVE/STORE SEQUENCE SETTINGS *************
 //* ************************************************************************
 // Retrieve state settings
-float RETRIEVE_HEIGHT_INCHES = 3.5;   // Height to move to for retrieve operation (5 inches)
+float RETRIEVE_HEIGHT_INCHES = 3.3;   // Height to move to for retrieve operation (5 inches)
 int RETRIEVE_HEIGHT_STEPS = (int)(RETRIEVE_HEIGHT_INCHES * STEPS_PER_INCH);
 int RETRIEVE_ANGLE_DEGREES = 21.5;      // Servo angle for retrieve operation (45 degrees)
 
 // Store state settings
-float STORE_HEIGHT_INCHES = (2 * RETRIEVE_HEIGHT_INCHES) + 0.7;      // Height to move to for store operation (8 inches)
+float STORE_HEIGHT_INCHES = 8.1;      // Height to move to for store operation (8 inches)
 int STORE_HEIGHT_STEPS = (int)(STORE_HEIGHT_INCHES * STEPS_PER_INCH);
-int STORE_ANGLE_DEGREES = 91.5;         // Servo angle for store operation (90 degrees)
+int STORE_ANGLE_DEGREES = 91 ;         // Servo angle for store operation (90 degrees)
 
 //* ************************************************************************
 //* ************************ SECOND RETRIEVE/STORE SEQUENCE SETTINGS ******
 //* ************************************************************************
 // Second retrieve state settings
-float RETRIEVE_2_HEIGHT_INCHES = (RETRIEVE_HEIGHT_INCHES + 3.94);   // Height to move to for second retrieve operation 3.94
+float RETRIEVE_2_HEIGHT_INCHES = 7.3;   // Height to move to for second retrieve operation 3.94
 int RETRIEVE_2_HEIGHT_STEPS = (int)(RETRIEVE_2_HEIGHT_INCHES * STEPS_PER_INCH);
 int RETRIEVE_2_ANGLE_DEGREES = STORE_ANGLE_DEGREES;      // Servo angle for second retrieve operation
 
 // Second store state settings
-float STORE_2_HEIGHT_INCHES = RETRIEVE_HEIGHT_INCHES + 0.4;  // Height to move to for second store operation
+float STORE_2_HEIGHT_INCHES = 4.1;  // Height to move to for second store operation
 int STORE_2_HEIGHT_STEPS = (int)(STORE_2_HEIGHT_INCHES * STEPS_PER_INCH);
 int STORE_2_ANGLE_DEGREES = RETRIEVE_ANGLE_DEGREES;       // Servo angle for second store operation
 
@@ -72,14 +72,14 @@ int SERVO_THIRD_POS = 70;      // Third position in sequence
 //* ************************ TIMING SETTINGS *******************************
 //* ************************************************************************
 // Timing settings (in milliseconds)
-int SERVO_MOVE_DELAY = 1000;      // Wait time between servo movements (1 second)
+int SERVO_MOVE_DELAY = 500;      // Wait time between servo movements (1 second)
 int HOME_SWITCH_DEBOUNCE = 5;      // Home switch debounce time (5ms)
 int START_BUTTON_DEBOUNCE = 20;    // Start button debounce time (50ms)
 
 // Sequence timing settings
 int CYLINDER_EXTEND_WAIT = 750;     // Wait time after extending cylinder (750ms)
 int HEIGHT_ADJUST_WAIT = 100;       // Wait time after height adjustment (100ms)
-int CYLINDER_RETRACT_WAIT = 1000;   // Wait time after retracting cylinder (1000ms)
+int CYLINDER_RETRACT_WAIT = 750;   // Wait time after retracting cylinder (1000ms)
 
 //* ************************************************************************
 //* ************************ Z-AXIS MOTOR SETTINGS ************************

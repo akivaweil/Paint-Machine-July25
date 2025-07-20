@@ -157,7 +157,7 @@ void executeStore2State() {
             //! ************************************************************************
             bool heightAdjustmentComplete = !store2ZMotor || !store2ZMotor->isRunning();
             if (heightAdjustmentComplete) {
-                Serial.println("Step 5: Height adjustment complete, retracting cylinder");
+                Serial.println("Step 5: Height adjustment complete, waiting 100ms before retracting cylinder");
                 currentStep = 6;
                 stepStartTime = currentTime;
             }
@@ -166,23 +166,35 @@ void executeStore2State() {
             
         case 6: {
             //! ************************************************************************
-            //! STEP 6: RETRACT THE CYLINDER
+            //! STEP 6: WAIT 100MS AFTER HEIGHT ADJUSTMENT
             //! ************************************************************************
-            if (store2Cylinder) {
-                store2Cylinder->retract();
-                Serial.println("Step 6: Cylinder retracted");
+            if (currentTime - stepStartTime >= HEIGHT_ADJUST_WAIT) {
+                Serial.println("Step 6: Height adjustment wait complete, retracting cylinder");
+                currentStep = 7;
+                stepStartTime = currentTime;
             }
-            currentStep = 7;
-            stepStartTime = currentTime;
             break;
         }
             
         case 7: {
             //! ************************************************************************
-            //! STEP 7: WAIT 1000MS AFTER RETRACTING CYLINDER
+            //! STEP 7: RETRACT THE CYLINDER
+            //! ************************************************************************
+            if (store2Cylinder) {
+                store2Cylinder->retract();
+                Serial.println("Step 7: Cylinder retracted");
+            }
+            currentStep = 8;
+            stepStartTime = currentTime;
+            break;
+        }
+            
+        case 8: {
+            //! ************************************************************************
+            //! STEP 8: WAIT 750MS AFTER RETRACTING CYLINDER
             //! ************************************************************************
             if (currentTime - stepStartTime >= CYLINDER_RETRACT_WAIT) {
-                Serial.println("Step 7: Cylinder retract wait complete, second storage sequence finished");
+                Serial.println("Step 8: Cylinder retract wait complete, second storage sequence finished");
                 store2Complete = true;
             }
             break;
