@@ -34,19 +34,21 @@ void executeIdleState() {
     // Initialize idle state on first entry
     if (!idleStateInitialized) {
         Serial.println("=== ENTERING IDLE STATE ===");
-        Serial.println("Moving to idle position - Height: " + String(IDLE_HEIGHT_INCHES) + " inches, Angle: " + String(IDLE_ANGLE_DEGREES) + " degrees");
+        Serial.println("Moving to loading tray position - Height: 0.3 inches, Angle: 48.0 degrees");
         
         // Set motor speed and acceleration
         if (idleZMotor) {
             idleZMotor->setSpeedInHz(Z_MAX_SPEED);
             idleZMotor->setAcceleration(Z_ACCELERATION);
-            idleZMotor->moveTo(IDLE_HEIGHT_STEPS);
+            // Move to loading tray height (0.3 inches)
+            int loadingTraySteps = (int)(0.3 * STEPS_PER_INCH);
+            idleZMotor->moveTo(loadingTraySteps);
         }
         
-        // Set servo to idle position using regular ServoControl (not acceleration controller)
+        // Set servo to loading tray position using regular ServoControl (not acceleration controller)
         if (idleServo) {
-            idleServo->write(IDLE_ANGLE_DEGREES);
-            Serial.println("Setting servo to idle position (" + String(IDLE_ANGLE_DEGREES) + " degrees) using regular ServoControl");
+            idleServo->write(48.0);
+            Serial.println("Setting servo to loading tray position (48.0 degrees) using regular ServoControl");
             servoMoveComplete = false;
         }
         
@@ -70,7 +72,7 @@ void executeIdleState() {
         }
         
         if (zMotorReady && servoReady) {
-            Serial.println("Idle position reached - Machine ready for commands");
+            Serial.println("Loading tray position reached - Machine ready for commands");
             idlePositionReached = true;
         }
     }

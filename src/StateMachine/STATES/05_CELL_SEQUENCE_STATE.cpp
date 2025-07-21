@@ -26,7 +26,7 @@ static FastAccelStepper* cellSequenceZMotor = nullptr;
 //* ************************************************************************
 #define HEIGHT_OFFSET_INCHES 0.3
 #define LOADING_TRAY_HEIGHT_INCHES 0.3  // Adjust this to match your loading tray height
-#define LOADING_TRAY_ANGLE_DEGREES 47.5   // Adjust this to match your loading tray angle
+#define LOADING_TRAY_ANGLE_DEGREES 48.0   // Adjust this to match your loading tray angle
 
 //* ************************************************************************
 //* ************************ STATE EXECUTION *****************************

@@ -154,9 +154,8 @@ void loop() {
   //! ************************************************************************
   if (systemInitialized && startButton.pressed()) {
     if (getCurrentState() == IDLE_STATE) {
-      Serial.println("Start button pressed - starting cell sequence");
-      startCellSequence();
-      setState(CELL_SEQUENCE_STATE);
+      // Stay in idle state - machine waits at loading tray position
+      Serial.println("Start button pressed - machine is waiting at loading tray position");
     } else if (getCurrentState() == CELL_SEQUENCE_STATE) {
       Serial.println("Start button pressed - continuing to next cell");
       continueCellSequence();
@@ -332,7 +331,7 @@ void loop() {
       Serial.println("cells      - Show all cell configurations");
       Serial.println("cell_set <column><row> <height> <angle> - Set cell position");
       Serial.println("cell_move <column><row> - Move to specific cell position");
-      Serial.println("start_sequence - Start automated cell sequence");
+      Serial.println("start_sequence - Start automated cell sequence (machine waits at loading tray position)");
       Serial.println("help       - Show this help message");
       Serial.println("test_manual - Enter test state");
       Serial.println("servo_status - Show servo status");
