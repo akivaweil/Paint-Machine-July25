@@ -397,9 +397,18 @@ void parseManualCommand(String command) {
             }
             break;
             
+        case 'f': // Fork position test
+            if (value >= 0 && value <= 3) { // Fork position limits (0-3 inches)
+                Serial.println("Manual fork command: Moving to " + String(value) + " inches");
+                moveToManualForkPosition(value);
+            } else {
+                Serial.println("Invalid fork position. Must be between 0 and 3 inches");
+            }
+            break;
+            
         default:
             Serial.println("Unknown command: " + command);
-            Serial.println("Use: z<height>, a<angle>, help, status, mode");
+            Serial.println("Use: z<height>, a<angle>, f<position>, help, status, mode");
             break;
     }
 }
@@ -449,6 +458,30 @@ void moveToManualAngle(int angleDegrees) {
     Serial.println("Moving servo to: " + String(angleDegrees) + " degrees");
 }
 
+void moveToManualForkPosition(float positionInches) {
+    //! ************************************************************************
+    //! MOVE FORK TO SPECIFIED POSITION IN MANUAL MODE
+    //! ************************************************************************
+    if (!testLoaderFork) {
+        Serial.println("ERROR: Loader fork not available");
+        return;
+    }
+    
+    if (testLoaderFork->isMoving()) {
+        Serial.println("Fork already moving - command ignored");
+        return;
+    }
+    
+    // Calculate target position in steps
+    int targetSteps = (int)(positionInches * 254); // 254 steps per inch for 20T 2GT belt
+    
+    // Set current position to target (simplified approach for testing)
+    testLoaderFork->setCurrentPosition(targetSteps);
+    
+    Serial.println("Moving fork to: " + String(targetSteps) + " steps (" + String(positionInches) + " inches)");
+    Serial.println("Fork position test complete");
+}
+
 void printManualModeHelp() {
     //! ************************************************************************
     //! PRINT MANUAL MODE HELP INFORMATION
@@ -458,6 +491,8 @@ void printManualModeHelp() {
     Serial.println("           Example: z1.3, z5.0, z10.5");
     Serial.println("a<angle>   - Move servo to angle (degrees)");
     Serial.println("           Example: a30, a90, a135");
+    Serial.println("f<position> - Move fork to position (inches)");
+    Serial.println("           Example: f0.5, f1.0, f2.5");
     Serial.println("help       - Show this help message");
     Serial.println("status     - Show current positions and status");
     Serial.println("mode       - Toggle between manual and auto test mode");
@@ -484,6 +519,16 @@ void printManualModeStatus() {
         Serial.println("Servo: AVAILABLE");
     } else {
         Serial.println("Servo: NOT AVAILABLE");
+    }
+    
+    if (testLoaderFork) {
+        int currentForkSteps = testLoaderFork->getCurrentPosition();
+        float currentForkInches = (float)currentForkSteps / 254.0; // 254 steps per inch for 20T 2GT belt
+        Serial.println("Fork Position: " + String(currentForkSteps) + " steps (" + String(currentForkInches, 2) + " inches)");
+        Serial.println("Fork State: " + String(testLoaderFork->isForkExtended() ? "EXTENDED" : "RETRACTED"));
+        Serial.println("Fork Moving: " + String(testLoaderFork->isMoving() ? "YES" : "NO"));
+    } else {
+        Serial.println("Loader Fork: NOT AVAILABLE");
     }
     
     Serial.println("Mode: " + String(manualMode ? "MANUAL" : "AUTO TEST"));

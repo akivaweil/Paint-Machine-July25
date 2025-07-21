@@ -62,6 +62,7 @@ void setIdleReferences(ServoAccelerationController* servoController, FastAccelSt
 void parseManualCommand(String command);
 void moveToManualHeight(float heightInches);
 void moveToManualAngle(int angleDegrees);
+void moveToManualForkPosition(float positionInches);
 void printManualModeHelp();
 void printManualModeStatus();
 void toggleManualMode();
