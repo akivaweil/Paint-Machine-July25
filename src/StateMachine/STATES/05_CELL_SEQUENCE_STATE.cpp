@@ -105,7 +105,7 @@ void continueCellSequence() {
         sequenceData.stepStartTime = millis();
     } else if (sequenceData.currentStep == 12) {
         // We were waiting at loading tray position with fork extended, now continue to next cell
-        // First retract the fork, then advance to next cell
+        // First lift Z 0.5 inches, then retract fork, then advance to next cell
         sequenceData.currentRow++;
         if (sequenceData.currentRow > TOTAL_ROWS) {
             sequenceData.currentRow = 1;
@@ -118,10 +118,22 @@ void continueCellSequence() {
             }
         }
         
-        // Retract fork first before moving to next cell
+        // Lift Z motor 0.5 inches first
+        if (cellSequenceZMotor) {
+            int currentSteps = cellSequenceZMotor->getCurrentPosition();
+            int liftSteps = (int)(0.5 * STEPS_PER_INCH);
+            int targetSteps = currentSteps + liftSteps;
+            
+            cellSequenceZMotor->setSpeedInHz(Z_MAX_SPEED);
+            cellSequenceZMotor->setAcceleration(Z_ACCELERATION);
+            cellSequenceZMotor->moveTo(targetSteps);
+            Serial.println("Lifting Z 0.5 inches before retracting fork");
+        }
+        
+        // Retract fork after Z movement starts
         if (cellSequenceLoaderFork) {
             cellSequenceLoaderFork->retract();
-            Serial.println("Retracting fork before moving to next cell");
+            Serial.println("Retracting fork after Z lift");
         }
         
         // Continue to place operation for the next cell (fork will be retracted)
@@ -291,10 +303,12 @@ void performPlaceOperation() {
             //! STEP 0: MOVE TO CELL POSITION (0.3" ABOVE)
             //! ************************************************************************
             if (currentTime - sequenceData.stepStartTime >= 100) {
-                // Check if fork is still retracting from previous step
+                // Check if Z motor and fork are still moving from previous step
+                bool zMotorReady = !cellSequenceZMotor || !cellSequenceZMotor->isRunning();
                 bool forkRetractionComplete = !cellSequenceLoaderFork || !cellSequenceLoaderFork->isMoving();
-                if (!forkRetractionComplete) {
-                    // Still retracting, wait
+                
+                if (!zMotorReady || !forkRetractionComplete) {
+                    // Still moving, wait
                     break;
                 }
                 
