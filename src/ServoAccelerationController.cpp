@@ -62,24 +62,24 @@ void ServoAccelerationController::setAccelerationProfile(float accelRate, float 
 //* ************************ MOTION CONTROL METHODS ***************************
 //* ************************************************************************
 
-void ServoAccelerationController::moveTo(int targetAngle) {
+void ServoAccelerationController::moveTo(float targetAngle) {
     if (!servo) {
         Serial.println("ERROR: Servo reference is NULL - cannot move");
         return;
     }
     
-    this->targetAngle = (float)targetAngle;
+    this->targetAngle = targetAngle;
     startAngle = currentAngle;
     moveStartTime = millis();
     currentState = ACCELERATING;
     currentVelocity = 0.0;
     
-    Serial.println("Servo moveTo: " + String(currentAngle) + "° -> " + String(targetAngle) + "°");
+    Serial.println("Servo moveTo: " + String(currentAngle, 1) + "° -> " + String(targetAngle, 1) + "°");
 }
 
-void ServoAccelerationController::moveToWithTime(int targetAngle, unsigned long moveTimeMs) {
+void ServoAccelerationController::moveToWithTime(float targetAngle, unsigned long moveTimeMs) {
     // Calculate required acceleration profile to reach target in specified time
-    float distance = abs((float)targetAngle - currentAngle);
+    float distance = abs(targetAngle - currentAngle);
     
     if (distance == 0) {
         Serial.println("Already at target position");
@@ -97,12 +97,12 @@ void ServoAccelerationController::moveToWithTime(int targetAngle, unsigned long 
     moveTo(targetAngle);
 }
 
-void ServoAccelerationController::moveToWithCurve(int targetAngle, int accelerationCurve) {
+void ServoAccelerationController::moveToWithCurve(float targetAngle, int accelerationCurve) {
     // Clamp acceleration curve to 0-100 range
     accelerationCurve = constrain(accelerationCurve, 0, 100);
     
     // Calculate distance to target
-    float distance = abs((float)targetAngle - currentAngle);
+    float distance = abs(targetAngle - currentAngle);
     
     if (distance == 0) {
         Serial.println("Already at target position");
@@ -402,12 +402,12 @@ unsigned long ServoAccelerationController::getRemainingMoveTime() {
     return completionTime - currentTime;
 }
 
-unsigned long ServoAccelerationController::calculateMoveTimeToTarget(int targetAngle) {
+unsigned long ServoAccelerationController::calculateMoveTimeToTarget(float targetAngle) {
     //! ************************************************************************
     //! CALCULATE TIME TO REACH SPECIFIC TARGET ANGLE FROM CURRENT POSITION
     //! ************************************************************************
     
-    float distanceToTarget = abs((float)targetAngle - currentAngle);
+    float distanceToTarget = abs(targetAngle - currentAngle);
     
     if (distanceToTarget < 0.1) {
         return 0; // Already at target
@@ -447,10 +447,10 @@ void ServoAccelerationController::reset() {
     moveStartTime = millis();
 }
 
-void ServoAccelerationController::setCurrentAngle(int angle) {
-    currentAngle = (float)angle;
-    targetAngle = (float)angle;
-    startAngle = (float)angle;
+void ServoAccelerationController::setCurrentAngle(float angle) {
+    currentAngle = angle;
+    targetAngle = angle;
+    startAngle = angle;
     currentVelocity = 0.0;
     currentState = IDLE;
     lastUpdateTime = millis(); // Reset timing

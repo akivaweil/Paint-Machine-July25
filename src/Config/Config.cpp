@@ -31,8 +31,8 @@ int Z_CYCLE_DISTANCE_STEPS = (int)(Z_CYCLE_DISTANCE_INCHES * STEPS_PER_INCH);
 // Pick state settings
 float PICK_HEIGHT_INCHES = 0.8;   // Height to move to for pick operation (3.2 inches)
 int PICK_HEIGHT_STEPS = (int)(PICK_HEIGHT_INCHES * STEPS_PER_INCH);
-float PICK_ANGLE_DEGREES = 173.5;      // Servo angle for pick operation (half-degree precision)
-float PICK_FORK_EXTENSION_INCHES = 3.8;   // Fork extension distance for pick operation (inches)
+float PICK_ANGLE_DEGREES = 126.5;      // Servo angle for pick operation (half-degree precision)
+float PICK_FORK_EXTENSION_INCHES = 12.1;   // Fork extension distance for pick operation (inches)
 int PICK_FORK_EXTENSION_STEPS = (int)(PICK_FORK_EXTENSION_INCHES * FORK_STEPS_PER_INCH);
 
 // Place state settings
