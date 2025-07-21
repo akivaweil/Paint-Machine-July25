@@ -155,3 +155,34 @@ FastAccelStepper* LoaderForkStepper::getStepper() {
     //! ************************************************************************
     return stepper;
 } 
+
+void LoaderForkStepper::homeFork() {
+    //* ************************************************************************
+    //* ************************ FORK HOMING **********************************
+    //* ************************************************************************
+    //! Block until fork is homed using home switch (active HIGH, input pulldown)
+    Serial.println("Starting fork homing routine...");
+    
+    // Set speed and acceleration for safe homing
+    if (stepper) {
+        stepper->setSpeedInHz(FORK_MAX_SPEED / 10); // Slow speed for homing
+        stepper->setAcceleration(FORK_ACCELERATION / 10);
+    }
+
+    // Ensure home switch pin is set up
+    pinMode(homeSwitchPin, INPUT_PULLDOWN);
+
+    // Move fork toward home until switch is triggered
+    if (stepper) {
+        stepper->runBackward();
+        while (digitalRead(homeSwitchPin) == LOW) { // Wait for active HIGH
+            // Block until switch is triggered
+            delay(1); // Small delay to avoid busy-waiting
+        }
+        stepper->forceStop();
+        stepper->setCurrentPosition(0);
+        currentPosition = 0;
+        isExtended = false;
+        Serial.println("Fork home switch triggered - Fork homed, position set to 0");
+    }
+} 

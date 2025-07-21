@@ -10,6 +10,7 @@
 // INPUT PINS
 extern int START_BUTTON_PIN;       // Start button for cycle operation (active high with pulldown)
 extern int Z_HOME_SWITCH_PIN;      // Z-axis homing limit switch (active high with pulldown)
+#define FORK_HOME_SWITCH_PIN 38  // Fork home switch (active HIGH, input pulldown)
 
 // OUTPUT PINS - Z-AXIS STEPPER MOTOR
 extern int Z_MOTOR_STEP_PIN;       // Z-axis stepper motor step pin

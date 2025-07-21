@@ -53,6 +53,8 @@ void performTestMotionSequence();
 
 // State reference setup functions
 void setHomeReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch);
+// Overload to set loader fork stepper for homing
+void setHomeReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch, LoaderForkStepper* forkStepper);
 void setPickReferences(ServoAccelerationController* servoController, LoaderForkStepper* loaderFork, FastAccelStepper* zMotor);
 void setPlaceReferences(ServoAccelerationController* servoController, LoaderForkStepper* loaderFork, FastAccelStepper* zMotor);
 void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* servoController, LoaderForkStepper* loaderFork);

@@ -55,6 +55,15 @@ public:
     void setCurrentPosition(int position);  // Set current position (for homing)
     void stop();                  // Stop motor movement
     FastAccelStepper* getStepper();        // Get stepper motor object for direct control
+
+    //* ************************************************************************
+    //* ************************ FORK HOMING **********************************
+    //* ************************************************************************
+    // Block until fork is homed using home switch (active HIGH, input pulldown)
+    void homeFork();
+
+private:
+    int homeSwitchPin = FORK_HOME_SWITCH_PIN; // Fork home switch pin
 };
 
 #endif // LOADER_FORK_STEPPER_H 

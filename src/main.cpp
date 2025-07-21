@@ -443,7 +443,7 @@ void setupStateMachineReferences() {
   Serial.println("Setting up state machine references...");
   
   // Set references for home state
-  setHomeReferences(zMotor, &zHomeSwitch);
+  setHomeReferences(zMotor, &zHomeSwitch, &loaderForkStepper);
   
   // Set references for pick state
   setPickReferences(&mainServoController, &loaderForkStepper, zMotor);

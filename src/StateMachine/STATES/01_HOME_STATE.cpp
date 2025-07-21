@@ -28,6 +28,7 @@ static bool movingAwayFromHome = false;
 
 static FastAccelStepper* homeZMotor = NULL;
 static Bounce2::Button* homeZHomeSwitch = NULL;
+static LoaderForkStepper* homeForkStepper = NULL; // Loader fork stepper for homing
 
 
 //* ************************************************************************
@@ -38,6 +39,12 @@ void executeHomeState() {
     //! ************************************************************************
     //! EXECUTE HOME STATE - Z-AXIS HOMING SEQUENCE
     //! ************************************************************************
+    // Block and home the loader fork first
+    if (homeForkStepper) {
+        Serial.println("Homing loader fork before Z-axis...");
+        homeForkStepper->homeFork();
+        Serial.println("Loader fork homed.");
+    }
     
     // Initialize home state on first entry
     if (!homeStateInitialized) {
@@ -153,9 +160,15 @@ void setHomeReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch) {
     //! ************************************************************************
     homeZMotor = motor;
     homeZHomeSwitch = homeSwitch;
-    
-    Serial.println("Home motor/switch references set - Motor: " + String(motor ? "VALID" : "NULL") + 
-                  ", Switch: " + String(homeSwitch ? "VALID" : "NULL"));
+    Serial.println("Home motor/switch references set - Motor: " + String(motor ? "VALID" : "NULL") + ", Switch: " + String(homeSwitch ? "VALID" : "NULL"));
+}
+
+// Overload to set loader fork stepper reference as well
+void setHomeReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch, LoaderForkStepper* forkStepper) {
+    homeZMotor = motor;
+    homeZHomeSwitch = homeSwitch;
+    homeForkStepper = forkStepper;
+    Serial.println("Home motor/switch/fork references set - Motor: " + String(motor ? "VALID" : "NULL") + ", Switch: " + String(homeSwitch ? "VALID" : "NULL") + ", Fork: " + String(forkStepper ? "VALID" : "NULL"));
 }
 
  
