@@ -19,6 +19,7 @@ private:
     int dirPin;                   // Direction pin for stepper motor
     bool isExtended;              // Current state (true = extended, false = retracted)
     int currentPosition;          // Current position in steps (0 = home position)
+    int lastExtensionDistance;    // Distance of last extension in steps (for proper retraction)
     
     // Movement constants
     static const int STEPS_PER_REVOLUTION = 400;  // 400 steps per revolution

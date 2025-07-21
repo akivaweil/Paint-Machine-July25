@@ -14,6 +14,7 @@ LoaderForkStepper::LoaderForkStepper(int stepPin, int dirPin) {
     this->stepper = NULL;
     this->isExtended = false;     // Initialize as retracted
     this->currentPosition = 0;    // Start at position 0
+    this->lastExtensionDistance = 0; // Initialize extension distance tracking
 }
 
 void LoaderForkStepper::begin(FastAccelStepper* stepperObj) {
@@ -46,10 +47,12 @@ void LoaderForkStepper::extend() {
     //! STEP 1: MOVE FORWARD (EXTEND) USING CONFIG DISTANCE
     //! ************************************************************************
     if (stepper && !isExtended) {
-        int targetPosition = currentPosition + FORK_MAX_DISTANCE_STEPS;
+        lastExtensionDistance = FORK_MAX_DISTANCE_STEPS;
+        int targetPosition = currentPosition + lastExtensionDistance;
         stepper->moveTo(targetPosition);
         currentPosition = targetPosition;
         isExtended = true;
+        Serial.println("Fork extending: " + String(FORK_MAX_DISTANCE_INCHES) + " inches (" + String(lastExtensionDistance) + " steps)");
     }
 }
 
@@ -58,11 +61,12 @@ void LoaderForkStepper::extendToPickPosition() {
     //! STEP 1: MOVE FORWARD (EXTEND) USING PICK CONFIG DISTANCE
     //! ************************************************************************
     if (stepper) {
-        int targetPosition = currentPosition + PICK_FORK_EXTENSION_STEPS;
+        lastExtensionDistance = PICK_FORK_EXTENSION_STEPS;
+        int targetPosition = currentPosition + lastExtensionDistance;
         stepper->moveTo(targetPosition);
         currentPosition = targetPosition;
         isExtended = true;
-        Serial.println("Fork extending to pick position: " + String(PICK_FORK_EXTENSION_INCHES) + " inches (" + String(PICK_FORK_EXTENSION_STEPS) + " steps)");
+        Serial.println("Fork extending to pick position: " + String(PICK_FORK_EXTENSION_INCHES) + " inches (" + String(lastExtensionDistance) + " steps)");
     }
 }
 
@@ -71,23 +75,27 @@ void LoaderForkStepper::extendToPlacePosition() {
     //! STEP 1: MOVE FORWARD (EXTEND) USING PLACE CONFIG DISTANCE
     //! ************************************************************************
     if (stepper) {
-        int targetPosition = currentPosition + PLACE_FORK_EXTENSION_STEPS;
+        lastExtensionDistance = PLACE_FORK_EXTENSION_STEPS;
+        int targetPosition = currentPosition + lastExtensionDistance;
         stepper->moveTo(targetPosition);
         currentPosition = targetPosition;
         isExtended = true;
-        Serial.println("Fork extending to place position: " + String(PLACE_FORK_EXTENSION_INCHES) + " inches (" + String(PLACE_FORK_EXTENSION_STEPS) + " steps)");
+        Serial.println("Fork extending to place position: " + String(PLACE_FORK_EXTENSION_INCHES) + " inches (" + String(lastExtensionDistance) + " steps)");
     }
 }
 
 void LoaderForkStepper::retract() {
     //! ************************************************************************
-    //! STEP 1: MOVE BACKWARD (RETRACT) USING CONFIG DISTANCE
+    //! STEP 1: MOVE BACKWARD (RETRACT) USING ACTUAL EXTENSION DISTANCE
     //! ************************************************************************
     if (stepper && isExtended) {
-        int targetPosition = currentPosition - FORK_MAX_DISTANCE_STEPS;
+        int targetPosition = currentPosition - lastExtensionDistance;
         stepper->moveTo(targetPosition);
         currentPosition = targetPosition;
         isExtended = false;
+        float retractInches = (float)lastExtensionDistance / FORK_STEPS_PER_INCH;
+        Serial.println("Fork retracting: " + String(retractInches, 2) + " inches (" + String(lastExtensionDistance) + " steps)");
+        lastExtensionDistance = 0; // Reset for next operation
     }
 }
 
