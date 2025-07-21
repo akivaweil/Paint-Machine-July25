@@ -88,4 +88,4 @@ float FORK_MAX_DISTANCE_INCHES = 3.7;   // Maximum travel distance for fork (inc
 int FORK_MAX_DISTANCE_STEPS = (int)(FORK_MAX_DISTANCE_INCHES * 254);  // 254 steps per inch for 20T 2GT belt
 float FORK_STEPS_PER_INCH = 254.0;      // Steps per inch for fork movement (20T 2GT belt)
 float FORK_MAX_SPEED = 10000.0;          // Maximum speed for fork movement (steps/sec)
-float FORK_ACCELERATION = 20000.0;      // Acceleration for fork movement (steps/sec²) 
+float FORK_ACCELERATION = 40000.0;      // Acceleration for fork movement (steps/sec²) 
