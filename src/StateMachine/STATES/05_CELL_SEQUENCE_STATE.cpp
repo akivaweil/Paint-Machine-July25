@@ -64,6 +64,7 @@ void startCellSequence() {
     sequenceData.sequenceComplete = false;
     sequenceData.currentStep = 0;
     sequenceData.stepStartTime = millis();
+    sequenceData.forkAlreadyExtended = false; // Fork starts retracted
     
     Serial.println("=== STARTING CELL SEQUENCE ===");
     Serial.println("Sequence: Pick from loading tray, then place in cells A1-D5");
@@ -89,6 +90,7 @@ void nextCell() {
     sequenceData.isPicking = true;
     sequenceData.currentStep = 0;
     sequenceData.stepStartTime = millis();
+    sequenceData.forkAlreadyExtended = false; // Reset flag for new cell
     
     Serial.println("Moving to cell " + String(sequenceData.currentColumn) + String(sequenceData.currentRow));
 }
@@ -103,7 +105,26 @@ void continueCellSequence() {
         sequenceData.stepStartTime = millis();
     } else if (sequenceData.currentStep == 12) {
         // We were waiting at loading tray position with fork extended, now continue to next cell
-        nextCell();
+        // Don't reset to picking mode - continue directly to place operation
+        sequenceData.currentRow++;
+        if (sequenceData.currentRow > TOTAL_ROWS) {
+            sequenceData.currentRow = 1;
+            sequenceData.currentColumn++;
+            if (sequenceData.currentColumn > 'D') {
+                // All cells processed
+                sequenceData.sequenceComplete = true;
+                Serial.println("All cells processed - sequence complete");
+                return;
+            }
+        }
+        
+        // Continue to place operation for the next cell (fork is already extended)
+        sequenceData.isPicking = false;
+        sequenceData.currentStep = 0; // Start place operation
+        sequenceData.stepStartTime = millis();
+        sequenceData.forkAlreadyExtended = true; // Fork is already extended from step 12
+        
+        Serial.println("Moving to cell " + String(sequenceData.currentColumn) + String(sequenceData.currentRow));
     }
 }
 
@@ -299,8 +320,13 @@ void performPlaceOperation() {
             if (zMotorReady && servoReady) {
                 // Add a small delay to ensure servo has actually finished moving
                 if (currentTime - sequenceData.stepStartTime >= 200) { // 200ms delay
-                    Serial.println("Step 1: Cell position reached, extending fork");
-                    sequenceData.currentStep = 2;
+                    if (sequenceData.forkAlreadyExtended) {
+                        Serial.println("Step 1: Cell position reached, fork already extended - skipping extension");
+                        sequenceData.currentStep = 3; // Skip to step 3 (wait for fork extension complete)
+                    } else {
+                        Serial.println("Step 1: Cell position reached, extending fork");
+                        sequenceData.currentStep = 2;
+                    }
                     sequenceData.stepStartTime = currentTime;
                 }
             }
@@ -372,6 +398,7 @@ void performPlaceOperation() {
                 cellSequenceLoaderFork->retract();
                 Serial.println("Step 6: Fork retracting");
             }
+            sequenceData.forkAlreadyExtended = false; // Reset flag since fork is being retracted
             sequenceData.currentStep = 7;
             sequenceData.stepStartTime = currentTime;
             break;
@@ -480,6 +507,7 @@ void resetCellSequenceState() {
     sequenceData.sequenceComplete = false;
     sequenceData.currentStep = 0;
     sequenceData.stepStartTime = 0;
+    sequenceData.forkAlreadyExtended = false;
 }
 
 void setCellSequenceReferences(ServoControl* servoController, LoaderForkStepper* loaderFork, FastAccelStepper* zMotor) {

@@ -32,6 +32,7 @@ struct CellSequenceData {
     bool sequenceComplete; // true when all cells are processed
     int currentStep;       // Current step in the sequence
     unsigned long stepStartTime; // Timing for steps
+    bool forkAlreadyExtended; // true if fork is already extended when starting place operation
 };
 
 //* ************************************************************************
