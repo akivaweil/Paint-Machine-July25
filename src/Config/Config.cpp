@@ -29,12 +29,12 @@ int Z_CYCLE_DISTANCE_STEPS = (int)(Z_CYCLE_DISTANCE_INCHES * STEPS_PER_INCH);
 //* ************************ PICK/PLACE SEQUENCE SETTINGS *****************
 //* ************************************************************************
 // Pick state settings
-float PICK_HEIGHT_INCHES = 3.6;   // Height to move to for pick operation (3.2 inches)
+float PICK_HEIGHT_INCHES = 1.0;   // Height to move to for pick operation (3.2 inches)
 int PICK_HEIGHT_STEPS = (int)(PICK_HEIGHT_INCHES * STEPS_PER_INCH);
 int PICK_ANGLE_DEGREES = 176;      // Servo angle for pick operation (21.5 degrees)
 
 // Place state settings
-float PLACE_HEIGHT_INCHES = 8.5;      // Height to move to for place operation (8 inches)
+float PLACE_HEIGHT_INCHES = 5.4;      // Height to move to for place operation (8 inches)
 int PLACE_HEIGHT_STEPS = (int)(PLACE_HEIGHT_INCHES * STEPS_PER_INCH);
 int PLACE_ANGLE_DEGREES = 104;         // Servo angle for place operation (91 degrees)
 
@@ -74,4 +74,14 @@ int CYLINDER_RETRACT_WAIT = 750;   // Wait time after retracting cylinder (1000m
 // Z-axis stepper motor settings
 float Z_MAX_SPEED = 8000.0;      // Maximum speed in steps per second
 float Z_ACCELERATION = 30000.0;   // Acceleration in steps per second^2
-float Z_HOMING_SPEED = 1000.0;    // Slow homing speed 
+float Z_HOMING_SPEED = 1000.0;    // Slow homing speed
+
+//* ************************************************************************
+//* ************************ FORK SETTINGS ********************************
+//* ************************************************************************
+// Loader fork stepper motor settings
+float FORK_MAX_DISTANCE_INCHES = 3.5;   // Maximum travel distance for fork (inches) - increased from 3.0
+int FORK_MAX_DISTANCE_STEPS = (int)(FORK_MAX_DISTANCE_INCHES * 254);  // 254 steps per inch for 20T 2GT belt
+float FORK_STEPS_PER_INCH = 254.0;      // Steps per inch for fork movement (20T 2GT belt)
+float FORK_MAX_SPEED = 5000.0;          // Maximum speed for fork movement (steps/sec)
+float FORK_ACCELERATION = 10000.0;      // Acceleration for fork movement (steps/sec²) 

@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "LoaderForkStepper.h"
+#include "Config/Config.h"
 
 //* ************************************************************************
 //* ************************ LOADER FORK STEPPER **************************
@@ -25,9 +26,9 @@ void LoaderForkStepper::begin(FastAccelStepper* stepperObj) {
     //! STEP 2: CONFIGURE STEPPER MOTOR PINS
     //! ************************************************************************
     if (stepper) {
-        // Configure motor settings
-        stepper->setSpeedInHz(5000);        // 5000 steps/sec (adjustable)
-        stepper->setAcceleration(10000);    // 10000 steps/sec² (adjustable)
+        // Configure motor settings using config values
+        stepper->setSpeedInHz(FORK_MAX_SPEED);        // Use config speed
+        stepper->setAcceleration(FORK_ACCELERATION);  // Use config acceleration
         
         // Set current position to 0 (assume we're at home)
         stepper->setCurrentPosition(0);
@@ -42,10 +43,10 @@ void LoaderForkStepper::begin(FastAccelStepper* stepperObj) {
 
 void LoaderForkStepper::extend() {
     //! ************************************************************************
-    //! STEP 1: MOVE 3 INCHES FORWARD (EXTEND)
+    //! STEP 1: MOVE FORWARD (EXTEND) USING CONFIG DISTANCE
     //! ************************************************************************
     if (stepper && !isExtended) {
-        int targetPosition = currentPosition + EXTEND_DISTANCE_STEPS;
+        int targetPosition = currentPosition + FORK_MAX_DISTANCE_STEPS;
         stepper->moveTo(targetPosition);
         currentPosition = targetPosition;
         isExtended = true;
@@ -54,10 +55,10 @@ void LoaderForkStepper::extend() {
 
 void LoaderForkStepper::retract() {
     //! ************************************************************************
-    //! STEP 1: MOVE 3 INCHES BACKWARD (RETRACT)
+    //! STEP 1: MOVE BACKWARD (RETRACT) USING CONFIG DISTANCE
     //! ************************************************************************
     if (stepper && isExtended) {
-        int targetPosition = currentPosition - RETRACT_DISTANCE_STEPS;
+        int targetPosition = currentPosition - FORK_MAX_DISTANCE_STEPS;
         stepper->moveTo(targetPosition);
         currentPosition = targetPosition;
         isExtended = false;

@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <FastAccelStepper.h>
+#include "Config/Config.h"
 
 //* ************************************************************************
 //* ************************ LOADER FORK STEPPER **************************

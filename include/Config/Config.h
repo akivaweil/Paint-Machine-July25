@@ -78,6 +78,16 @@ extern float Z_ACCELERATION;      // Acceleration in steps per second^2
 extern float Z_HOMING_SPEED;      // Homing speed in steps per second
 
 //* ************************************************************************
+//* ************************ FORK SETTINGS ********************************
+//* ************************************************************************
+// Loader fork stepper motor settings
+extern float FORK_MAX_DISTANCE_INCHES;  // Maximum travel distance for fork (inches)
+extern int FORK_MAX_DISTANCE_STEPS;     // Maximum travel distance in steps
+extern float FORK_STEPS_PER_INCH;       // Steps per inch for fork movement
+extern float FORK_MAX_SPEED;            // Maximum speed for fork movement (steps/sec)
+extern float FORK_ACCELERATION;         // Acceleration for fork movement (steps/sec²)
+
+//* ************************************************************************
 //* ************************ SLOT CONFIGURATION ***************************
 //* ************************************************************************
 // Include slot configuration for 20 storage slots

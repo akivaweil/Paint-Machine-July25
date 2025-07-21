@@ -27,17 +27,6 @@ struct TestPosition {
     const char* name;        // Position name for identification
 };
 
-// Mechanical settings needed for test calculations
-static const int STEPS_PER_REV = 400;       // Standard stepper motor steps per revolution (1.8° per step)
-static const int PULLEY_TEETH = 20;         // GT2 pulley teeth count (20-tooth pulley)
-static const float BELT_PITCH = 2.0;        // GT2 belt pitch in mm
-static const float STEPS_PER_MM = ((float)STEPS_PER_REV / (PULLEY_TEETH * BELT_PITCH));
-static const float STEPS_PER_INCH = (STEPS_PER_MM * 25.4);
-
-// Z-axis position settings needed for test
-static const float Z_HOME_OFFSET_INCHES = 1.0;    // Distance to move away from home switch after homing
-static const int Z_HOME_OFFSET_STEPS = (int)(Z_HOME_OFFSET_INCHES * STEPS_PER_INCH);
-
 // Test sequence positions (5 positions total)
 static const TestPosition TEST_POSITIONS[5] = {
     {2.40, 27, "Position 1 - High"},      // Position 1: 25 inches, 0 degrees
@@ -398,11 +387,11 @@ void parseManualCommand(String command) {
             break;
             
         case 'f': // Fork position test
-            if (value >= 0 && value <= 3) { // Fork position limits (0-3 inches)
+            if (value >= 0 && value <= FORK_MAX_DISTANCE_INCHES) { // Fork position limits from config
                 Serial.println("Manual fork command: Moving to " + String(value) + " inches");
                 moveToManualForkPosition(value);
             } else {
-                Serial.println("Invalid fork position. Must be between 0 and 3 inches");
+                Serial.println("Invalid fork position. Must be between 0 and " + String(FORK_MAX_DISTANCE_INCHES) + " inches");
             }
             break;
             
@@ -473,7 +462,7 @@ void moveToManualForkPosition(float positionInches) {
     }
     
     // Calculate target position in steps
-    int targetSteps = (int)(positionInches * 254); // 254 steps per inch for 20T 2GT belt
+    int targetSteps = (int)(positionInches * FORK_STEPS_PER_INCH);
     
     // Set current position to target (simplified approach for testing)
     testLoaderFork->setCurrentPosition(targetSteps);
@@ -523,7 +512,7 @@ void printManualModeStatus() {
     
     if (testLoaderFork) {
         int currentForkSteps = testLoaderFork->getCurrentPosition();
-        float currentForkInches = (float)currentForkSteps / 254.0; // 254 steps per inch for 20T 2GT belt
+        float currentForkInches = (float)currentForkSteps / FORK_STEPS_PER_INCH;
         Serial.println("Fork Position: " + String(currentForkSteps) + " steps (" + String(currentForkInches, 2) + " inches)");
         Serial.println("Fork State: " + String(testLoaderFork->isForkExtended() ? "EXTENDED" : "RETRACTED"));
         Serial.println("Fork Moving: " + String(testLoaderFork->isMoving() ? "YES" : "NO"));
