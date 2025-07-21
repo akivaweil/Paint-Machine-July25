@@ -74,7 +74,7 @@ void setPickReferences(ServoControl* servoController, LoaderForkStepper* loaderF
 void setPlaceReferences(ServoControl* servoController, LoaderForkStepper* loaderFork, FastAccelStepper* zMotor);
 void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* servoController, LoaderForkStepper* loaderFork);
 void setIdleReferences(ServoControl* servo, ServoAccelerationController* servoController, FastAccelStepper* zMotor);
-void setCellSequenceReferences(ServoAccelerationController* servoController, LoaderForkStepper* loaderFork, FastAccelStepper* zMotor);
+void setCellSequenceReferences(ServoControl* servoController, LoaderForkStepper* loaderFork, FastAccelStepper* zMotor);
 
 // Cell sequence functions
 void startCellSequence();

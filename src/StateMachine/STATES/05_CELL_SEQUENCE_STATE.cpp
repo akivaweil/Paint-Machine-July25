@@ -17,7 +17,7 @@
 //* ************************ GLOBAL VARIABLES *****************************
 //* ************************************************************************
 static CellSequenceData sequenceData;
-static ServoAccelerationController* cellSequenceServoController = nullptr;
+static ServoControl* cellSequenceServoController = nullptr;
 static LoaderForkStepper* cellSequenceLoaderFork = nullptr;
 static FastAccelStepper* cellSequenceZMotor = nullptr;
 
@@ -145,7 +145,7 @@ void performPickOperation() {
             //! STEP 1: WAIT FOR MOTOR AND SERVO TO REACH POSITION
             //! ************************************************************************
             bool zMotorReady = !cellSequenceZMotor || !cellSequenceZMotor->isRunning();
-            bool servoReady = !cellSequenceServoController || cellSequenceServoController->isMoveComplete();
+            bool servoReady = !cellSequenceServoController || cellSequenceServoController->hasReachedTarget();
             
             if (zMotorReady && servoReady) {
                 Serial.println("Step 1: Loading tray position reached, extending fork");
@@ -280,7 +280,7 @@ void performPlaceOperation() {
                 
                 // Move servo to cell angle
                 if (cellSequenceServoController) {
-                    cellSequenceServoController->moveTo(cellPos.servo_angle);
+                    cellSequenceServoController->write(cellPos.servo_angle);
                 }
                 
                 sequenceData.currentStep = 1;
@@ -294,7 +294,7 @@ void performPlaceOperation() {
             //! STEP 1: WAIT FOR MOTOR AND SERVO TO REACH POSITION
             //! ************************************************************************
             bool zMotorReady = !cellSequenceZMotor || !cellSequenceZMotor->isRunning();
-            bool servoReady = !cellSequenceServoController || cellSequenceServoController->isMoveComplete();
+            bool servoReady = !cellSequenceServoController || cellSequenceServoController->hasReachedTarget();
             
             if (zMotorReady && servoReady) {
                 // Add a small delay to ensure servo has actually finished moving
@@ -408,7 +408,7 @@ void performPlaceOperation() {
                 
                 // Move servo to loading tray angle
                 if (cellSequenceServoController) {
-                    cellSequenceServoController->moveTo(LOADING_TRAY_ANGLE_DEGREES);
+                    cellSequenceServoController->write(LOADING_TRAY_ANGLE_DEGREES);
                 }
                 
                 sequenceData.currentStep = 9;
@@ -422,7 +422,7 @@ void performPlaceOperation() {
             //! STEP 9: WAIT FOR MOTOR AND SERVO TO REACH LOADING TRAY POSITION
             //! ************************************************************************
             bool zMotorReady = !cellSequenceZMotor || !cellSequenceZMotor->isRunning();
-            bool servoReady = !cellSequenceServoController || cellSequenceServoController->isMoveComplete();
+            bool servoReady = !cellSequenceServoController || cellSequenceServoController->hasReachedTarget();
             
             if (zMotorReady && servoReady) {
                 Serial.println("Step 9: Loading tray position reached, extending fork");
@@ -482,7 +482,7 @@ void resetCellSequenceState() {
     sequenceData.stepStartTime = 0;
 }
 
-void setCellSequenceReferences(ServoAccelerationController* servoController, LoaderForkStepper* loaderFork, FastAccelStepper* zMotor) {
+void setCellSequenceReferences(ServoControl* servoController, LoaderForkStepper* loaderFork, FastAccelStepper* zMotor) {
     //! ************************************************************************
     //! SET REFERENCES FOR CELL SEQUENCE STATE
     //! ************************************************************************

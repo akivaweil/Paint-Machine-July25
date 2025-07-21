@@ -501,7 +501,7 @@ void setupStateMachineReferences() {
   setIdleReferences(&loaderServo, &mainServoController, zMotor);
   
   // Set references for cell sequence state
-  setCellSequenceReferences(&mainServoController, &loaderForkStepper, zMotor);
+  setCellSequenceReferences(&loaderServo, &loaderForkStepper, zMotor);
   
   Serial.println("State machine references configured");
 }
