@@ -97,7 +97,11 @@ void continueCellSequence() {
     //! ************************************************************************
     //! CONTINUE SEQUENCE AFTER START BUTTON PRESS
     //! ************************************************************************
-    if (sequenceData.currentStep == 8) {
+    if (sequenceData.currentStep == 4) {
+        // We were waiting at loading tray position, now lift fork to catch square
+        sequenceData.currentStep = 5;
+        sequenceData.stepStartTime = millis();
+    } else if (sequenceData.currentStep == 8) {
         // We were waiting for start button press, now continue to next cell
         nextCell();
     }
@@ -170,8 +174,9 @@ void performPickOperation() {
             //! ************************************************************************
             bool forkExtensionComplete = !cellSequenceLoaderFork || !cellSequenceLoaderFork->isMoving();
             if (forkExtensionComplete) {
-                Serial.println("Step 3: Fork extension complete, lifting fork 0.5 inches to catch square");
-                sequenceData.currentStep = 4;
+                Serial.println("Step 3: Fork extension complete, waiting at loading tray position");
+                Serial.println("Press START button to lift fork and catch square...");
+                sequenceData.currentStep = 4; // Wait for start button press
                 sequenceData.stepStartTime = currentTime;
             }
             break;
@@ -179,7 +184,16 @@ void performPickOperation() {
         
         case 4: {
             //! ************************************************************************
-            //! STEP 4: LIFT FORK 0.5 INCHES TO CATCH THE WOOD SQUARE
+            //! STEP 4: WAIT FOR START BUTTON PRESS TO LIFT FORK
+            //! ************************************************************************
+            // This step waits indefinitely until the start button is pressed again
+            // The start button handling is done in main.cpp
+            break;
+        }
+        
+        case 5: {
+            //! ************************************************************************
+            //! STEP 5: LIFT FORK 0.5 INCHES TO CATCH THE WOOD SQUARE
             //! ************************************************************************
             if (cellSequenceZMotor) {
                 int currentSteps = cellSequenceZMotor->getCurrentPosition();
@@ -189,46 +203,46 @@ void performPickOperation() {
                 cellSequenceZMotor->setSpeedInHz(Z_MAX_SPEED);
                 cellSequenceZMotor->setAcceleration(Z_ACCELERATION);
                 cellSequenceZMotor->moveTo(targetSteps);
-                Serial.println("Step 4: Lifting fork 0.5 inches to catch square");
+                Serial.println("Step 5: Lifting fork 0.5 inches to catch square");
             }
-            sequenceData.currentStep = 5;
+            sequenceData.currentStep = 6;
             sequenceData.stepStartTime = currentTime;
-            break;
-        }
-        
-        case 5: {
-            //! ************************************************************************
-            //! STEP 5: WAIT FOR LIFTING TO COMPLETE
-            //! ************************************************************************
-            bool liftingComplete = !cellSequenceZMotor || !cellSequenceZMotor->isRunning();
-            if (liftingComplete) {
-                Serial.println("Step 5: Lifting complete, retracting fork");
-                sequenceData.currentStep = 6;
-                sequenceData.stepStartTime = currentTime;
-            }
             break;
         }
         
         case 6: {
             //! ************************************************************************
-            //! STEP 6: RETRACT FORK
+            //! STEP 6: WAIT FOR LIFTING TO COMPLETE
             //! ************************************************************************
-            if (cellSequenceLoaderFork) {
-                cellSequenceLoaderFork->retract();
-                Serial.println("Step 6: Fork retracting");
+            bool liftingComplete = !cellSequenceZMotor || !cellSequenceZMotor->isRunning();
+            if (liftingComplete) {
+                Serial.println("Step 6: Lifting complete, retracting fork");
+                sequenceData.currentStep = 7;
+                sequenceData.stepStartTime = currentTime;
             }
-            sequenceData.currentStep = 7;
-            sequenceData.stepStartTime = currentTime;
             break;
         }
         
         case 7: {
             //! ************************************************************************
-            //! STEP 7: WAIT FOR FORK RETRACTION TO COMPLETE
+            //! STEP 7: RETRACT FORK
+            //! ************************************************************************
+            if (cellSequenceLoaderFork) {
+                cellSequenceLoaderFork->retract();
+                Serial.println("Step 7: Fork retracting");
+            }
+            sequenceData.currentStep = 8;
+            sequenceData.stepStartTime = currentTime;
+            break;
+        }
+        
+        case 8: {
+            //! ************************************************************************
+            //! STEP 8: WAIT FOR FORK RETRACTION TO COMPLETE
             //! ************************************************************************
             bool forkRetractionComplete = !cellSequenceLoaderFork || !cellSequenceLoaderFork->isMoving();
             if (forkRetractionComplete) {
-                Serial.println("Step 7: Pick operation complete, switching to place mode");
+                Serial.println("Step 8: Pick operation complete, switching to place mode");
                 sequenceData.isPicking = false;
                 sequenceData.currentStep = 0;
                 sequenceData.stepStartTime = currentTime;
