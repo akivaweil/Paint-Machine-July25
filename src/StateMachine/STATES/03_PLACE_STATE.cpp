@@ -114,11 +114,11 @@ void executePlaceState() {
             
         case 2: {
             //! ************************************************************************
-            //! STEP 2: EXTEND THE LOADER FORK
+            //! STEP 2: EXTEND THE LOADER FORK TO PLACE POSITION
             //! ************************************************************************
             if (placeLoaderFork) {
-                placeLoaderFork->extend();
-                Serial.println("Step 2: Loader fork extended");
+                placeLoaderFork->extendToPlacePosition();
+                Serial.println("Step 2: Loader fork extending to place position");
             }
             currentStep = 3;
             stepStartTime = currentTime;

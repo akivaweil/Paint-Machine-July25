@@ -123,11 +123,11 @@ void executePickState() {
             
         case 2: {
             //! ************************************************************************
-            //! STEP 2: EXTEND THE LOADER FORK
+            //! STEP 2: EXTEND THE LOADER FORK TO PICK POSITION
             //! ************************************************************************
             if (pickLoaderFork) {
-                pickLoaderFork->extend();
-                Serial.println("Step 2: Loader fork extended");
+                pickLoaderFork->extendToPickPosition();
+                Serial.println("Step 2: Loader fork extending to pick position");
             }
             currentStep = 3;
             stepStartTime = currentTime;

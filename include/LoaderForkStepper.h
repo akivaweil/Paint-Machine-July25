@@ -39,6 +39,8 @@ public:
     
     // Movement control functions (replacing cylinder functions)
     void extend();                // Move 3 inches forward (extend)
+    void extendToPickPosition();  // Move to pick position using config distance
+    void extendToPlacePosition(); // Move to place position using config distance
     void retract();               // Move 3 inches backward (retract)
     void toggle();                // Toggle between extended/retracted states
     
