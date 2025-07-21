@@ -8,7 +8,7 @@
 #include "StateMachine.h"
 #include "Config/Config.h"
 #include "Config/Pins_Definitions.h"
-#include "ServoAccelerationController.h"
+#include "ServoControl.h"
 #include "LoaderForkStepper.h"
 #include <FastAccelStepper.h>
 
@@ -17,7 +17,7 @@
 //* ************************************************************************
 static bool pickStateInitialized = false;
 static bool pickComplete = false;
-static ServoAccelerationController* pickServoController = NULL;
+static ServoControl* pickServoController = NULL;
 static LoaderForkStepper* pickLoaderFork = NULL;
 static FastAccelStepper* pickZMotor = NULL;
 static int currentStep = 0;
@@ -61,11 +61,6 @@ void executePickState() {
             pickZMotor->setSpeedInHz(Z_MAX_SPEED);
             pickZMotor->setAcceleration(Z_ACCELERATION);
         }
-        
-        // Set servo acceleration profile
-        if (pickServoController) {
-            pickServoController->setAccelerationProfile(300, 2000);
-        }
     }
     
     //! ************************************************************************
@@ -97,7 +92,7 @@ void executePickState() {
                 
                 // Move servo to pick angle
                 if (pickServoController) {
-                    pickServoController->moveTo(PICK_ANGLE_DEGREES);
+                    pickServoController->write(PICK_ANGLE_DEGREES);
                 }
                 
                 currentStep = 1;
@@ -228,7 +223,7 @@ void resetPickState() {
     targetHeightSteps = 0;
 }
 
-void setPickReferences(ServoAccelerationController* servoController, LoaderForkStepper* loaderFork, FastAccelStepper* zMotor) {
+void setPickReferences(ServoControl* servoController, LoaderForkStepper* loaderFork, FastAccelStepper* zMotor) {
     //! ************************************************************************
     //! SET REFERENCES TO SERVO CONTROLLER, LOADER FORK, AND Z MOTOR OBJECTS
     //! ************************************************************************

@@ -8,7 +8,7 @@
 #include "StateMachine.h"
 #include "Config/Config.h"
 #include "Config/Pins_Definitions.h"
-#include "ServoAccelerationController.h"
+#include "ServoControl.h"
 #include "LoaderForkStepper.h"
 #include <FastAccelStepper.h>
 
@@ -17,7 +17,7 @@
 //* ************************************************************************
 static bool placeStateInitialized = false;
 static bool placeComplete = false;
-static ServoAccelerationController* placeServoController = NULL;
+static ServoControl* placeServoController = NULL;
 static LoaderForkStepper* placeLoaderFork = NULL;
 static FastAccelStepper* placeZMotor = NULL;
 static int currentStep = 0;
@@ -52,11 +52,6 @@ void executePlaceState() {
             placeZMotor->setSpeedInHz(Z_MAX_SPEED);
             placeZMotor->setAcceleration(Z_ACCELERATION);
         }
-        
-        // Set servo acceleration profile
-        if (placeServoController) {
-            placeServoController->setAccelerationProfile(300, 2000);
-        }
     }
     
     //! ************************************************************************
@@ -88,7 +83,7 @@ void executePlaceState() {
                 
                 // Move servo to place angle
                 if (placeServoController) {
-                    placeServoController->moveTo(PLACE_ANGLE_DEGREES);
+                    placeServoController->write(PLACE_ANGLE_DEGREES);
                 }
                 
                 currentStep = 1;
@@ -219,7 +214,7 @@ void resetPlaceState() {
     targetHeightSteps = 0;
 }
 
-void setPlaceReferences(ServoAccelerationController* servoController, LoaderForkStepper* loaderFork, FastAccelStepper* zMotor) {
+void setPlaceReferences(ServoControl* servoController, LoaderForkStepper* loaderFork, FastAccelStepper* zMotor) {
     //! ************************************************************************
     //! SET REFERENCES TO SERVO CONTROLLER, LOADER FORK, AND Z MOTOR OBJECTS
     //! ************************************************************************
