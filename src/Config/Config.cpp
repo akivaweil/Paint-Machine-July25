@@ -29,10 +29,10 @@ int Z_CYCLE_DISTANCE_STEPS = (int)(Z_CYCLE_DISTANCE_INCHES * STEPS_PER_INCH);
 //* ************************ PICK/PLACE SEQUENCE SETTINGS *****************
 //* ************************************************************************
 // Pick state settings
-float PICK_HEIGHT_INCHES = 0.8;   // Height to move to for pick operation (3.2 inches)
+float PICK_HEIGHT_INCHES = 0.3;   // Height to move to for pick operation (3.2 inches)
 int PICK_HEIGHT_STEPS = (int)(PICK_HEIGHT_INCHES * STEPS_PER_INCH);
-float PICK_ANGLE_DEGREES = 126.5;      // Servo angle for pick operation (half-degree precision)
-float PICK_FORK_EXTENSION_INCHES = 12.1;   // Fork extension distance for pick operation (inches)
+float PICK_ANGLE_DEGREES = 49.5;      // Servo angle for pick operation (half-degree precision)
+float PICK_FORK_EXTENSION_INCHES = 4.1;   // Fork extension distance for pick operation (inches)
 int PICK_FORK_EXTENSION_STEPS = (int)(PICK_FORK_EXTENSION_INCHES * FORK_STEPS_PER_INCH);
 
 // Place state settings
@@ -81,7 +81,7 @@ float Z_HOMING_SPEED = 1000.0;    // Slow homing speed
 //* ************************ FORK SETTINGS ********************************
 //* ************************************************************************
 // Loader fork stepper motor settings
-float FORK_MAX_DISTANCE_INCHES = 3.7;   // Maximum travel distance for fork (inches) - increased from 3.0
+float FORK_MAX_DISTANCE_INCHES = 4.3;   // Maximum travel distance for fork (inches) - increased from 3.0
 int FORK_MAX_DISTANCE_STEPS = (int)(FORK_MAX_DISTANCE_INCHES * 254);  // 254 steps per inch for 20T 2GT belt
 float FORK_STEPS_PER_INCH = 254.0;      // Steps per inch for fork movement (20T 2GT belt)
 float FORK_MAX_SPEED = 10000.0;          // Maximum speed for fork movement (steps/sec)
