@@ -89,9 +89,9 @@ extern float FORK_MAX_SPEED;            // Maximum speed for fork movement (step
 extern float FORK_ACCELERATION;         // Acceleration for fork movement (steps/sec²)
 
 //* ************************************************************************
-//* ************************ SLOT CONFIGURATION ***************************
+//* ************************ CELL CONFIGURATION ***************************
 //* ************************************************************************
-// Include slot configuration for 20 storage slots
-#include "Config/SlotConfig.h"
+// Include cell configuration for 20 storage cells
+#include "Config/CellConfig.h"
 
 #endif 

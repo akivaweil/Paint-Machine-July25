@@ -48,13 +48,13 @@ void executePickState() {
         targetHeightSteps = PICK_HEIGHT_STEPS;
         
         //! ************************************************************************
-        //! SLOT CONFIGURATION USAGE EXAMPLE:
+        //! CELL CONFIGURATION USAGE EXAMPLE:
         //! ************************************************************************
-        // To use a specific slot instead of fixed positions:
-        // int slotNumber = 5; // Change this to use different slots
-        // SlotPosition slotPos = getSlotPosition(slotNumber);
-        // targetHeightSteps = getSlotHeightSteps(slotNumber);
-        // Then use slotPos.servo_angle instead of RETRIEVE_ANGLE_DEGREES
+        // To use a specific cell instead of fixed positions:
+        // int cellNumber = 5; // Change this to use different cells
+        // CellPosition cellPos = getCellPosition(cellNumber);
+        // targetHeightSteps = getCellHeightSteps(cellNumber);
+        // Then use cellPos.servo_angle instead of RETRIEVE_ANGLE_DEGREES
         
         // Set motor speed and acceleration
         if (pickZMotor) {

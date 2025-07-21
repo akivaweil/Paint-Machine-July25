@@ -3,6 +3,7 @@
 #include <Bounce2.h>
 #include "Config/Config.h"
 #include "Config/Pins_Definitions.h"
+#include "Config/CellConfig.h"
 #include "ServoControl.h"
 #include "ServoAccelerationController.h"
 #include "LoaderForkStepper.h"
@@ -100,11 +101,11 @@ void setup() {
   initializeLoaderFork();
   
   //! ************************************************************************
-  //! STEP 3.5: INITIALIZE SLOT CONFIGURATION
+  //! STEP 3.5: INITIALIZE CELL CONFIGURATION
   //! ************************************************************************
-  Serial.println("Initializing slot configuration...");
-  initializeSlotConfig();
-  Serial.println("Slot configuration initialized");
+  Serial.println("Initializing cell configuration...");
+  initializeCellConfig();
+  Serial.println("Cell configuration initialized");
   
   Serial.println("Hardware systems initialized");
 
@@ -249,63 +250,63 @@ void loop() {
       Serial.println("Switching to TEST state with manual mode");
       setState(TEST_STATE);
       // The test state will handle the manual mode toggle
-    } else if (command == "slots") {
-      Serial.println("=== SLOT CONFIGURATION ===");
-      printSlotConfig();
-    } else if (command.startsWith("slot_set ")) {
-      // Format: slot_set <slot_number> <height> <angle>
-      // Example: slot_set 5 4.2 55
+    } else if (command == "cells") {
+      Serial.println("=== CELL CONFIGURATION ===");
+      printCellConfig();
+    } else if (command.startsWith("cell_set ")) {
+      // Format: cell_set <cell_number> <height> <angle>
+      // Example: cell_set 5 4.2 55
       String params = command.substring(9);
       int firstSpace = params.indexOf(' ');
       int secondSpace = params.indexOf(' ', firstSpace + 1);
       
       if (firstSpace > 0 && secondSpace > firstSpace) {
-        int slotNum = params.substring(0, firstSpace).toInt();
+        int cellNum = params.substring(0, firstSpace).toInt();
         float height = params.substring(firstSpace + 1, secondSpace).toFloat();
         int angle = params.substring(secondSpace + 1).toInt();
         
-        if (slotNum >= 0 && slotNum < TOTAL_SLOTS) {
-          setSlotPosition(slotNum, height, angle);
-          Serial.println("Slot " + String(slotNum) + " set to: " + String(height) + " inches, " + String(angle) + " degrees");
+        if (cellNum >= 0 && cellNum < TOTAL_CELLS) {
+          setCellPosition(cellNum, height, angle);
+          Serial.println("Cell " + String(cellNum) + " set to: " + String(height) + " inches, " + String(angle) + " degrees");
         } else {
-          Serial.println("ERROR: Invalid slot number. Use 0-" + String(TOTAL_SLOTS - 1));
+          Serial.println("ERROR: Invalid cell number. Use 0-" + String(TOTAL_CELLS - 1));
         }
       } else {
-        Serial.println("ERROR: Invalid format. Use: slot_set <slot> <height> <angle>");
-        Serial.println("Example: slot_set 5 4.2 55");
+        Serial.println("ERROR: Invalid format. Use: cell_set <cell> <height> <angle>");
+        Serial.println("Example: cell_set 5 4.2 55");
       }
-    } else if (command.startsWith("slot_move ")) {
-      // Format: slot_move <slot_number>
-      // Example: slot_move 5
-      int slotNum = command.substring(10).toInt();
+    } else if (command.startsWith("cell_move ")) {
+      // Format: cell_move <cell_number>
+      // Example: cell_move 5
+      int cellNum = command.substring(10).toInt();
       
-      if (slotNum >= 0 && slotNum < TOTAL_SLOTS) {
-        SlotPosition pos = getSlotPosition(slotNum);
-        Serial.println("Moving to slot " + String(slotNum) + ": " + String(pos.height_inches) + " inches, " + String(pos.servo_angle) + " degrees");
+      if (cellNum >= 0 && cellNum < TOTAL_CELLS) {
+        CellPosition pos = getCellPosition(cellNum);
+        Serial.println("Moving to cell " + String(cellNum) + ": " + String(pos.height_inches) + " inches, " + String(pos.servo_angle) + " degrees");
         
-        // Move Z-axis to slot height
+        // Move Z-axis to cell height
         if (zMotor) {
-          int targetSteps = getSlotHeightSteps(slotNum);
+          int targetSteps = getCellHeightSteps(cellNum);
           zMotor->setSpeedInHz(Z_MAX_SPEED);
           zMotor->setAcceleration(Z_ACCELERATION);
           zMotor->moveTo(targetSteps);
         }
         
-        // Move servo to slot angle
+        // Move servo to cell angle
         mainServoController.moveTo(pos.servo_angle);
         
         // Note: Fork movement is handled by the state machine, not direct commands
       } else {
-        Serial.println("ERROR: Invalid slot number. Use 0-" + String(TOTAL_SLOTS - 1));
+        Serial.println("ERROR: Invalid cell number. Use 0-" + String(TOTAL_CELLS - 1));
       }
     } else if (command == "help") {
       Serial.println("=== AVAILABLE COMMANDS ===");
       Serial.println("h<height>  - Move Z-axis to height (inches) - Example: h1.3, h20 (max 27 inches)");
       Serial.println("a<angle>   - Move servo to angle (degrees) - Example: a30, a90");
       Serial.println("f<position> - Move fork to position (inches) - Example: f0.5, f1.0, f2.5 (max " + String(FORK_MAX_DISTANCE_INCHES) + " inches)");
-      Serial.println("slots      - Show all slot configurations");
-      Serial.println("slot_set <slot> <height> <angle> - Set slot position");
-      Serial.println("slot_move <slot> - Move to specific slot position");
+      Serial.println("cells      - Show all cell configurations");
+      Serial.println("cell_set <cell> <height> <angle> - Set cell position");
+      Serial.println("cell_move <cell> - Move to specific cell position");
       Serial.println("help       - Show this help message");
       Serial.println("test_manual - Enter test state");
       Serial.println("servo_status - Show servo status");
