@@ -36,10 +36,10 @@ float PICK_FORK_EXTENSION_INCHES = 4.1;   // Fork extension distance for pick op
 int PICK_FORK_EXTENSION_STEPS = (int)(PICK_FORK_EXTENSION_INCHES * FORK_STEPS_PER_INCH);
 
 // Place state settings
-float PLACE_HEIGHT_INCHES = 5.4;      // Height to move to for place operation (8 inches)
+float PLACE_HEIGHT_INCHES = 4.1;      // Height to move to for place operation (8 inches)
 int PLACE_HEIGHT_STEPS = (int)(PLACE_HEIGHT_INCHES * STEPS_PER_INCH);
-float PLACE_ANGLE_DEGREES = 103.0;         // Servo angle for place operation (half-degree precision)
-float PLACE_FORK_EXTENSION_INCHES = 3.8;   // Fork extension distance for place operation (inches)
+float PLACE_ANGLE_DEGREES = 152.0;         // Servo angle for place operation (half-degree precision)
+float PLACE_FORK_EXTENSION_INCHES = 4.1;   // Fork extension distance for place operation (inches)
 int PLACE_FORK_EXTENSION_STEPS = (int)(PLACE_FORK_EXTENSION_INCHES * FORK_STEPS_PER_INCH);
 
 // Height adjustment settings
