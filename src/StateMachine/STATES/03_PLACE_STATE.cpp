@@ -97,7 +97,7 @@ void executePlaceState() {
             //! STEP 1: WAIT FOR MOTOR AND SERVO TO REACH POSITION
             //! ************************************************************************
             bool zMotorReady = !placeZMotor || !placeZMotor->isRunning();
-            bool servoReady = !placeServoController || placeServoController->hasReachedTarget();
+3            bool servoReady = !placeServoController || placeServoController->isMoveComplete();
             
             if (zMotorReady && servoReady) {
                 Serial.println("Step 1: Position reached, extending cylinder");

@@ -106,7 +106,7 @@ void executePickState() {
             //! STEP 1: WAIT FOR MOTOR AND SERVO TO REACH POSITION
             //! ************************************************************************
             bool zMotorReady = !pickZMotor || !pickZMotor->isRunning();
-            bool servoReady = !pickServoController || pickServoController->hasReachedTarget();
+            bool servoReady = !pickServoController || pickServoController->isMoveComplete();
             
             if (zMotorReady && servoReady) {
                 Serial.println("Step 1: Position reached, extending cylinder");
