@@ -183,10 +183,10 @@ void loop() {
         }
         return; // Skip other command processing
       } else if (commandType == 'a' && value >= 0 && value <= 180) {
-        // Manual servo angle command
-        Serial.println("Manual angle command: Moving servo to " + String(value) + " degrees");
+        // Manual servo angle command (supports half-degree precision)
+        Serial.println("Manual angle command: Moving servo to " + String(value, 1) + " degrees");
         mainServoController.moveTo(value);
-        Serial.println("Moving servo to: " + String(value) + " degrees");
+        Serial.println("Moving servo to: " + String(value, 1) + " degrees");
         return; // Skip other command processing
       } else if (commandType == 'f' && value >= 0 && value <= FORK_MAX_DISTANCE_INCHES) {
         // Manual fork position command

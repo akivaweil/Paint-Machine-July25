@@ -31,14 +31,14 @@ int Z_CYCLE_DISTANCE_STEPS = (int)(Z_CYCLE_DISTANCE_INCHES * STEPS_PER_INCH);
 // Pick state settings
 float PICK_HEIGHT_INCHES = 0.8;   // Height to move to for pick operation (3.2 inches)
 int PICK_HEIGHT_STEPS = (int)(PICK_HEIGHT_INCHES * STEPS_PER_INCH);
-int PICK_ANGLE_DEGREES = 172;      // Servo angle for pick operation (21.5 degrees)
+float PICK_ANGLE_DEGREES = 173.5;      // Servo angle for pick operation (half-degree precision)
 float PICK_FORK_EXTENSION_INCHES = 3.8;   // Fork extension distance for pick operation (inches)
 int PICK_FORK_EXTENSION_STEPS = (int)(PICK_FORK_EXTENSION_INCHES * FORK_STEPS_PER_INCH);
 
 // Place state settings
 float PLACE_HEIGHT_INCHES = 5.4;      // Height to move to for place operation (8 inches)
 int PLACE_HEIGHT_STEPS = (int)(PLACE_HEIGHT_INCHES * STEPS_PER_INCH);
-int PLACE_ANGLE_DEGREES = 102;         // Servo angle for place operation (91 degrees)
+float PLACE_ANGLE_DEGREES = 103.0;         // Servo angle for place operation (half-degree precision)
 float PLACE_FORK_EXTENSION_INCHES = 3.8;   // Fork extension distance for place operation (inches)
 int PLACE_FORK_EXTENSION_STEPS = (int)(PLACE_FORK_EXTENSION_INCHES * FORK_STEPS_PER_INCH);
 
@@ -49,15 +49,15 @@ int HEIGHT_ADJUSTMENT_STEPS = (int)(HEIGHT_ADJUSTMENT_INCHES * STEPS_PER_INCH);
 // Idle state settings
 float IDLE_HEIGHT_INCHES = 2.0;        // Height for idle state (5 inches)
 int IDLE_HEIGHT_STEPS = (int)(IDLE_HEIGHT_INCHES * STEPS_PER_INCH);
-int IDLE_ANGLE_DEGREES = 173;           // Servo angle for idle state (30 degrees)
+float IDLE_ANGLE_DEGREES = 173.0;           // Servo angle for idle state (half-degree precision)
 
 //* ************************************************************************
 //* ************************ SERVO SETTINGS ********************************
 //* ************************************************************************
 // Servo sequence positions (in degrees)
-int SERVO_START_POS = 90;      // First position in sequence
-int SERVO_SECOND_POS = 45;     // Second position in sequence  
-int SERVO_THIRD_POS = 70;      // Third position in sequence
+float SERVO_START_POS = 90.0;      // First position in sequence (half-degree precision)
+float SERVO_SECOND_POS = 45.0;     // Second position in sequence (half-degree precision)
+float SERVO_THIRD_POS = 70.0;      // Third position in sequence (half-degree precision)
 
 //* ************************************************************************
 //* ************************ TIMING SETTINGS *******************************

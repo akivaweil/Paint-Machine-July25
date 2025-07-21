@@ -32,14 +32,14 @@ extern int Z_CYCLE_DISTANCE_STEPS;    // Cycle distance in steps
 // Pick state settings
 extern float PICK_HEIGHT_INCHES;  // Height to move to for pick operation
 extern int PICK_HEIGHT_STEPS;     // Pick height in steps
-extern int PICK_ANGLE_DEGREES;    // Servo angle for pick operation
+extern float PICK_ANGLE_DEGREES;  // Servo angle for pick operation (half-degree precision)
 extern float PICK_FORK_EXTENSION_INCHES;  // Fork extension distance for pick operation
 extern int PICK_FORK_EXTENSION_STEPS;     // Pick fork extension in steps
 
 // Place state settings  
 extern float PLACE_HEIGHT_INCHES;     // Height to move to for place operation
 extern int PLACE_HEIGHT_STEPS;        // Place height in steps
-extern int PLACE_ANGLE_DEGREES;       // Servo angle for place operation
+extern float PLACE_ANGLE_DEGREES;     // Servo angle for place operation (half-degree precision)
 extern float PLACE_FORK_EXTENSION_INCHES;  // Fork extension distance for place operation
 extern int PLACE_FORK_EXTENSION_STEPS;     // Place fork extension in steps
 
@@ -50,15 +50,15 @@ extern int HEIGHT_ADJUSTMENT_STEPS;    // Height adjustment in steps
 // Idle state settings
 extern float IDLE_HEIGHT_INCHES;       // Height for idle state (5 inches)
 extern int IDLE_HEIGHT_STEPS;          // Idle height in steps
-extern int IDLE_ANGLE_DEGREES;         // Servo angle for idle state (30 degrees)
+extern float IDLE_ANGLE_DEGREES;       // Servo angle for idle state (half-degree precision)
 
 //* ************************************************************************
 //* ************************ SERVO SETTINGS ********************************
 //* ************************************************************************
 // Servo sequence positions (in degrees)
-extern int SERVO_START_POS;      // First position in sequence (90 degrees)
-extern int SERVO_SECOND_POS;     // Second position in sequence (45 degrees)
-extern int SERVO_THIRD_POS;      // Third position in sequence (70 degrees)
+extern float SERVO_START_POS;    // First position in sequence (90 degrees, half-degree precision)
+extern float SERVO_SECOND_POS;   // Second position in sequence (45 degrees, half-degree precision)
+extern float SERVO_THIRD_POS;    // Third position in sequence (70 degrees, half-degree precision)
 
 //* ************************************************************************
 //* ************************ TIMING SETTINGS *******************************
