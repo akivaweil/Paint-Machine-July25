@@ -39,7 +39,7 @@ int PICK_FORK_EXTENSION_STEPS = (int)(PICK_FORK_EXTENSION_INCHES * FORK_STEPS_PE
 float PLACE_HEIGHT_INCHES = 4.1;      // Height to move to for place operation (8 inches)
 int PLACE_HEIGHT_STEPS = (int)(PLACE_HEIGHT_INCHES * STEPS_PER_INCH);
 float PLACE_ANGLE_DEGREES = 152.0;         // Servo angle for place operation (half-degree precision)
-float PLACE_FORK_EXTENSION_INCHES = 4.1;   // Fork extension distance for place operation (inches)
+float PLACE_FORK_EXTENSION_INCHES = 3.5;   // Fork extension distance for place operation (inches) - REDUCED FOR CELLS
 int PLACE_FORK_EXTENSION_STEPS = (int)(PLACE_FORK_EXTENSION_INCHES * FORK_STEPS_PER_INCH);
 
 // Height adjustment settings
@@ -65,7 +65,7 @@ float SERVO_THIRD_POS = 70.0;      // Third position in sequence (half-degree pr
 // Timing settings (in milliseconds)
 int HOME_SWITCH_DEBOUNCE = 5;      // Home switch debounce time (5ms)
 int START_BUTTON_DEBOUNCE = 20;    // Start button debounce time (50ms)
-int FORK_HOME_SWITCH_DEBOUNCE = 2; // Fork home switch debounce time (5ms)
+int FORK_HOME_SWITCH_DEBOUNCE = 5; // Fork home switch debounce time (5ms)
 
 // Note: All sequence timing is now based on actual completion of operations
 // No artificial delays - system responds immediately when operations complete
