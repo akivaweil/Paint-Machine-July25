@@ -46,6 +46,7 @@ LoaderForkStepper loaderForkStepper(LOADER_FORK_STEP_PIN, LOADER_FORK_DIR_PIN); 
 //* ************************************************************************
 Bounce2::Button startButton = Bounce2::Button();
 Bounce2::Button zHomeSwitch = Bounce2::Button();
+Bounce2::Button forkHomeSwitch = Bounce2::Button();
 
 //* ************************************************************************
 //* *********************** STATE VARIABLES *******************************
@@ -353,6 +354,10 @@ void initializeButtons() {
   zHomeSwitch.attach(Z_HOME_SWITCH_PIN, INPUT_PULLDOWN);
   zHomeSwitch.interval(HOME_SWITCH_DEBOUNCE);
   
+  // Fork home switch: Active HIGH (input pulldown)
+  forkHomeSwitch.attach(FORK_HOME_SWITCH_PIN, INPUT);
+  forkHomeSwitch.interval(FORK_HOME_SWITCH_DEBOUNCE);
+  
   Serial.println("Buttons and switches setup complete");
 }
 
@@ -422,6 +427,9 @@ void initializeLoaderFork() {
   
   loaderForkStepper.begin(loaderForkMotor);
   
+  // Set the debounced home switch for the loader fork
+  loaderForkStepper.setHomeSwitch(&forkHomeSwitch);
+  
   // Ensure loader fork starts in retracted position
   loaderForkStepper.retract();
   
@@ -434,6 +442,7 @@ void updateButtons() {
   //! ************************************************************************
   startButton.update();
   zHomeSwitch.update();
+  forkHomeSwitch.update();
 }
 
 void setupStateMachineReferences() {

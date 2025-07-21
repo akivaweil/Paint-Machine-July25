@@ -66,6 +66,7 @@ extern int SERVO_THIRD_POS;      // Third position in sequence (70 degrees)
 // Timing settings (in milliseconds)
 extern int HOME_SWITCH_DEBOUNCE;  // Home switch debounce time
 extern int START_BUTTON_DEBOUNCE; // Start button debounce time
+extern int FORK_HOME_SWITCH_DEBOUNCE;
 
 // Note: All sequence timing is now based on actual completion of operations
 

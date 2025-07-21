@@ -17,6 +17,7 @@
 #include <Bounce2.h>
 #include "ServoControl.h"
 #include "ServoAccelerationController.h"
+#include "LoaderForkStepper.h"
 
 //* ************************************************************************
 //* ************************ HOME STATE VARIABLES ************************
@@ -25,6 +26,7 @@ static bool homeStateInitialized = false;
 static bool homeComplete = false;
 static bool homeFound = false;
 static bool movingAwayFromHome = false;
+static bool forkHomingComplete = false; // Track if fork homing is complete
 
 static FastAccelStepper* homeZMotor = NULL;
 static Bounce2::Button* homeZHomeSwitch = NULL;
@@ -39,24 +41,37 @@ void executeHomeState() {
     //! ************************************************************************
     //! EXECUTE HOME STATE - Z-AXIS HOMING SEQUENCE
     //! ************************************************************************
-    // Block and home the loader fork first
-    if (homeForkStepper) {
-        Serial.println("Homing loader fork before Z-axis...");
-        homeForkStepper->homeFork();
-        Serial.println("Loader fork homed.");
-    }
     
     // Initialize home state on first entry
     if (!homeStateInitialized) {
         Serial.println("=== ENTERING HOME STATE ===");
-        Serial.println("Starting Z-axis homing sequence...");
+        Serial.println("Starting homing sequence...");
         homeStateInitialized = true;
         homeComplete = false;
         homeFound = false;
         movingAwayFromHome = false;
+        forkHomingComplete = false;
         
         //! ************************************************************************
-        //! STEP 1: SET HOMING SPEED
+        //! STEP 0: HOME THE LOADER FORK FIRST (BLOCKING)
+        //! ************************************************************************
+        if (homeForkStepper) {
+            Serial.println("Step 0: Homing loader fork...");
+            homeForkStepper->homeFork();
+            forkHomingComplete = true;
+            Serial.println("Step 0: Loader fork homed successfully.");
+        } else {
+            Serial.println("Step 0: No fork stepper available, skipping fork homing.");
+            forkHomingComplete = true;
+        }
+        
+        //! ************************************************************************
+        //! STEP 1: START Z-AXIS HOMING SEQUENCE
+        //! ************************************************************************
+        Serial.println("Step 1: Starting Z-axis homing sequence...");
+        
+        //! ************************************************************************
+        //! STEP 2: SET HOMING SPEED
         //! ************************************************************************
         if (homeZMotor) {
             homeZMotor->setSpeedInHz(Z_HOMING_SPEED);
@@ -64,7 +79,7 @@ void executeHomeState() {
         }
         
         //! ************************************************************************
-        //! STEP 2: START MOVING TOWARD HOME
+        //! STEP 3: START MOVING TOWARD HOME
         //! ************************************************************************
         if (homeZMotor) {
             homeZMotor->runBackward();
@@ -73,7 +88,7 @@ void executeHomeState() {
     }
     
     //! ************************************************************************
-    //! STEP 3: CHECK IF HOMING IS COMPLETE
+    //! STEP 4: CHECK IF HOMING IS COMPLETE
     //! ************************************************************************
     if (homeComplete) {
         Serial.println("Homing sequence complete - transitioning to IDLE");
@@ -82,7 +97,7 @@ void executeHomeState() {
     }
     
     //! ************************************************************************
-    //! STEP 4: PERFORM HOMING SEQUENCE
+    //! STEP 5: PERFORM HOMING SEQUENCE
     //! ************************************************************************
     if (homeZMotor && homeZHomeSwitch) {
         // Update the home switch state
@@ -99,7 +114,7 @@ void executeHomeState() {
         // Check if home switch is triggered (active high) and we haven't found home yet
         if (currentSwitchState && !homeFound) {
             //! ************************************************************************
-            //! STEP 5: HOME SWITCH TRIGGERED - STOP AND SET HOME
+            //! STEP 6: HOME SWITCH TRIGGERED - STOP AND SET HOME
             //! ************************************************************************
             homeZMotor->forceStop();
             homeZMotor->setCurrentPosition(0); // Set current position as home (0)
@@ -110,7 +125,7 @@ void executeHomeState() {
             homeFound = true;
             
             //! ************************************************************************
-            //! STEP 6: START MOVING AWAY FROM HOME
+            //! STEP 7: START MOVING AWAY FROM HOME
             //! ************************************************************************
             Serial.println("Moving " + String(Z_HOME_OFFSET_INCHES) + " inches away from home...");
             
@@ -126,7 +141,7 @@ void executeHomeState() {
         }
         
         //! ************************************************************************
-        //! STEP 7: CHECK IF MOVEMENT AWAY FROM HOME IS COMPLETE
+        //! STEP 8: CHECK IF MOVEMENT AWAY FROM HOME IS COMPLETE
         //! ************************************************************************
         if (movingAwayFromHome && !homeZMotor->isRunning()) {
             Serial.println("Movement away from home complete");
@@ -152,6 +167,7 @@ void resetHomeState() {
     homeComplete = false;
     homeFound = false;
     movingAwayFromHome = false;
+    forkHomingComplete = false;
 }
 
 void setHomeReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch) {

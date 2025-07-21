@@ -169,14 +169,21 @@ void LoaderForkStepper::homeFork() {
         stepper->setAcceleration(FORK_ACCELERATION / 10);
     }
 
-    // Ensure home switch pin is set up
-    pinMode(homeSwitchPin, INPUT_PULLDOWN);
-
     // Move fork toward home until switch is triggered
     if (stepper) {
         stepper->runBackward();
-        while (digitalRead(homeSwitchPin) == LOW) { // Wait for active HIGH
+        Serial.println("Fork moving toward home switch...");
+        unsigned long startTime = millis();
+        while (!homeSwitch || homeSwitch->read() == LOW) { // Wait for active HIGH
             // Block until switch is triggered
+            if (homeSwitch) {
+                homeSwitch->update(); // Update switch state for proper debouncing
+            }
+            // Debug output every 500ms
+            if (millis() - startTime > 500) {
+                Serial.println("Fork homing in progress - Switch state: " + String(homeSwitch ? (homeSwitch->read() ? "HIGH" : "LOW") : "NULL"));
+                startTime = millis();
+            }
             delay(1); // Small delay to avoid busy-waiting
         }
         stepper->forceStop();
@@ -185,4 +192,11 @@ void LoaderForkStepper::homeFork() {
         isExtended = false;
         Serial.println("Fork home switch triggered - Fork homed, position set to 0");
     }
+} 
+
+void LoaderForkStepper::setHomeSwitch(Bounce2::Button* homeSwitchObj) {
+    //! ************************************************************************
+    //! SET THE DEBOUNCED HOME SWITCH OBJECT
+    //! ************************************************************************
+    homeSwitch = homeSwitchObj;
 } 

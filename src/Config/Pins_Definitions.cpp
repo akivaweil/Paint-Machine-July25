@@ -9,7 +9,6 @@
 // INPUT PINS (Active HIGH with pulldown)
 int START_BUTTON_PIN = 2;         // Start button for cycle operation (active high with pulldown)
 int Z_HOME_SWITCH_PIN = 8;        // Z-axis homing limit switch (active high with pulldown)
-int FORK_HOME_SWITCH_PIN = 38;    // Fork home switch (active HIGH)
 
 // OUTPUT PINS - Z-AXIS STEPPER MOTOR
 int Z_MOTOR_STEP_PIN = 4;         // Z-axis stepper motor step pin

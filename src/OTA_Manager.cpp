@@ -59,11 +59,11 @@ void initOTA() {
     ArduinoOTA.onStart([]() {
         String type;
         if (ArduinoOTA.getCommand() == U_FLASH) {
-            type = "sketch";
+            type = "";
         } else { // U_SPIFFS
             type = "filesystem";
         }
-        Serial.println("OTA Update starting: " + type);
+        Serial.println("OTA Update starting" + type);
     });
     
     ArduinoOTA.onEnd([]() {

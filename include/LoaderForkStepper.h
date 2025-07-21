@@ -3,7 +3,9 @@
 
 #include <Arduino.h>
 #include <FastAccelStepper.h>
+#include <Bounce2.h>
 #include "Config/Config.h"
+#include "Config/Pins_Definitions.h"
 
 //* ************************************************************************
 //* ************************ LOADER FORK STEPPER **************************
@@ -61,9 +63,12 @@ public:
     //* ************************************************************************
     // Block until fork is homed using home switch (active HIGH, input pulldown)
     void homeFork();
+    // Set the debounced home switch object
+    void setHomeSwitch(Bounce2::Button* homeSwitch);
 
 private:
     int homeSwitchPin = FORK_HOME_SWITCH_PIN; // Fork home switch pin
+    Bounce2::Button* homeSwitch = NULL; // Debounced home switch object
 };
 
 #endif // LOADER_FORK_STEPPER_H 
