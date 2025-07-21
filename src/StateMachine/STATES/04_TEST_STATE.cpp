@@ -15,7 +15,7 @@
 #include "Config/Pins_Definitions.h"
 #include <FastAccelStepper.h>
 #include "ServoAccelerationController.h"
-#include "CylinderControl.h"
+#include "LoaderForkStepper.h"
 
 //* ************************************************************************
 //* ************************ TEST POSITION CONFIGURATION *******************
@@ -54,7 +54,7 @@ static bool testStateInitialized = false;
 static bool testComplete = false;
 static FastAccelStepper* testZMotor = NULL;
 static ServoAccelerationController* testServoController = NULL;
-static CylinderControl* testCylinder = NULL;
+static LoaderForkStepper* testLoaderFork = NULL;
 
 // Test sequence variables
 static bool motorMoving = false;
@@ -246,10 +246,10 @@ void executeTestState() {
             unsigned long currentTime = millis();
             
             switch (cylinderStep) {
-                case 0: // Extend cylinder
-                    if (testCylinder) {
-                        Serial.println("Cylinder Step 0: Extending cylinder");
-                        testCylinder->extend();
+                case 0: // Extend loader fork
+                    if (testLoaderFork) {
+                        Serial.println("Loader Fork Step 0: Extending loader fork");
+                        testLoaderFork->extend();
                         cylinderDelay = currentTime + CYLINDER_WAIT_TIME;
                         cylinderStep = 1;
                     }
@@ -271,11 +271,11 @@ void executeTestState() {
                     }
                     break;
                     
-                case 2: // Wait for motor to complete, then retract cylinder
+                case 2: // Wait for motor to complete, then retract loader fork
                     if (testZMotor && !testZMotor->isRunning()) {
-                        if (testCylinder) {
-                            Serial.println("Cylinder Step 2: Retracting cylinder");
-                            testCylinder->retract();
+                        if (testLoaderFork) {
+                            Serial.println("Loader Fork Step 2: Retracting loader fork");
+                            testLoaderFork->retract();
                             cylinderDelay = currentTime + CYLINDER_WAIT_TIME;
                             cylinderStep = 3;
                         }
@@ -327,16 +327,16 @@ void resetTestState() {
     inputBuffer = "";
 }
 
-void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* servoController, CylinderControl* cylinder) {
+void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* servoController, LoaderForkStepper* loaderFork) {
     //! ************************************************************************
-    //! SET REFERENCES TO MOTOR, SERVO CONTROLLER, AND CYLINDER OBJECTS
+    //! SET REFERENCES TO MOTOR, SERVO CONTROLLER, AND LOADER FORK OBJECTS
     //! ************************************************************************
     testZMotor = motor;
     testServoController = servoController;
-    testCylinder = cylinder;
+    testLoaderFork = loaderFork;
     Serial.println("Test references set - Motor: " + String(motor ? "VALID" : "NULL") + 
                    ", Servo Controller: " + String(servoController ? "VALID" : "NULL") +
-                   ", Cylinder: " + String(cylinder ? "VALID" : "NULL"));
+                   ", Loader Fork: " + String(loaderFork ? "VALID" : "NULL"));
 } 
 
 //! ************************************************************************

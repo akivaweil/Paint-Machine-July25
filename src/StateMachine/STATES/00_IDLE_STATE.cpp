@@ -42,7 +42,7 @@ void executeIdleState() {
         
         // Set servo to idle position (30 degrees)
         if (idleServoController) {
-            idleServoController->setAccelerationProfile(300, 2000); // Conservative settings
+            idleServoController->setAccelerationProfile(250, 2000); // Conservative settings
             idleServoController->moveTo(IDLE_ANGLE_DEGREES);
             Serial.println("Setting servo to idle position (" + String(IDLE_ANGLE_DEGREES) + " degrees)");
         }

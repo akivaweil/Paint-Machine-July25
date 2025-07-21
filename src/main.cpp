@@ -5,7 +5,7 @@
 #include "Config/Pins_Definitions.h"
 #include "ServoControl.h"
 #include "ServoAccelerationController.h"
-#include "CylinderControl.h"
+#include "LoaderForkStepper.h"
 #include "OTA_Manager.h"
 #include "StateMachine.h"
 
@@ -39,7 +39,7 @@ ServoAccelerationController mainServoController(&loaderServo); // Servo accelera
 //* ************************************************************************
 //* *********************** CYLINDER OBJECTS ******************************
 //* ************************************************************************
-CylinderControl extensionCylinder;    // Extension cylinder control
+LoaderForkStepper loaderForkStepper(LOADER_FORK_STEP_PIN, LOADER_FORK_DIR_PIN);    // Loader fork stepper control
 
 //* ************************************************************************
 //* *********************** BUTTON CONTROL ********************************
@@ -58,7 +58,7 @@ bool cycleInProgress = false;         // Flag to prevent multiple cycles running
 //* ************************************************************************
 void initializeMotor();
 void initializeServo();
-void initializeCylinder();
+void initializeLoaderFork();
 void initializeButtons();
 void updateButtons();
 void performStartupSequence();
@@ -96,7 +96,7 @@ void setup() {
   initializeButtons();
   initializeMotor();
   initializeServo();
-  initializeCylinder();
+  initializeLoaderFork();
   
   //! ************************************************************************
   //! STEP 3.5: INITIALIZE SLOT CONFIGURATION
@@ -208,19 +208,21 @@ void loop() {
     } else if (command == "servo_stop") {
       Serial.println("Stopping servo");
       mainServoController.stop();
-    } else if (command == "cylinder_extend") {
-      Serial.println("Extending cylinder");
-      extensionCylinder.extend();
-    } else if (command == "cylinder_retract") {
-      Serial.println("Retracting cylinder");
-      extensionCylinder.retract();
-    } else if (command == "cylinder_toggle") {
-      Serial.println("Toggling cylinder state");
-      extensionCylinder.toggle();
-    } else if (command == "cylinder_status") {
-      Serial.println("=== CYLINDER STATUS ===");
-      Serial.println("Current state: " + String(extensionCylinder.getState() ? "EXTENDED" : "RETRACTED"));
-      Serial.println("Is extended: " + String(extensionCylinder.isCylinderExtended() ? "YES" : "NO"));
+    } else if (command == "loader_extend") {
+      Serial.println("Extending loader fork");
+      loaderForkStepper.extend();
+    } else if (command == "loader_retract") {
+      Serial.println("Retracting loader fork");
+      loaderForkStepper.retract();
+    } else if (command == "loader_toggle") {
+      Serial.println("Toggling loader fork state");
+      loaderForkStepper.toggle();
+    } else if (command == "loader_status") {
+      Serial.println("=== LOADER FORK STATUS ===");
+      Serial.println("Current state: " + String(loaderForkStepper.getState() ? "EXTENDED" : "RETRACTED"));
+      Serial.println("Is extended: " + String(loaderForkStepper.isForkExtended() ? "YES" : "NO"));
+      Serial.println("Current position: " + String(loaderForkStepper.getCurrentPosition()) + " steps");
+      Serial.println("Is moving: " + String(loaderForkStepper.isMoving() ? "YES" : "NO"));
     } else if (command == "test_manual") {
       Serial.println("Switching to TEST state with manual mode");
       setState(TEST_STATE);
@@ -378,19 +380,26 @@ void initializeServo() {
   Serial.println("Loader servo and acceleration controller initialized");
 }
 
-void initializeCylinder() {
+void initializeLoaderFork() {
   //! ************************************************************************
-  //! INITIALIZE EXTENSION CYLINDER CONTROL
+  //! INITIALIZE LOADER FORK STEPPER MOTOR
   //! ************************************************************************
-  Serial.println("Setting up extension cylinder...");
-  Serial.println("Cylinder pin: " + String(EXTENSION_CYLINDER_PIN));
+  Serial.println("Setting up loader fork stepper motor...");
+  Serial.println("Step pin: " + String(LOADER_FORK_STEP_PIN));
+  Serial.println("Direction pin: " + String(LOADER_FORK_DIR_PIN));
   
-  extensionCylinder.begin();
+  // Create stepper motor object for loader fork using existing engine
+  FastAccelStepper* loaderForkMotor = engine.stepperConnectToPin(LOADER_FORK_STEP_PIN);
+  if (loaderForkMotor) {
+      loaderForkMotor->setDirectionPin(LOADER_FORK_DIR_PIN);
+  }
   
-  // Ensure cylinder starts in retracted position
-  extensionCylinder.retract();
+  loaderForkStepper.begin(loaderForkMotor);
   
-  Serial.println("Extension cylinder initialized and retracted");
+  // Ensure loader fork starts in retracted position
+  loaderForkStepper.retract();
+  
+  Serial.println("Loader fork stepper motor initialized and retracted");
 }
 
 void updateButtons() {
@@ -411,13 +420,13 @@ void setupStateMachineReferences() {
   setHomeReferences(zMotor, &zHomeSwitch);
   
   // Set references for pick state
-  setPickReferences(&mainServoController, &extensionCylinder, zMotor);
+  setPickReferences(&mainServoController, &loaderForkStepper, zMotor);
   
   // Set references for place state
-  setPlaceReferences(&mainServoController, &extensionCylinder, zMotor);
+  setPlaceReferences(&mainServoController, &loaderForkStepper, zMotor);
   
   // Set references for test state
-  setTestReferences(zMotor, &mainServoController, &extensionCylinder);
+  setTestReferences(zMotor, &mainServoController, &loaderForkStepper);
   
   // Set references for idle state
   setIdleReferences(&mainServoController, zMotor);

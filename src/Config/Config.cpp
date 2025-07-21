@@ -31,12 +31,12 @@ int Z_CYCLE_DISTANCE_STEPS = (int)(Z_CYCLE_DISTANCE_INCHES * STEPS_PER_INCH);
 // Pick state settings
 float PICK_HEIGHT_INCHES = 3.6;   // Height to move to for pick operation (3.2 inches)
 int PICK_HEIGHT_STEPS = (int)(PICK_HEIGHT_INCHES * STEPS_PER_INCH);
-int PICK_ANGLE_DEGREES = 21.5;      // Servo angle for pick operation (21.5 degrees)
+int PICK_ANGLE_DEGREES = 176;      // Servo angle for pick operation (21.5 degrees)
 
 // Place state settings
 float PLACE_HEIGHT_INCHES = 8.5;      // Height to move to for place operation (8 inches)
 int PLACE_HEIGHT_STEPS = (int)(PLACE_HEIGHT_INCHES * STEPS_PER_INCH);
-int PLACE_ANGLE_DEGREES = 91;         // Servo angle for place operation (91 degrees)
+int PLACE_ANGLE_DEGREES = 104;         // Servo angle for place operation (91 degrees)
 
 // Height adjustment settings
 float HEIGHT_ADJUSTMENT_INCHES = 0.7; // Height adjustment during sequence (.7 inches)
@@ -72,6 +72,6 @@ int CYLINDER_RETRACT_WAIT = 750;   // Wait time after retracting cylinder (1000m
 //* ************************ Z-AXIS MOTOR SETTINGS ************************
 //* ************************************************************************
 // Z-axis stepper motor settings
-float Z_MAX_SPEED = 10000.0;      // Maximum speed in steps per second
-float Z_ACCELERATION = 50000.0;   // Acceleration in steps per second^2
+float Z_MAX_SPEED = 8000.0;      // Maximum speed in steps per second
+float Z_ACCELERATION = 30000.0;   // Acceleration in steps per second^2
 float Z_HOMING_SPEED = 1000.0;    // Slow homing speed 

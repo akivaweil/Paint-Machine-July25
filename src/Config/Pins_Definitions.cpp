@@ -17,5 +17,6 @@ int Z_MOTOR_DIR_PIN = 5;          // Z-axis stepper motor direction pin
 // OUTPUT PINS - SERVO
 int LOADER_SERVO_PIN = 41;         // Loader servo control pin
 
-// OUTPUT PINS - PNEUMATIC CYLINDERS
-int EXTENSION_CYLINDER_PIN = 14;   // Extension cylinder relay control pin (HIGH = extended, LOW = retracted) 
+// OUTPUT PINS - LOADER FORK STEPPER MOTOR
+int LOADER_FORK_STEP_PIN = 15;     // Loader fork stepper motor step pin
+int LOADER_FORK_DIR_PIN = 7;       // Loader fork stepper motor direction pin 

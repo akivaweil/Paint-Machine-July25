@@ -9,7 +9,7 @@
 #include "Config/Config.h"
 #include "Config/Pins_Definitions.h"
 #include "ServoAccelerationController.h"
-#include "CylinderControl.h"
+#include "LoaderForkStepper.h"
 #include <FastAccelStepper.h>
 
 //* ************************************************************************
@@ -18,7 +18,7 @@
 static bool pickStateInitialized = false;
 static bool pickComplete = false;
 static ServoAccelerationController* pickServoController = NULL;
-static CylinderControl* pickCylinder = NULL;
+static LoaderForkStepper* pickLoaderFork = NULL;
 static FastAccelStepper* pickZMotor = NULL;
 static int currentStep = 0;
 static unsigned long stepStartTime = 0;
@@ -123,11 +123,11 @@ void executePickState() {
             
         case 2: {
             //! ************************************************************************
-            //! STEP 2: EXTEND THE CYLINDER
+            //! STEP 2: EXTEND THE LOADER FORK
             //! ************************************************************************
-            if (pickCylinder) {
-                pickCylinder->extend();
-                Serial.println("Step 2: Cylinder extended");
+            if (pickLoaderFork) {
+                pickLoaderFork->extend();
+                Serial.println("Step 2: Loader fork extended");
             }
             currentStep = 3;
             stepStartTime = currentTime;
@@ -187,11 +187,11 @@ void executePickState() {
             
         case 7: {
             //! ************************************************************************
-            //! STEP 7: RETRACT THE CYLINDER
+            //! STEP 7: RETRACT THE LOADER FORK
             //! ************************************************************************
-            if (pickCylinder) {
-                pickCylinder->retract();
-                Serial.println("Step 7: Cylinder retracted");
+            if (pickLoaderFork) {
+                pickLoaderFork->retract();
+                Serial.println("Step 7: Loader fork retracted");
             }
             currentStep = 8;
             stepStartTime = currentTime;
@@ -200,10 +200,10 @@ void executePickState() {
             
         case 8: {
             //! ************************************************************************
-            //! STEP 8: WAIT 750MS AFTER RETRACTING CYLINDER
+            //! STEP 8: WAIT 750MS AFTER RETRACTING LOADER FORK
             //! ************************************************************************
             if (currentTime - stepStartTime >= CYLINDER_RETRACT_WAIT) {
-                Serial.println("Step 8: Cylinder retract wait complete, picking sequence finished");
+                Serial.println("Step 8: Loader fork retract wait complete, picking sequence finished");
                 pickComplete = true;
             }
             break;
@@ -228,11 +228,11 @@ void resetPickState() {
     targetHeightSteps = 0;
 }
 
-void setPickReferences(ServoAccelerationController* servoController, CylinderControl* cylinder, FastAccelStepper* zMotor) {
+void setPickReferences(ServoAccelerationController* servoController, LoaderForkStepper* loaderFork, FastAccelStepper* zMotor) {
     //! ************************************************************************
-    //! SET REFERENCES TO SERVO CONTROLLER, CYLINDER, AND Z MOTOR OBJECTS
+    //! SET REFERENCES TO SERVO CONTROLLER, LOADER FORK, AND Z MOTOR OBJECTS
     //! ************************************************************************
     pickServoController = servoController;
-    pickCylinder = cylinder;
+    pickLoaderFork = loaderFork;
     pickZMotor = zMotor;
 } 
