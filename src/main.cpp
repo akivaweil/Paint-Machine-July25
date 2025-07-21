@@ -254,50 +254,65 @@ void loop() {
       Serial.println("=== CELL CONFIGURATION ===");
       printCellConfig();
     } else if (command.startsWith("cell_set ")) {
-      // Format: cell_set <cell_number> <height> <angle>
-      // Example: cell_set 5 4.2 55
+      // Format: cell_set <column><row> <height> <angle>
+      // Example: cell_set A1 4.2 55
       String params = command.substring(9);
       int firstSpace = params.indexOf(' ');
       int secondSpace = params.indexOf(' ', firstSpace + 1);
       
       if (firstSpace > 0 && secondSpace > firstSpace) {
-        int cellNum = params.substring(0, firstSpace).toInt();
+        String cellRef = params.substring(0, firstSpace);
         float height = params.substring(firstSpace + 1, secondSpace).toFloat();
         int angle = params.substring(secondSpace + 1).toInt();
         
-        if (cellNum >= 0 && cellNum < TOTAL_CELLS) {
-          setCellPosition(cellNum, height, angle);
-          Serial.println("Cell " + String(cellNum) + " set to: " + String(height) + " inches, " + String(angle) + " degrees");
+        // Parse column and row from cell reference (e.g., "A1", "B3", "D5")
+        if (cellRef.length() >= 2) {
+          char column = cellRef.charAt(0);
+          int row = cellRef.substring(1).toInt();
+          
+          if (isValidCell(column, row)) {
+            setCellPosition(column, row, height, angle);
+            Serial.println("Cell " + String(column) + String(row) + " set to: " + String(height) + " inches, " + String(angle) + " degrees");
+          } else {
+            Serial.println("ERROR: Invalid cell reference. Use A1-D5");
+          }
         } else {
-          Serial.println("ERROR: Invalid cell number. Use 0-" + String(TOTAL_CELLS - 1));
+          Serial.println("ERROR: Invalid cell reference format. Use: A1, B2, C3, etc.");
         }
       } else {
-        Serial.println("ERROR: Invalid format. Use: cell_set <cell> <height> <angle>");
-        Serial.println("Example: cell_set 5 4.2 55");
+        Serial.println("ERROR: Invalid format. Use: cell_set <column><row> <height> <angle>");
+        Serial.println("Example: cell_set A1 4.2 55");
       }
     } else if (command.startsWith("cell_move ")) {
-      // Format: cell_move <cell_number>
-      // Example: cell_move 5
-      int cellNum = command.substring(10).toInt();
+      // Format: cell_move <column><row>
+      // Example: cell_move A1
+      String cellRef = command.substring(10);
       
-      if (cellNum >= 0 && cellNum < TOTAL_CELLS) {
-        CellPosition pos = getCellPosition(cellNum);
-        Serial.println("Moving to cell " + String(cellNum) + ": " + String(pos.height_inches) + " inches, " + String(pos.servo_angle) + " degrees");
+      if (cellRef.length() >= 2) {
+        char column = cellRef.charAt(0);
+        int row = cellRef.substring(1).toInt();
         
-        // Move Z-axis to cell height
-        if (zMotor) {
-          int targetSteps = getCellHeightSteps(cellNum);
-          zMotor->setSpeedInHz(Z_MAX_SPEED);
-          zMotor->setAcceleration(Z_ACCELERATION);
-          zMotor->moveTo(targetSteps);
+        if (isValidCell(column, row)) {
+          CellPosition pos = getCellPosition(column, row);
+          Serial.println("Moving to cell " + String(column) + String(row) + ": " + String(pos.height_inches) + " inches, " + String(pos.servo_angle) + " degrees");
+          
+          // Move Z-axis to cell height
+          if (zMotor) {
+            int targetSteps = getCellHeightSteps(column, row);
+            zMotor->setSpeedInHz(Z_MAX_SPEED);
+            zMotor->setAcceleration(Z_ACCELERATION);
+            zMotor->moveTo(targetSteps);
+          }
+          
+          // Move servo to cell angle
+          mainServoController.moveTo(pos.servo_angle);
+          
+          // Note: Fork movement is handled by the state machine, not direct commands
+        } else {
+          Serial.println("ERROR: Invalid cell reference. Use A1-D5");
         }
-        
-        // Move servo to cell angle
-        mainServoController.moveTo(pos.servo_angle);
-        
-        // Note: Fork movement is handled by the state machine, not direct commands
       } else {
-        Serial.println("ERROR: Invalid cell number. Use 0-" + String(TOTAL_CELLS - 1));
+        Serial.println("ERROR: Invalid cell reference format. Use: A1, B2, C3, etc.");
       }
     } else if (command == "help") {
       Serial.println("=== AVAILABLE COMMANDS ===");
@@ -305,8 +320,8 @@ void loop() {
       Serial.println("a<angle>   - Move servo to angle (degrees) - Example: a30, a90");
       Serial.println("f<position> - Move fork to position (inches) - Example: f0.5, f1.0, f2.5 (max " + String(FORK_MAX_DISTANCE_INCHES) + " inches)");
       Serial.println("cells      - Show all cell configurations");
-      Serial.println("cell_set <cell> <height> <angle> - Set cell position");
-      Serial.println("cell_move <cell> - Move to specific cell position");
+      Serial.println("cell_set <column><row> <height> <angle> - Set cell position");
+      Serial.println("cell_move <column><row> - Move to specific cell position");
       Serial.println("help       - Show this help message");
       Serial.println("test_manual - Enter test state");
       Serial.println("servo_status - Show servo status");

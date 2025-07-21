@@ -51,9 +51,9 @@ void executePickState() {
         //! CELL CONFIGURATION USAGE EXAMPLE:
         //! ************************************************************************
         // To use a specific cell instead of fixed positions:
-        // int cellNumber = 5; // Change this to use different cells
-        // CellPosition cellPos = getCellPosition(cellNumber);
-        // targetHeightSteps = getCellHeightSteps(cellNumber);
+        // char column = 'A'; int row = 1; // Change this to use different cells (A1-D5)
+        // CellPosition cellPos = getCellPosition(column, row);
+        // targetHeightSteps = getCellHeightSteps(column, row);
         // Then use cellPos.servo_angle instead of RETRIEVE_ANGLE_DEGREES
         
         // Set motor speed and acceleration
