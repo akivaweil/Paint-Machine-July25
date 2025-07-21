@@ -131,7 +131,7 @@ void performPickOperation() {
                 
                 // Move servo to loading tray angle
                 if (cellSequenceServoController) {
-                    cellSequenceServoController->moveTo(LOADING_TRAY_ANGLE_DEGREES);
+                    cellSequenceServoController->write(LOADING_TRAY_ANGLE_DEGREES);
                 }
                 
                 sequenceData.currentStep = 1;
