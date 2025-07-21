@@ -154,8 +154,10 @@ void loop() {
   //! ************************************************************************
   if (systemInitialized && startButton.pressed()) {
     if (getCurrentState() == IDLE_STATE) {
-      // Stay in idle state - machine waits at loading tray position
-      Serial.println("Start button pressed - machine is waiting at loading tray position");
+      // Start the cell sequence from loading tray position
+      Serial.println("Start button pressed - starting cell sequence from loading tray position");
+      startCellSequence();
+      setState(CELL_SEQUENCE_STATE);
     } else if (getCurrentState() == CELL_SEQUENCE_STATE) {
       Serial.println("Start button pressed - continuing to next cell");
       continueCellSequence();
