@@ -187,6 +187,18 @@ void loop() {
         mainServoController.moveTo(value);
         Serial.println("Moving servo to: " + String(value) + " degrees");
         return; // Skip other command processing
+      } else if (commandType == 'f' && value >= 0 && value <= 3) {
+        // Manual fork position command
+        Serial.println("Manual fork command: Moving to " + String(value) + " inches");
+        if (loaderForkStepper.isMoving()) {
+          Serial.println("Fork already moving - command ignored");
+        } else {
+          int targetSteps = (int)(value * 254); // 254 steps per inch for 20T 2GT belt
+          loaderForkStepper.setCurrentPosition(targetSteps);
+          Serial.println("Moving fork to: " + String(targetSteps) + " steps (" + String(value) + " inches)");
+          Serial.println("Fork position test complete");
+        }
+        return; // Skip other command processing
       }
     }
     
@@ -278,6 +290,7 @@ void loop() {
       Serial.println("=== AVAILABLE COMMANDS ===");
       Serial.println("z<height>  - Move Z-axis to height (inches) - Example: z1.3, z20 (max 27 inches)");
       Serial.println("a<angle>   - Move servo to angle (degrees) - Example: a30, a90");
+      Serial.println("f<position> - Move fork to position (inches) - Example: f0.5, f1.0, f2.5 (max 3 inches)");
       Serial.println("slots      - Show all slot configurations");
       Serial.println("slot_set <slot> <height> <angle> - Set slot position");
       Serial.println("slot_move <slot> - Move to specific slot position");
@@ -295,6 +308,14 @@ void loop() {
       }
       Serial.println("Servo Angle: " + String(mainServoController.getCurrentAngle(), 1) + " degrees");
       Serial.println("Servo moving: " + String(mainServoController.isMoving() ? "YES" : "NO"));
+      
+      // Fork status
+      int currentForkSteps = loaderForkStepper.getCurrentPosition();
+      float currentForkInches = (float)currentForkSteps / 254.0; // 254 steps per inch for 20T 2GT belt
+      Serial.println("Fork Position: " + String(currentForkSteps) + " steps (" + String(currentForkInches, 2) + " inches)");
+      Serial.println("Fork State: " + String(loaderForkStepper.isForkExtended() ? "EXTENDED" : "RETRACTED"));
+      Serial.println("Fork Moving: " + String(loaderForkStepper.isMoving() ? "YES" : "NO"));
+      
       Serial.println("Current State: " + getStateName(getCurrentState()));
     } else if (command.length() > 0) {
       Serial.println("Unknown command: " + command);

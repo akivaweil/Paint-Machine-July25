@@ -45,7 +45,7 @@ int HEIGHT_ADJUSTMENT_STEPS = (int)(HEIGHT_ADJUSTMENT_INCHES * STEPS_PER_INCH);
 // Idle state settings
 float IDLE_HEIGHT_INCHES = 2.0;        // Height for idle state (5 inches)
 int IDLE_HEIGHT_STEPS = (int)(IDLE_HEIGHT_INCHES * STEPS_PER_INCH);
-int IDLE_ANGLE_DEGREES = 180;           // Servo angle for idle state (30 degrees)
+int IDLE_ANGLE_DEGREES = 176;           // Servo angle for idle state (30 degrees)
 
 //* ************************************************************************
 //* ************************ SERVO SETTINGS ********************************
