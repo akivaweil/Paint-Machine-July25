@@ -105,7 +105,7 @@ void continueCellSequence() {
         sequenceData.stepStartTime = millis();
     } else if (sequenceData.currentStep == 12) {
         // We were waiting at loading tray position with fork extended, now continue to next cell
-        // Don't reset to picking mode - continue directly to place operation
+        // First retract the fork, then advance to next cell
         sequenceData.currentRow++;
         if (sequenceData.currentRow > TOTAL_ROWS) {
             sequenceData.currentRow = 1;
@@ -118,11 +118,17 @@ void continueCellSequence() {
             }
         }
         
-        // Continue to place operation for the next cell (fork is already extended)
+        // Retract fork first before moving to next cell
+        if (cellSequenceLoaderFork) {
+            cellSequenceLoaderFork->retract();
+            Serial.println("Retracting fork before moving to next cell");
+        }
+        
+        // Continue to place operation for the next cell (fork will be retracted)
         sequenceData.isPicking = false;
         sequenceData.currentStep = 0; // Start place operation
         sequenceData.stepStartTime = millis();
-        sequenceData.forkAlreadyExtended = true; // Fork is already extended from step 12
+        sequenceData.forkAlreadyExtended = false; // Fork will be retracted
         
         Serial.println("Moving to cell " + String(sequenceData.currentColumn) + String(sequenceData.currentRow));
     }
@@ -285,6 +291,13 @@ void performPlaceOperation() {
             //! STEP 0: MOVE TO CELL POSITION (0.3" ABOVE)
             //! ************************************************************************
             if (currentTime - sequenceData.stepStartTime >= 100) {
+                // Check if fork is still retracting from previous step
+                bool forkRetractionComplete = !cellSequenceLoaderFork || !cellSequenceLoaderFork->isMoving();
+                if (!forkRetractionComplete) {
+                    // Still retracting, wait
+                    break;
+                }
+                
                 CellPosition cellPos = getCellPosition(sequenceData.currentColumn, sequenceData.currentRow);
                 float targetHeight = cellPos.height_inches + HEIGHT_OFFSET_INCHES;
                 
