@@ -105,18 +105,38 @@ void LoaderForkStepper::retract() {
     //! ************************************************************************
     //! STEP 1: MOVE BACKWARD (RETRACT) USING ACTUAL EXTENSION DISTANCE
     //! ************************************************************************
-    if (stepper && isExtended) {
-        // Set speed and acceleration before movement
-        stepper->setSpeedInHz(FORK_MAX_SPEED);
-        stepper->setAcceleration(FORK_ACCELERATION);
+    if (stepper) {
+        // Check if fork is actually extended (either by state or by home switch)
+        bool actuallyExtended = isExtended;
         
-        int targetPosition = currentPosition - lastExtensionDistance;
-        stepper->moveTo(targetPosition);
-        currentPosition = targetPosition;
-        isExtended = false;
-        float retractInches = (float)lastExtensionDistance / FORK_STEPS_PER_INCH;
-        Serial.println("Fork retracting: " + String(retractInches, 2) + " inches (" + String(lastExtensionDistance) + " steps)");
-        lastExtensionDistance = 0; // Reset for next operation
+        // If home switch is triggered, fork is definitely extended
+        if (homeSwitch && homeSwitch->read() == HIGH) {
+            actuallyExtended = true;
+            Serial.println("Fork home switch triggered - fork is extended, will retract");
+        }
+        
+        if (actuallyExtended) {
+            // Set speed and acceleration before movement
+            stepper->setSpeedInHz(FORK_MAX_SPEED);
+            stepper->setAcceleration(FORK_ACCELERATION);
+            
+            // If we don't have a valid lastExtensionDistance, use maximum distance
+            int retractDistance = lastExtensionDistance;
+            if (retractDistance <= 0) {
+                retractDistance = FORK_MAX_DISTANCE_STEPS;
+                Serial.println("No valid extension distance recorded, using maximum distance for retraction");
+            }
+            
+            int targetPosition = currentPosition - retractDistance;
+            stepper->moveTo(targetPosition);
+            currentPosition = targetPosition;
+            isExtended = false;
+            float retractInches = (float)retractDistance / FORK_STEPS_PER_INCH;
+            Serial.println("Fork retracting: " + String(retractInches, 2) + " inches (" + String(retractDistance) + " steps)");
+            lastExtensionDistance = 0; // Reset for next operation
+        } else {
+            Serial.println("Fork is already retracted - no retraction needed");
+        }
     }
 }
 
@@ -190,7 +210,32 @@ void LoaderForkStepper::homeFork() {
         stepper->setAcceleration(FORK_ACCELERATION / 10);
     }
 
-    // Move fork toward home until switch is triggered
+    //! ************************************************************************
+    //! STEP 1: CHECK IF FORK IS ALREADY AT HOME POSITION
+    //! ************************************************************************
+    if (homeSwitch && homeSwitch->read() == HIGH) {
+        Serial.println("Fork home switch already triggered - fork is extended");
+        Serial.println("Moving fork away from home first, then homing...");
+        
+        // Move fork away from home position first (extend it)
+        stepper->runForward();
+        unsigned long startTime = millis();
+        while (homeSwitch->read() == HIGH) { // Wait for switch to go LOW
+            homeSwitch->update(); // Update switch state for proper debouncing
+            // Debug output every 500ms
+            if (millis() - startTime > 500) {
+                Serial.println("Moving fork away from home - Switch state: " + String(homeSwitch->read() ? "HIGH" : "LOW"));
+                startTime = millis();
+            }
+            delay(1); // Small delay to avoid busy-waiting
+        }
+        stepper->forceStop();
+        Serial.println("Fork moved away from home position");
+    }
+
+    //! ************************************************************************
+    //! STEP 2: MOVE FORK TOWARD HOME UNTIL SWITCH IS TRIGGERED
+    //! ************************************************************************
     if (stepper) {
         stepper->runBackward();
         Serial.println("Fork moving toward home switch...");

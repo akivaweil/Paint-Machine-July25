@@ -464,10 +464,21 @@ void initializeLoaderFork() {
   // Set the debounced home switch for the loader fork
   loaderForkStepper.setHomeSwitch(&forkHomeSwitch);
   
-  // Ensure loader fork starts in retracted position
-  loaderForkStepper.retract();
+  //! ************************************************************************
+  //! STEP 1: CHECK IF FORK IS ALREADY AT HOME POSITION
+  //! ************************************************************************
+  updateButtons(); // Update button states to get current switch state
+  if (forkHomeSwitch.read()) {
+    Serial.println("Fork home switch already triggered - fork may be extended");
+    Serial.println("Will retract fork during homing sequence");
+    // Don't retract here - let the homing sequence handle it properly
+  } else {
+    Serial.println("Fork home switch not triggered - fork appears to be retracted");
+    // Fork appears to be retracted, ensure state is correct
+    loaderForkStepper.setCurrentPosition(0);
+  }
   
-  Serial.println("Loader fork stepper motor initialized and retracted");
+  Serial.println("Loader fork stepper motor initialized");
 }
 
 void updateButtons() {
