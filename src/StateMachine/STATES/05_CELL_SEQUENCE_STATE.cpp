@@ -102,7 +102,7 @@ void continueCellSequence() {
         sequenceData.currentStep = 5;
         sequenceData.stepStartTime = millis();
     } else if (sequenceData.currentStep == 12) {
-        // We were waiting for start button press, now continue to next cell
+        // We were waiting at loading tray position with fork extended, now continue to next cell
         nextCell();
     }
 }
