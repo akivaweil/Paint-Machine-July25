@@ -168,15 +168,15 @@ void loop() {
       String valueStr = command.substring(1);
       float value = valueStr.toFloat();
       
-      if (commandType == 'z' && value > 0 && value <= 27) {
-        // Manual Z height command
-        Serial.println("Manual Z command: Moving to " + String(value) + " inches");
+      if (commandType == 'h' && value > 0 && value <= 27) {
+        // Manual height command
+        Serial.println("Manual height command: Moving to " + String(value) + " inches");
         if (zMotor) {
           int targetSteps = (int)(value * STEPS_PER_INCH);
           zMotor->setSpeedInHz(Z_MAX_SPEED);
           zMotor->setAcceleration(Z_ACCELERATION);
           zMotor->moveTo(targetSteps);
-          Serial.println("Moving Z to: " + String(targetSteps) + " steps (" + String(value) + " inches)");
+          Serial.println("Moving to: " + String(targetSteps) + " steps (" + String(value) + " inches)");
         } else {
           Serial.println("ERROR: Z motor not available");
         }
@@ -294,7 +294,7 @@ void loop() {
       }
     } else if (command == "help") {
       Serial.println("=== AVAILABLE COMMANDS ===");
-      Serial.println("z<height>  - Move Z-axis to height (inches) - Example: z1.3, z20 (max 27 inches)");
+      Serial.println("h<height>  - Move Z-axis to height (inches) - Example: h1.3, h20 (max 27 inches)");
       Serial.println("a<angle>   - Move servo to angle (degrees) - Example: a30, a90");
       Serial.println("f<position> - Move fork to position (inches) - Example: f0.5, f1.0, f2.5 (max " + String(FORK_MAX_DISTANCE_INCHES) + " inches)");
       Serial.println("slots      - Show all slot configurations");

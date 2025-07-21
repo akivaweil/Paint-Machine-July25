@@ -350,12 +350,12 @@ void parseManualCommand(String command) {
     float value = valueStr.toFloat();
     
     switch (commandType) {
-        case 'z': // Z-axis height command
+        case 'h': // Height command
             if (value > 0 && value <= 27) { // Reasonable height limits for testing
-                Serial.println("Manual Z command: Moving to " + String(value) + " inches");
+                Serial.println("Manual height command: Moving to " + String(value) + " inches");
                 moveToManualHeight(value);
             } else {
-                Serial.println("Invalid Z height. Must be between 0.1 and 27 inches");
+                Serial.println("Invalid height. Must be between 0.1 and 27 inches");
             }
             break;
             
@@ -368,7 +368,7 @@ void parseManualCommand(String command) {
             }
             break;
             
-        case 'h': // Help command
+        case '?': // Help command
             if (command == "help") {
                 printManualModeHelp();
             }
@@ -397,7 +397,7 @@ void parseManualCommand(String command) {
             
         default:
             Serial.println("Unknown command: " + command);
-            Serial.println("Use: z<height>, a<angle>, f<position>, help, status, mode");
+            Serial.println("Use: h<height>, a<angle>, f<position>, help, status, mode");
             break;
     }
 }
@@ -476,8 +476,8 @@ void printManualModeHelp() {
     //! PRINT MANUAL MODE HELP INFORMATION
     //! ************************************************************************
     Serial.println("=== MANUAL MODE COMMANDS ===");
-    Serial.println("z<height>  - Move Z-axis to height (inches)");
-    Serial.println("           Example: z1.3, z5.0, z10.5");
+    Serial.println("h<height>  - Move Z-axis to height (inches)");
+    Serial.println("           Example: h1.3, h5.0, h10.5");
     Serial.println("a<angle>   - Move servo to angle (degrees)");
     Serial.println("           Example: a30, a90, a135");
     Serial.println("f<position> - Move fork to position (inches)");

@@ -31,12 +31,12 @@ int Z_CYCLE_DISTANCE_STEPS = (int)(Z_CYCLE_DISTANCE_INCHES * STEPS_PER_INCH);
 // Pick state settings
 float PICK_HEIGHT_INCHES = 1.0;   // Height to move to for pick operation (3.2 inches)
 int PICK_HEIGHT_STEPS = (int)(PICK_HEIGHT_INCHES * STEPS_PER_INCH);
-int PICK_ANGLE_DEGREES = 176;      // Servo angle for pick operation (21.5 degrees)
+int PICK_ANGLE_DEGREES = 174;      // Servo angle for pick operation (21.5 degrees)
 
 // Place state settings
 float PLACE_HEIGHT_INCHES = 5.4;      // Height to move to for place operation (8 inches)
 int PLACE_HEIGHT_STEPS = (int)(PLACE_HEIGHT_INCHES * STEPS_PER_INCH);
-int PLACE_ANGLE_DEGREES = 104;         // Servo angle for place operation (91 degrees)
+int PLACE_ANGLE_DEGREES = 102;         // Servo angle for place operation (91 degrees)
 
 // Height adjustment settings
 float HEIGHT_ADJUSTMENT_INCHES = 0.7; // Height adjustment during sequence (.7 inches)
@@ -45,7 +45,7 @@ int HEIGHT_ADJUSTMENT_STEPS = (int)(HEIGHT_ADJUSTMENT_INCHES * STEPS_PER_INCH);
 // Idle state settings
 float IDLE_HEIGHT_INCHES = 2.0;        // Height for idle state (5 inches)
 int IDLE_HEIGHT_STEPS = (int)(IDLE_HEIGHT_INCHES * STEPS_PER_INCH);
-int IDLE_ANGLE_DEGREES = 176;           // Servo angle for idle state (30 degrees)
+int IDLE_ANGLE_DEGREES = 174;           // Servo angle for idle state (30 degrees)
 
 //* ************************************************************************
 //* ************************ SERVO SETTINGS ********************************
