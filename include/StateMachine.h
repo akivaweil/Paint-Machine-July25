@@ -56,7 +56,7 @@ void setHomeReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch);
 void setPickReferences(ServoAccelerationController* servoController, LoaderForkStepper* loaderFork, FastAccelStepper* zMotor);
 void setPlaceReferences(ServoAccelerationController* servoController, LoaderForkStepper* loaderFork, FastAccelStepper* zMotor);
 void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* servoController, LoaderForkStepper* loaderFork);
-void setIdleReferences(ServoAccelerationController* servoController, FastAccelStepper* zMotor);
+void setIdleReferences(ServoControl* servo, ServoAccelerationController* servoController, FastAccelStepper* zMotor);
 
 // Test state manual mode functions
 void parseManualCommand(String command);

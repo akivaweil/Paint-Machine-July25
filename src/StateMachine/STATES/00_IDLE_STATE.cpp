@@ -8,6 +8,7 @@
 #include "StateMachine.h"
 #include "Config/Config.h"
 #include "Config/Pins_Definitions.h"
+#include "ServoControl.h"
 #include "ServoAccelerationController.h"
 #include <FastAccelStepper.h>
 
@@ -15,9 +16,11 @@
 //* ************************ IDLE STATE VARIABLES *************************
 //* ************************************************************************
 static bool idleStateInitialized = false;
+static ServoControl* idleServo = NULL;
 static ServoAccelerationController* idleServoController = NULL;
 static FastAccelStepper* idleZMotor = NULL;
 static bool idlePositionReached = false;
+static bool servoMoveComplete = false;
 
 //* ************************************************************************
 //* ************************ IDLE STATE FUNCTIONS *************************
@@ -40,11 +43,11 @@ void executeIdleState() {
             idleZMotor->moveTo(IDLE_HEIGHT_STEPS);
         }
         
-        // Set servo to idle position (30 degrees)
-        if (idleServoController) {
-            idleServoController->setAccelerationProfile(250, 2000); // Conservative settings
-            idleServoController->moveTo(IDLE_ANGLE_DEGREES);
-            Serial.println("Setting servo to idle position (" + String(IDLE_ANGLE_DEGREES) + " degrees)");
+        // Set servo to idle position using regular ServoControl (not acceleration controller)
+        if (idleServo) {
+            idleServo->write(IDLE_ANGLE_DEGREES);
+            Serial.println("Setting servo to idle position (" + String(IDLE_ANGLE_DEGREES) + " degrees) using regular ServoControl");
+            servoMoveComplete = false;
         }
         
         idleStateInitialized = true;
@@ -56,7 +59,15 @@ void executeIdleState() {
     //! ************************************************************************
     if (!idlePositionReached) {
         bool zMotorReady = !idleZMotor || !idleZMotor->isRunning();
-        bool servoReady = !idleServoController || idleServoController->hasReachedTarget();
+        bool servoReady = !idleServo || servoMoveComplete || idleServo->hasReachedTarget();
+        
+        // Check if servo movement is complete
+        if (idleServo && !servoMoveComplete) {
+            if (idleServo->hasReachedTarget()) {
+                servoMoveComplete = true;
+                Serial.println("Servo reached idle position");
+            }
+        }
         
         if (zMotorReady && servoReady) {
             Serial.println("Idle position reached - Machine ready for commands");
@@ -65,7 +76,7 @@ void executeIdleState() {
     }
     
     //! ************************************************************************
-    //! STEP 2: UPDATE SERVO CONTROLLER
+    //! STEP 2: UPDATE SERVO CONTROLLER (for future operations)
     //! ************************************************************************
     if (idleServoController) {
         idleServoController->update();
@@ -90,13 +101,17 @@ void resetIdleState() {
     //! ************************************************************************
     idleStateInitialized = false;
     idlePositionReached = false;
+    servoMoveComplete = false;
 }
 
-void setIdleReferences(ServoAccelerationController* servoController, FastAccelStepper* zMotor) {
+void setIdleReferences(ServoControl* servo, ServoAccelerationController* servoController, FastAccelStepper* zMotor) {
     //! ************************************************************************
-    //! SET REFERENCES TO SERVO CONTROLLER AND Z MOTOR OBJECTS
+    //! SET REFERENCES TO SERVO OBJECTS AND Z MOTOR OBJECTS
     //! ************************************************************************
+    idleServo = servo;
     idleServoController = servoController;
     idleZMotor = zMotor;
-    Serial.println("Idle references set - Servo Controller: " + String(servoController ? "VALID" : "NULL") + ", Z Motor: " + String(zMotor ? "VALID" : "NULL"));
+    Serial.println("Idle references set - Servo: " + String(servo ? "VALID" : "NULL") + 
+                  ", Servo Controller: " + String(servoController ? "VALID" : "NULL") + 
+                  ", Z Motor: " + String(zMotor ? "VALID" : "NULL"));
 } 

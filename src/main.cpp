@@ -400,9 +400,8 @@ void initializeServo() {
     30.0    // Max velocity (degrees/second)
   );
   
-  // Set initial servo position to 90 degrees and update controller
-  loaderServo.write(90);
-  mainServoController.setCurrentAngle(90);
+  // Note: Initial servo position will be set during startup sequence using regular ServoControl
+  // Do not set position here to avoid conflicts with startup sequence
   
   Serial.println("Loader servo and acceleration controller initialized");
 }
@@ -456,7 +455,7 @@ void setupStateMachineReferences() {
   setTestReferences(zMotor, &mainServoController, &loaderForkStepper);
   
   // Set references for idle state
-  setIdleReferences(&mainServoController, zMotor);
+  setIdleReferences(&loaderServo, &mainServoController, zMotor);
   
   Serial.println("State machine references configured");
 }
@@ -470,7 +469,12 @@ void performStartupSequence() {
   // Step 1: Set up state machine references
   setupStateMachineReferences();
   
-  // Step 2: Check if already at home position
+  // Step 2: Set initial servo position using regular ServoControl
+  Serial.println("Setting initial servo position using regular ServoControl...");
+  loaderServo.write(90); // Set to center position first
+  delay(SERVO_MOVE_DELAY); // Wait for servo to reach position
+  
+  // Step 3: Check if already at home position
   updateButtons(); // Update button states
   if (zHomeSwitch.read()) {
     Serial.println("Already at home position - skipping homing");
@@ -482,10 +486,10 @@ void performStartupSequence() {
     // Move away from home position
     moveAwayFromHome();
   } else {
-    // Step 3: Start home state (which now includes moving away from home)
+    // Step 4: Start home state (which now includes moving away from home)
     setState(HOME_STATE);
     
-    // Step 4: Wait for homing to complete
+    // Step 5: Wait for homing to complete
     while (getCurrentState() == HOME_STATE) {
       updateStateMachine();
       updateButtons();
