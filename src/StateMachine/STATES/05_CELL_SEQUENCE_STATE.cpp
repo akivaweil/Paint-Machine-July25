@@ -297,9 +297,12 @@ void performPlaceOperation() {
             bool servoReady = !cellSequenceServoController || cellSequenceServoController->isMoveComplete();
             
             if (zMotorReady && servoReady) {
-                Serial.println("Step 1: Cell position reached, extending fork");
-                sequenceData.currentStep = 2;
-                sequenceData.stepStartTime = currentTime;
+                // Add a small delay to ensure servo has actually finished moving
+                if (currentTime - sequenceData.stepStartTime >= 200) { // 200ms delay
+                    Serial.println("Step 1: Cell position reached, extending fork");
+                    sequenceData.currentStep = 2;
+                    sequenceData.stepStartTime = currentTime;
+                }
             }
             break;
         }
