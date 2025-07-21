@@ -25,8 +25,8 @@ static FastAccelStepper* cellSequenceZMotor = nullptr;
 //* ************************ CONSTANTS ***********************************
 //* ************************************************************************
 #define HEIGHT_OFFSET_INCHES 0.3
-#define LOADING_TRAY_HEIGHT_INCHES 2.0  // Adjust this to match your loading tray height
-#define LOADING_TRAY_ANGLE_DEGREES 45   // Adjust this to match your loading tray angle
+#define LOADING_TRAY_HEIGHT_INCHES 0.3  // Adjust this to match your loading tray height
+#define LOADING_TRAY_ANGLE_DEGREES 47.5   // Adjust this to match your loading tray angle
 
 //* ************************************************************************
 //* ************************ STATE EXECUTION *****************************
@@ -91,6 +91,16 @@ void nextCell() {
     sequenceData.stepStartTime = millis();
     
     Serial.println("Moving to cell " + String(sequenceData.currentColumn) + String(sequenceData.currentRow));
+}
+
+void continueCellSequence() {
+    //! ************************************************************************
+    //! CONTINUE SEQUENCE AFTER START BUTTON PRESS
+    //! ************************************************************************
+    if (sequenceData.currentStep == 8) {
+        // We were waiting for start button press, now continue to next cell
+        nextCell();
+    }
 }
 
 //* ************************************************************************
@@ -325,8 +335,19 @@ void performPlaceOperation() {
             bool forkRetractionComplete = !cellSequenceLoaderFork || !cellSequenceLoaderFork->isMoving();
             if (forkRetractionComplete) {
                 Serial.println("Step 7: Place operation complete for cell " + String(sequenceData.currentColumn) + String(sequenceData.currentRow));
-                nextCell();
+                Serial.println("Press START button to continue to next cell...");
+                sequenceData.currentStep = 8; // Wait for start button press
+                sequenceData.stepStartTime = currentTime;
             }
+            break;
+        }
+        
+        case 8: {
+            //! ************************************************************************
+            //! STEP 8: WAIT FOR START BUTTON PRESS TO CONTINUE
+            //! ************************************************************************
+            // This step waits indefinitely until the start button is pressed again
+            // The start button handling is done in main.cpp
             break;
         }
     }

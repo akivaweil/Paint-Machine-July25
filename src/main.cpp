@@ -152,10 +152,15 @@ void loop() {
   //! ************************************************************************
   //! STEP 5: HANDLE START BUTTON PRESS
   //! ************************************************************************
-  if (systemInitialized && startButton.pressed() && getCurrentState() == IDLE_STATE) {
-    Serial.println("Start button pressed - starting cell sequence");
-    startCellSequence();
-    setState(CELL_SEQUENCE_STATE);
+  if (systemInitialized && startButton.pressed()) {
+    if (getCurrentState() == IDLE_STATE) {
+      Serial.println("Start button pressed - starting cell sequence");
+      startCellSequence();
+      setState(CELL_SEQUENCE_STATE);
+    } else if (getCurrentState() == CELL_SEQUENCE_STATE) {
+      Serial.println("Start button pressed - continuing to next cell");
+      continueCellSequence();
+    }
   }
 
   //! ************************************************************************

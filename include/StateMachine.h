@@ -79,6 +79,7 @@ void setCellSequenceReferences(ServoAccelerationController* servoController, Loa
 // Cell sequence functions
 void startCellSequence();
 void nextCell();
+void continueCellSequence();
 void performPickOperation();
 void performPlaceOperation();
 

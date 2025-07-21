@@ -27,7 +27,7 @@ int Z_CYCLE_DISTANCE_STEPS = (int)(Z_CYCLE_DISTANCE_INCHES * STEPS_PER_INCH);
 
 //* ************************************************************************
 //* ************************ PICK/PLACE SEQUENCE SETTINGS *****************
-//* ************************************************************************
+//* ***********************************************************************
 // Pick state settings
 float PICK_HEIGHT_INCHES = 0.3;   // Height to move to for pick operation (3.2 inches)
 int PICK_HEIGHT_STEPS = (int)(PICK_HEIGHT_INCHES * STEPS_PER_INCH);
