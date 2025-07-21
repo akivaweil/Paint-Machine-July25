@@ -194,9 +194,15 @@ void loop() {
           Serial.println("Fork already moving - command ignored");
         } else {
           int targetSteps = (int)(value * 254); // 254 steps per inch for 20T 2GT belt
-          loaderForkStepper.setCurrentPosition(targetSteps);
-          Serial.println("Moving fork to: " + String(targetSteps) + " steps (" + String(value) + " inches)");
-          Serial.println("Fork position test complete");
+          // Get the stepper motor object and move it directly
+          FastAccelStepper* forkStepper = loaderForkStepper.getStepper();
+          if (forkStepper) {
+            forkStepper->moveTo(targetSteps);
+            Serial.println("Moving fork to: " + String(targetSteps) + " steps (" + String(value) + " inches)");
+            Serial.println("Fork movement started");
+          } else {
+            Serial.println("ERROR: Fork stepper not available");
+          }
         }
         return; // Skip other command processing
       }

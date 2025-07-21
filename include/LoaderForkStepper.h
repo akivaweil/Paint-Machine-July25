@@ -50,6 +50,7 @@ public:
     // Utility functions
     void setCurrentPosition(int position);  // Set current position (for homing)
     void stop();                  // Stop motor movement
+    FastAccelStepper* getStepper();        // Get stepper motor object for direct control
 };
 
 #endif // LOADER_FORK_STEPPER_H 

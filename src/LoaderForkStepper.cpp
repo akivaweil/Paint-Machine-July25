@@ -112,4 +112,11 @@ void LoaderForkStepper::stop() {
     if (stepper) {
         stepper->stopMove();
     }
+}
+
+FastAccelStepper* LoaderForkStepper::getStepper() {
+    //! ************************************************************************
+    //! STEP 1: RETURN STEPPER MOTOR OBJECT FOR DIRECT CONTROL
+    //! ************************************************************************
+    return stepper;
 } 
