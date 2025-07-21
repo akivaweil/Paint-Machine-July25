@@ -432,10 +432,10 @@ void initializeServo() {
   
   loaderServo.init(LOADER_SERVO_PIN, 7, 20, 14); // Pin, channel, frequency, resolution
   
-  // Configure servo acceleration controller with conservative default settings
+  // Configure servo acceleration controller with faster settings for cell sequence
   mainServoController.setAccelerationProfile(
-    10.0,   // Acceleration rate (degrees/second^2) - same as deceleration
-    30.0    // Max velocity (degrees/second)
+    50.0,   // Acceleration rate (degrees/second^2) - increased from 10.0
+    120.0   // Max velocity (degrees/second) - increased from 30.0
   );
   
   // Note: Initial servo position will be set during startup sequence using regular ServoControl
