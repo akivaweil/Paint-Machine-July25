@@ -388,7 +388,7 @@ void initializeButtons() {
   zHomeSwitch.interval(HOME_SWITCH_DEBOUNCE);
   
   // Fork home switch: Active HIGH (input pulldown)
-  forkHomeSwitch.attach(FORK_HOME_SWITCH_PIN, INPUT);
+  forkHomeSwitch.attach(FORK_HOME_SWITCH_PIN, INPUT_PULLDOWN);
   forkHomeSwitch.interval(FORK_HOME_SWITCH_DEBOUNCE);
   
   Serial.println("Buttons and switches setup complete");

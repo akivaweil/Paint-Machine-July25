@@ -190,10 +190,40 @@ void LoaderForkStepper::homeFork() {
         stepper->setAcceleration(FORK_ACCELERATION / 10);
     }
 
-    // Move fork toward home until switch is triggered
+    //! ************************************************************************
+    //! STEP 1: CHECK IF ALREADY AT HOME POSITION
+    //! ************************************************************************
+    if (homeSwitch && homeSwitch->read() == HIGH) {
+        Serial.println("Fork home switch already triggered - fork may be extended");
+        Serial.println("Will retract fork during homing sequence");
+        
+        //! ************************************************************************
+        //! STEP 2: MOVE FORK AWAY FROM HOME FIRST
+        //! ************************************************************************
+        Serial.println("Moving fork away from home first, then homing...");
+        stepper->runForward(); // Move away from home switch
+        
+        // Wait for switch to go inactive (LOW)
+        unsigned long startTime = millis();
+        while (homeSwitch && homeSwitch->read() == HIGH) {
+            homeSwitch->update();
+            if (millis() - startTime > 500) {
+                Serial.println("Moving fork away from home - Switch state: " + String(homeSwitch->read() ? "HIGH" : "LOW"));
+                startTime = millis();
+            }
+            delay(1);
+        }
+        
+        Serial.println("Fork moved away from home position");
+    }
+
+    //! ************************************************************************
+    //! STEP 3: MOVE FORK TOWARD HOME UNTIL SWITCH IS TRIGGERED
+    //! ************************************************************************
     if (stepper) {
-        stepper->runBackward();
+        stepper->runBackward(); // Move toward home switch
         Serial.println("Fork moving toward home switch...");
+        
         unsigned long startTime = millis();
         while (!homeSwitch || homeSwitch->read() == LOW) { // Wait for active HIGH
             // Block until switch is triggered
@@ -207,6 +237,10 @@ void LoaderForkStepper::homeFork() {
             }
             delay(1); // Small delay to avoid busy-waiting
         }
+        
+        //! ************************************************************************
+        //! STEP 4: STOP AND SET HOME POSITION
+        //! ************************************************************************
         stepper->forceStop();
         stepper->setCurrentPosition(0);
         currentPosition = 0;
