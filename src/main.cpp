@@ -469,12 +469,7 @@ void performStartupSequence() {
   // Step 1: Set up state machine references
   setupStateMachineReferences();
   
-  // Step 2: Set initial servo position using regular ServoControl
-  Serial.println("Setting initial servo position using regular ServoControl...");
-  loaderServo.write(90); // Set to center position first
-  delay(SERVO_MOVE_DELAY); // Wait for servo to reach position
-  
-  // Step 3: Check if already at home position
+  // Step 2: Check if already at home position
   updateButtons(); // Update button states
   if (zHomeSwitch.read()) {
     Serial.println("Already at home position - skipping homing");
@@ -486,10 +481,10 @@ void performStartupSequence() {
     // Move away from home position
     moveAwayFromHome();
   } else {
-    // Step 4: Start home state (which now includes moving away from home)
+    // Step 3: Start home state (which now includes moving away from home)
     setState(HOME_STATE);
     
-    // Step 5: Wait for homing to complete
+    // Step 4: Wait for homing to complete
     while (getCurrentState() == HOME_STATE) {
       updateStateMachine();
       updateButtons();
