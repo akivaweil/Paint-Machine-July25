@@ -94,14 +94,14 @@ unsigned long ServoControl::calculateMoveTime(float startPos, float endPos) {
         return 0; // Already at target
     }
     
-    // Standard servo speed is approximately 60 degrees per second (0.16 seconds per 10 degrees)
-    // This is a conservative estimate for most hobby servos
-    float servoSpeed = 60.0; // degrees per second
+    // Standard servo speed is approximately 120 degrees per second (faster than conservative estimate)
+    // This provides more accurate timing for modern servos
+    float servoSpeed = 120.0; // degrees per second
     float moveTimeSeconds = distance / servoSpeed;
     
-    // Convert to milliseconds and add safety buffer
+    // Convert to milliseconds and add smaller safety buffer
     unsigned long moveTimeMs = (unsigned long)(moveTimeSeconds * 1000);
-    unsigned long safetyBuffer = 20; // 20ms safety buffer
+    unsigned long safetyBuffer = 10; // 10ms safety buffer (reduced from 20ms)
     
     return moveTimeMs + safetyBuffer;
 }
