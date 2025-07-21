@@ -55,6 +55,9 @@ void updateStateMachine() {
             case TEST_STATE:
                 resetTestState();
                 break;
+            case CELL_SEQUENCE_STATE:
+                resetCellSequenceState();
+                break;
             default:
                 break;
         }
@@ -78,6 +81,9 @@ void updateStateMachine() {
             break;
         case TEST_STATE:
             executeTestState();
+            break;
+        case CELL_SEQUENCE_STATE:
+            executeCellSequenceState();
             break;
         default:
             Serial.println("ERROR: Unknown state encountered");
@@ -124,6 +130,8 @@ String getStateName(StateMachineState state) {
             return "PLACE";
         case TEST_STATE:
             return "TEST";
+        case CELL_SEQUENCE_STATE:
+            return "CELL_SEQUENCE";
         default:
             return "UNKNOWN";
     }

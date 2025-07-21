@@ -18,7 +18,20 @@ enum StateMachineState {
     HOME_STATE = 1,        // Homing sequence
     PICK_STATE = 2,        // Picking operation
     PLACE_STATE = 3,       // Placing operation
-    TEST_STATE = 4         // Test state for manual testing
+    TEST_STATE = 4,        // Test state for manual testing
+    CELL_SEQUENCE_STATE = 5 // Automated cell sequence (pick from loading tray, place in cells)
+};
+
+//* ************************************************************************
+//* ************************ CELL SEQUENCE VARIABLES **********************
+//* ************************************************************************
+struct CellSequenceData {
+    char currentColumn;    // Current column (A, B, C, D)
+    int currentRow;        // Current row (1, 2, 3, 4, 5)
+    bool isPicking;        // true = picking from loading tray, false = placing in cell
+    bool sequenceComplete; // true when all cells are processed
+    int currentStep;       // Current step in the sequence
+    unsigned long stepStartTime; // Timing for steps
 };
 
 //* ************************************************************************
@@ -40,6 +53,7 @@ void executeHomeState();
 void executePickState();
 void executePlaceState();
 void executeTestState();
+void executeCellSequenceState();
 
 // State reset functions
 void resetIdleState();
@@ -47,6 +61,7 @@ void resetHomeState();
 void resetPickState();
 void resetPlaceState();
 void resetTestState();
+void resetCellSequenceState();
 
 // Home state specific functions
 void performTestMotionSequence();
@@ -59,6 +74,13 @@ void setPickReferences(ServoControl* servoController, LoaderForkStepper* loaderF
 void setPlaceReferences(ServoControl* servoController, LoaderForkStepper* loaderFork, FastAccelStepper* zMotor);
 void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* servoController, LoaderForkStepper* loaderFork);
 void setIdleReferences(ServoControl* servo, ServoAccelerationController* servoController, FastAccelStepper* zMotor);
+void setCellSequenceReferences(ServoAccelerationController* servoController, LoaderForkStepper* loaderFork, FastAccelStepper* zMotor);
+
+// Cell sequence functions
+void startCellSequence();
+void nextCell();
+void performPickOperation();
+void performPlaceOperation();
 
 // Test state manual mode functions
 void parseManualCommand(String command);

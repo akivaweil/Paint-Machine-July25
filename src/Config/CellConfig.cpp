@@ -3,77 +3,62 @@
 #include "Config/Config.h"
 
 //* ************************************************************************
-//* ************************ CELL CONFIGURATION ***************************
+//* ************************ EASY CELL CONFIGURATION GRID *****************
 //* ************************************************************************
-// Storage cell configuration for 20 cells (4 columns x 5 rows) with height and servo angle settings
+// Edit the values below to set the height (inches) and angle (degrees) for each cell.
+// Columns: A, B, C, D (left to right)
+// Rows:    1, 2, 3, 4, 5 (top to bottom)
+// Example: CELL_HEIGHTS[0][0] is A1, CELL_HEIGHTS[3][4] is D5
+//          CELL_ANGLES[1][2] is B3
+//
+//        A      B      C      D
+// 1   {3.0,  4.0,  5.0,  6.0},
+// 2   {3.2,  4.2,  5.2,  6.2},
+// 3   {3.4,  4.4,  5.4,  6.4},
+// 4   {3.6,  4.6,  5.6,  6.6},
+// 5   {3.8,  4.8,  5.8,  6.8}
+
+float CELL_HEIGHTS[TOTAL_ROWS][TOTAL_COLUMNS] = {
+    {3.0,  4.0,  5.0,  6.0}, // Row 1 (A1, B1, C1, D1)
+    {3.2,  4.2,  5.2,  6.2}, // Row 2 (A2, B2, C2, D2)
+    {3.4,  4.4,  5.4,  6.4}, // Row 3 (A3, B3, C3, D3)
+    {3.6,  4.6,  5.6,  6.6}, // Row 4 (A4, B4, C4, D4)
+    {3.8,  4.8,  5.8,  6.8}  // Row 5 (A5, B5, C5, D5)
+};
+
+int CELL_ANGLES[TOTAL_ROWS][TOTAL_COLUMNS] = {
+    {45,  55,  65,  75}, // Row 1
+    {47,  57,  67,  77}, // Row 2
+    {49,  59,  69,  79}, // Row 3
+    {51,  61,  71,  81}, // Row 4
+    {53,  63,  73,  83}  // Row 5
+};
 
 //* ************************************************************************
-//* ************************ GLOBAL VARIABLES *****************************
+//* ************************ INTERNAL FLAT ARRAYS *************************
 //* ************************************************************************
 static CellPosition cell_positions[TOTAL_CELLS];
-
-//* ************************************************************************
-//* ************************ CELL POSITION SETTINGS **********************
-//* ************************************************************************
-// Easy-to-program cell configuration - modify these values as needed
-// Format: {height_inches, servo_angle}
-// Columns: A, B, C, D (4 columns)
-// Rows: 1, 2, 3, 4, 5 (5 rows)
-// Cell A1 is top-left, D5 is bottom-right
-
-//! ************************************************************************
-//! CELL CONFIGURATION - MODIFY THESE VALUES FOR EACH CELL
-//! ************************************************************************
-// Height values (in inches) - easy to program pattern
-static const float CELL_HEIGHTS[TOTAL_CELLS] = {
-    // Column A (A1, A2, A3, A4, A5)
-    3.0, 3.2, 3.4, 3.6, 3.8,
-    // Column B (B1, B2, B3, B4, B5)
-    4.0, 4.2, 4.4, 4.6, 4.8,
-    // Column C (C1, C2, C3, C4, C5)
-    5.0, 5.2, 5.4, 5.6, 5.8,
-    // Column D (D1, D2, D3, D4, D5)
-    6.0, 6.2, 6.4, 6.6, 6.8
-};
-
-// Angle values (in degrees) - easy to program pattern
-static const int CELL_ANGLES[TOTAL_CELLS] = {
-    // Column A (A1, A2, A3, A4, A5)
-    45, 47, 49, 51, 53,
-    // Column B (B1, B2, B3, B4, B5)
-    55, 57, 59, 61, 63,
-    // Column C (C1, C2, C3, C4, C5)
-    65, 67, 69, 71, 73,
-    // Column D (D1, D2, D3, D4, D5)
-    75, 77, 79, 81, 83
-};
 
 //* ************************************************************************
 //* ************************ UTILITY FUNCTIONS ***************************
 //* ************************************************************************
 int cellToIndex(char column, int row) {
-    // Convert column/row to array index
-    // Column A=0, B=1, C=2, D=3
-    // Row 1=0, 2=1, 3=2, 4=3, 5=4
-    int col_index = column - 'A';  // A=0, B=1, C=2, D=3
-    int row_index = row - 1;       // 1=0, 2=1, 3=2, 4=3, 5=4
-    
-    if (col_index >= 0 && col_index < TOTAL_COLUMNS && 
-        row_index >= 0 && row_index < TOTAL_ROWS) {
-        return col_index * TOTAL_ROWS + row_index;
+    int col_index = column - 'A';
+    int row_index = row - 1;
+    if (col_index >= 0 && col_index < TOTAL_COLUMNS && row_index >= 0 && row_index < TOTAL_ROWS) {
+        return row_index * TOTAL_COLUMNS + col_index;
     }
-    return -1; // Invalid cell
+    return -1;
 }
 
 void indexToCell(int cell_index, char& column, int& row) {
-    // Convert array index to column/row
     if (cell_index >= 0 && cell_index < TOTAL_CELLS) {
-        int col_index = cell_index / TOTAL_ROWS;
-        int row_index = cell_index % TOTAL_ROWS;
+        int row_index = cell_index / TOTAL_COLUMNS;
+        int col_index = cell_index % TOTAL_COLUMNS;
         column = 'A' + col_index;
         row = row_index + 1;
     } else {
-        column = 'X'; // Invalid
+        column = 'X';
         row = 0;
     }
 }
@@ -90,11 +75,14 @@ bool isValidCellIndex(int cell_index) {
 //* ************************ INITIALIZATION *******************************
 //* ************************************************************************
 void initializeCellConfig() {
-    // Initialize all cells with default values
-    for (int i = 0; i < TOTAL_CELLS; i++) {
-        cell_positions[i].height_inches = CELL_HEIGHTS[i];
-        cell_positions[i].servo_angle = CELL_ANGLES[i];
-        cell_positions[i].is_configured = true;
+    // Flatten the 2D grid into the internal array
+    for (int row = 0; row < TOTAL_ROWS; row++) {
+        for (int col = 0; col < TOTAL_COLUMNS; col++) {
+            int idx = row * TOTAL_COLUMNS + col;
+            cell_positions[idx].height_inches = CELL_HEIGHTS[row][col];
+            cell_positions[idx].servo_angle = CELL_ANGLES[row][col];
+            cell_positions[idx].is_configured = true;
+        }
     }
 }
 
@@ -102,9 +90,12 @@ void initializeCellConfig() {
 //* ************************ CELL MANAGEMENT FUNCTIONS *******************
 //* ************************************************************************
 void setCellPosition(char column, int row, float height_inches, int servo_angle) {
-    // Set cell position using column/row format
+    int col_index = column - 'A';
+    int row_index = row - 1;
     int cell_index = cellToIndex(column, row);
     if (cell_index >= 0) {
+        CELL_HEIGHTS[row_index][col_index] = height_inches;
+        CELL_ANGLES[row_index][col_index] = servo_angle;
         cell_positions[cell_index].height_inches = height_inches;
         cell_positions[cell_index].servo_angle = servo_angle;
         cell_positions[cell_index].is_configured = true;
@@ -112,16 +103,14 @@ void setCellPosition(char column, int row, float height_inches, int servo_angle)
 }
 
 void setCellPositionByIndex(int cell_index, float height_inches, int servo_angle) {
-    // Set cell position using array index
     if (isValidCellIndex(cell_index)) {
-        cell_positions[cell_index].height_inches = height_inches;
-        cell_positions[cell_index].servo_angle = servo_angle;
-        cell_positions[cell_index].is_configured = true;
+        char column; int row;
+        indexToCell(cell_index, column, row);
+        setCellPosition(column, row, height_inches, servo_angle);
     }
 }
 
 CellPosition getCellPosition(char column, int row) {
-    // Get cell position using column/row format
     int cell_index = cellToIndex(column, row);
     if (cell_index >= 0) {
         return cell_positions[cell_index];
@@ -132,7 +121,6 @@ CellPosition getCellPosition(char column, int row) {
 }
 
 CellPosition getCellPositionByIndex(int cell_index) {
-    // Get cell position using array index
     if (isValidCellIndex(cell_index)) {
         return cell_positions[cell_index];
     } else {
@@ -142,7 +130,6 @@ CellPosition getCellPositionByIndex(int cell_index) {
 }
 
 int getCellHeightSteps(char column, int row) {
-    // Convert cell height from inches to steps using column/row format
     int cell_index = cellToIndex(column, row);
     if (cell_index >= 0) {
         return (int)(cell_positions[cell_index].height_inches * STEPS_PER_INCH);
@@ -152,7 +139,6 @@ int getCellHeightSteps(char column, int row) {
 }
 
 int getCellHeightStepsByIndex(int cell_index) {
-    // Convert cell height from inches to steps using array index
     if (isValidCellIndex(cell_index)) {
         return (int)(cell_positions[cell_index].height_inches * STEPS_PER_INCH);
     } else {
@@ -161,24 +147,18 @@ int getCellHeightStepsByIndex(int cell_index) {
 }
 
 void resetCellConfig() {
-    // Reset all cells to default configuration
     initializeCellConfig();
 }
 
 void printCellConfig() {
-    // Print current cell configuration in a grid format
     Serial.println("=== CELL CONFIGURATION GRID ===");
     Serial.println("Format: Cell (Height inches, Angle degrees)");
     Serial.println();
-    
-    // Print header
     Serial.print("     ");
     for (char col = 'A'; col < 'A' + TOTAL_COLUMNS; col++) {
         Serial.print("Col " + String(col) + "    ");
     }
     Serial.println();
-    
-    // Print each row
     for (int row = 1; row <= TOTAL_ROWS; row++) {
         Serial.print("Row " + String(row) + " ");
         for (char col = 'A'; col < 'A' + TOTAL_COLUMNS; col++) {

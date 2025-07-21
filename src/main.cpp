@@ -153,8 +153,9 @@ void loop() {
   //! STEP 5: HANDLE START BUTTON PRESS
   //! ************************************************************************
   if (systemInitialized && startButton.pressed() && getCurrentState() == IDLE_STATE) {
-    Serial.println("Start button pressed - entering PICK state");
-    setState(PICK_STATE);
+    Serial.println("Start button pressed - starting cell sequence");
+    startCellSequence();
+    setState(CELL_SEQUENCE_STATE);
   }
 
   //! ************************************************************************
@@ -250,6 +251,10 @@ void loop() {
       Serial.println("Switching to TEST state with manual mode");
       setState(TEST_STATE);
       // The test state will handle the manual mode toggle
+    } else if (command == "start_sequence") {
+      Serial.println("Starting cell sequence manually");
+      startCellSequence();
+      setState(CELL_SEQUENCE_STATE);
     } else if (command == "cells") {
       Serial.println("=== CELL CONFIGURATION ===");
       printCellConfig();
@@ -322,6 +327,7 @@ void loop() {
       Serial.println("cells      - Show all cell configurations");
       Serial.println("cell_set <column><row> <height> <angle> - Set cell position");
       Serial.println("cell_move <column><row> - Move to specific cell position");
+      Serial.println("start_sequence - Start automated cell sequence");
       Serial.println("help       - Show this help message");
       Serial.println("test_manual - Enter test state");
       Serial.println("servo_status - Show servo status");
@@ -487,6 +493,9 @@ void setupStateMachineReferences() {
   
   // Set references for idle state
   setIdleReferences(&loaderServo, &mainServoController, zMotor);
+  
+  // Set references for cell sequence state
+  setCellSequenceReferences(&mainServoController, &loaderForkStepper, zMotor);
   
   Serial.println("State machine references configured");
 }
