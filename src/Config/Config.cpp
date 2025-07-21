@@ -63,14 +63,11 @@ int SERVO_THIRD_POS = 70;      // Third position in sequence
 //* ************************ TIMING SETTINGS *******************************
 //* ************************************************************************
 // Timing settings (in milliseconds)
-int SERVO_MOVE_DELAY = 500;      // Wait time between servo movements (1 second)
 int HOME_SWITCH_DEBOUNCE = 5;      // Home switch debounce time (5ms)
 int START_BUTTON_DEBOUNCE = 20;    // Start button debounce time (50ms)
 
-// Sequence timing settings
-int CYLINDER_EXTEND_WAIT = 750;     // Wait time after extending cylinder (750ms)
-int HEIGHT_ADJUST_WAIT = 100;       // Wait time after height adjustment (100ms)
-int CYLINDER_RETRACT_WAIT = 750;   // Wait time after retracting cylinder (1000ms)
+// Note: All sequence timing is now based on actual completion of operations
+// No artificial delays - system responds immediately when operations complete
 
 //* ************************************************************************
 //* ************************ Z-AXIS MOTOR SETTINGS ************************

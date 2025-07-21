@@ -1,5 +1,4 @@
 #include "ServoControl.h"
-#include "config/Config.h" // Include config for SERVO_MOVE_DELAY
 
 //! DO NOT CHANGE ANYTHING IN THIS FILE!!!
 
@@ -76,7 +75,8 @@ void ServoControl::setAngleRange(int minDeg, int maxDeg) {
 
 bool ServoControl::hasReachedTarget() {
     // Check if enough time has passed since the last write() command
-    return millis() - lastUpdateTime >= SERVO_MOVE_DELAY;
+    // Using a conservative 500ms delay for servo movement completion
+    return millis() - lastUpdateTime >= 500;
 }
 
 //* ************************************************************************

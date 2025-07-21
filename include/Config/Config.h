@@ -64,14 +64,10 @@ extern int SERVO_THIRD_POS;      // Third position in sequence (70 degrees)
 //* ************************ TIMING SETTINGS *******************************
 //* ************************************************************************
 // Timing settings (in milliseconds)
-extern int SERVO_MOVE_DELAY;      // Wait time between servo movements
 extern int HOME_SWITCH_DEBOUNCE;  // Home switch debounce time
 extern int START_BUTTON_DEBOUNCE; // Start button debounce time
 
-// Sequence timing settings
-extern int CYLINDER_EXTEND_WAIT;  // Wait time after extending cylinder (750ms)
-extern int HEIGHT_ADJUST_WAIT;    // Wait time after height adjustment (100ms)
-extern int CYLINDER_RETRACT_WAIT; // Wait time after retracting cylinder (1000ms)
+// Note: All sequence timing is now based on actual completion of operations
 
 //* ************************************************************************
 //* ************************ Z-AXIS MOTOR SETTINGS ************************

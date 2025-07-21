@@ -127,10 +127,11 @@ void executePlaceState() {
             
         case 3: {
             //! ************************************************************************
-            //! STEP 3: WAIT 750MS AFTER EXTENDING CYLINDER
+            //! STEP 3: WAIT FOR FORK EXTENSION TO COMPLETE
             //! ************************************************************************
-            if (currentTime - stepStartTime >= CYLINDER_EXTEND_WAIT) {
-                Serial.println("Step 3: Wait complete, lowering height by " + String(HEIGHT_ADJUSTMENT_INCHES) + " inches");
+            bool forkExtensionComplete = !placeLoaderFork || !placeLoaderFork->isMoving();
+            if (forkExtensionComplete) {
+                Serial.println("Step 3: Fork extension complete, lowering height by " + String(HEIGHT_ADJUSTMENT_INCHES) + " inches");
                 currentStep = 4;
                 stepStartTime = currentTime;
             }
@@ -166,13 +167,11 @@ void executePlaceState() {
             
         case 6: {
             //! ************************************************************************
-            //! STEP 6: WAIT 100MS AFTER HEIGHT ADJUSTMENT
+            //! STEP 6: PROCEED IMMEDIATELY TO RETRACT CYLINDER
             //! ************************************************************************
-            if (currentTime - stepStartTime >= HEIGHT_ADJUST_WAIT) {
-                Serial.println("Step 6: Height adjustment wait complete, retracting cylinder");
-                currentStep = 7;
-                stepStartTime = currentTime;
-            }
+            Serial.println("Step 6: Height adjustment complete, retracting cylinder");
+            currentStep = 7;
+            stepStartTime = currentTime;
             break;
         }
             
@@ -191,10 +190,11 @@ void executePlaceState() {
             
         case 8: {
             //! ************************************************************************
-            //! STEP 8: WAIT 750MS AFTER RETRACTING LOADER FORK
+            //! STEP 8: WAIT FOR FORK RETRACTION TO COMPLETE
             //! ************************************************************************
-            if (currentTime - stepStartTime >= CYLINDER_RETRACT_WAIT) {
-                Serial.println("Step 8: Loader fork retract wait complete, placing sequence finished");
+            bool forkRetractionComplete = !placeLoaderFork || !placeLoaderFork->isMoving();
+            if (forkRetractionComplete) {
+                Serial.println("Step 8: Fork retraction complete, placing sequence finished");
                 placeComplete = true;
             }
             break;
