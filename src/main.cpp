@@ -198,6 +198,9 @@ void loop() {
           // Get the stepper motor object and move it directly
           FastAccelStepper* forkStepper = loaderForkStepper.getStepper();
           if (forkStepper) {
+            // Set speed and acceleration before movement
+            forkStepper->setSpeedInHz(FORK_MAX_SPEED);
+            forkStepper->setAcceleration(FORK_ACCELERATION);
             forkStepper->moveTo(targetSteps);
             Serial.println("Moving fork to: " + String(targetSteps) + " steps (" + String(value) + " inches)");
             Serial.println("Fork movement started");
@@ -290,6 +293,8 @@ void loop() {
         
         // Move servo to slot angle
         mainServoController.moveTo(pos.servo_angle);
+        
+        // Note: Fork movement is handled by the state machine, not direct commands
       } else {
         Serial.println("ERROR: Invalid slot number. Use 0-" + String(TOTAL_SLOTS - 1));
       }
@@ -423,6 +428,7 @@ void initializeLoaderFork() {
   FastAccelStepper* loaderForkMotor = engine.stepperConnectToPin(LOADER_FORK_STEP_PIN);
   if (loaderForkMotor) {
       loaderForkMotor->setDirectionPin(LOADER_FORK_DIR_PIN);
+      loaderForkMotor->enableOutputs(); // Enable motor outputs
   }
   
   loaderForkStepper.begin(loaderForkMotor);

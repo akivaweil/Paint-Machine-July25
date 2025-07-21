@@ -24,7 +24,7 @@ void LoaderForkStepper::begin(FastAccelStepper* stepperObj) {
     stepper = stepperObj;
     
     //! ************************************************************************
-    //! STEP 2: CONFIGURE STEPPER MOTOR PINS
+    //! STEP 2: CONFIGURE STEPPER MOTOR PINS AND SETTINGS
     //! ************************************************************************
     if (stepper) {
         // Configure motor settings using config values
@@ -34,6 +34,11 @@ void LoaderForkStepper::begin(FastAccelStepper* stepperObj) {
         // Set current position to 0 (assume we're at home)
         stepper->setCurrentPosition(0);
         currentPosition = 0;
+        
+        // Enable motor outputs
+        stepper->enableOutputs();
+        
+        Serial.println("Fork stepper configured - Speed: " + String(FORK_MAX_SPEED) + " Hz, Accel: " + String(FORK_ACCELERATION) + " steps/s²");
     }
     
     //! ************************************************************************
@@ -47,6 +52,10 @@ void LoaderForkStepper::extend() {
     //! STEP 1: MOVE FORWARD (EXTEND) USING CONFIG DISTANCE
     //! ************************************************************************
     if (stepper && !isExtended) {
+        // Set speed and acceleration before movement
+        stepper->setSpeedInHz(FORK_MAX_SPEED);
+        stepper->setAcceleration(FORK_ACCELERATION);
+        
         lastExtensionDistance = FORK_MAX_DISTANCE_STEPS;
         int targetPosition = currentPosition + lastExtensionDistance;
         stepper->moveTo(targetPosition);
@@ -61,6 +70,10 @@ void LoaderForkStepper::extendToPickPosition() {
     //! STEP 1: MOVE FORWARD (EXTEND) USING PICK CONFIG DISTANCE
     //! ************************************************************************
     if (stepper) {
+        // Set speed and acceleration before movement
+        stepper->setSpeedInHz(FORK_MAX_SPEED);
+        stepper->setAcceleration(FORK_ACCELERATION);
+        
         lastExtensionDistance = PICK_FORK_EXTENSION_STEPS;
         int targetPosition = currentPosition + lastExtensionDistance;
         stepper->moveTo(targetPosition);
@@ -75,6 +88,10 @@ void LoaderForkStepper::extendToPlacePosition() {
     //! STEP 1: MOVE FORWARD (EXTEND) USING PLACE CONFIG DISTANCE
     //! ************************************************************************
     if (stepper) {
+        // Set speed and acceleration before movement
+        stepper->setSpeedInHz(FORK_MAX_SPEED);
+        stepper->setAcceleration(FORK_ACCELERATION);
+        
         lastExtensionDistance = PLACE_FORK_EXTENSION_STEPS;
         int targetPosition = currentPosition + lastExtensionDistance;
         stepper->moveTo(targetPosition);
@@ -89,6 +106,10 @@ void LoaderForkStepper::retract() {
     //! STEP 1: MOVE BACKWARD (RETRACT) USING ACTUAL EXTENSION DISTANCE
     //! ************************************************************************
     if (stepper && isExtended) {
+        // Set speed and acceleration before movement
+        stepper->setSpeedInHz(FORK_MAX_SPEED);
+        stepper->setAcceleration(FORK_ACCELERATION);
+        
         int targetPosition = currentPosition - lastExtensionDistance;
         stepper->moveTo(targetPosition);
         currentPosition = targetPosition;
