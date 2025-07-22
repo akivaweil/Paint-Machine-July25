@@ -44,11 +44,11 @@ extern float PLACE_FORK_EXTENSION_INCHES;  // Fork extension distance for place 
 extern int PLACE_FORK_EXTENSION_STEPS;     // Place fork extension in steps
 
 // Height adjustment settings
-extern float HEIGHT_ADJUSTMENT_INCHES; // Height adjustment during sequence (0.7 inches)
+extern float HEIGHT_ADJUSTMENT_INCHES; // Height adjustment during sequence (0.5 inches)
 extern int HEIGHT_ADJUSTMENT_STEPS;    // Height adjustment in steps
 
 // Idle state settings
-extern float IDLE_HEIGHT_INCHES;       // Height for idle state (5 inches)
+extern float IDLE_HEIGHT_INCHES;       // Height for idle state (6.0 inches)
 extern int IDLE_HEIGHT_STEPS;          // Idle height in steps
 extern float IDLE_ANGLE_DEGREES;       // Servo angle for idle state (half-degree precision)
 

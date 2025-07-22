@@ -27,16 +27,16 @@ int Z_CYCLE_DISTANCE_STEPS = (int)(Z_CYCLE_DISTANCE_INCHES * STEPS_PER_INCH);
 
 //* ************************************************************************
 //* ************************ PICK/PLACE SEQUENCE SETTINGS *****************
-//* ***********************************************************************
+//* ************************************************************************
 // Pick state settings
-float PICK_HEIGHT_INCHES = 0.3;   // Height to move to for pick operation (3.2 inches)
+float PICK_HEIGHT_INCHES = 0.3;   // Height to move to for pick operation (0.3 inches)
 int PICK_HEIGHT_STEPS = (int)(PICK_HEIGHT_INCHES * STEPS_PER_INCH);
 float PICK_ANGLE_DEGREES = 47.5;      // Servo angle for pick operation (half-degree precision)
 float PICK_FORK_EXTENSION_INCHES = 4.0;   // Fork extension distance for pick operation (inches)
 int PICK_FORK_EXTENSION_STEPS = (int)(PICK_FORK_EXTENSION_INCHES * FORK_STEPS_PER_INCH);
 
 // Place state settings
-float PLACE_HEIGHT_INCHES = 4.1;      // Height to move to for place operation (8 inches)
+float PLACE_HEIGHT_INCHES = 4.1;      // Height to move to for place operation (4.1 inches)
 int PLACE_HEIGHT_STEPS = (int)(PLACE_HEIGHT_INCHES * STEPS_PER_INCH);
 float PLACE_ANGLE_DEGREES = 152.0;         // Servo angle for place operation (half-degree precision)
 float PLACE_FORK_EXTENSION_INCHES = 3.9;   // Fork extension distance for place operation (inches) - REDUCED FOR CELLS
@@ -47,7 +47,7 @@ float HEIGHT_ADJUSTMENT_INCHES = 0.5; // Height adjustment during sequence (0.5 
 int HEIGHT_ADJUSTMENT_STEPS = (int)(HEIGHT_ADJUSTMENT_INCHES * STEPS_PER_INCH);
 
 // Idle state settings
-float IDLE_HEIGHT_INCHES = 6.0;        // Height for idle state (5 inches)
+float IDLE_HEIGHT_INCHES = 6.0;        // Height for idle state (6.0 inches)
 int IDLE_HEIGHT_STEPS = (int)(IDLE_HEIGHT_INCHES * STEPS_PER_INCH);
 float IDLE_ANGLE_DEGREES = 50.0;           // Servo angle for idle state (half-degree precision)
 
@@ -64,11 +64,12 @@ float SERVO_THIRD_POS = 70.0;      // Third position in sequence (half-degree pr
 //* ************************************************************************
 // Timing settings (in milliseconds)
 int HOME_SWITCH_DEBOUNCE = 5;      // Home switch debounce time (5ms)
-int START_BUTTON_DEBOUNCE = 20;    // Start button debounce time (50ms)
+int START_BUTTON_DEBOUNCE = 20;    // Start button debounce time (20ms)
 int FORK_HOME_SWITCH_DEBOUNCE = 5; // Fork home switch debounce time (5ms)
 
 // Note: All sequence timing is now based on actual completion of operations
 // No artificial delays - system responds immediately when operations complete
+
 //* ************************************************************************
 //* ************************ Z-AXIS MOTOR SETTINGS ************************
 //* ************************************************************************
@@ -81,7 +82,7 @@ float Z_HOMING_SPEED = 1000.0;    // Slow homing speed
 //* ************************ FORK SETTINGS ********************************
 //* ************************************************************************
 // Loader fork stepper motor settings
-float FORK_MAX_DISTANCE_INCHES = 4.3;   // Maximum travel distance for fork (inches) - increased from 3.0
+float FORK_MAX_DISTANCE_INCHES = 4.3;   // Maximum travel distance for fork (inches)
 int FORK_MAX_DISTANCE_STEPS = (int)(FORK_MAX_DISTANCE_INCHES * 254);  // 254 steps per inch for 20T 2GT belt
 float FORK_STEPS_PER_INCH = 254.0;      // Steps per inch for fork movement (20T 2GT belt)
 float FORK_MAX_SPEED = 10000.0;          // Maximum speed for fork movement (steps/sec)
