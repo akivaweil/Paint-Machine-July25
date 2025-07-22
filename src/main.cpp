@@ -51,6 +51,11 @@ Bounce2::Button forkHomeSwitch = Bounce2::Button();
 Bounce2::Button sensorButton = Bounce2::Button();
 
 //* ************************************************************************
+//* *********************** SENSOR CONTROL ********************************
+//* ************************************************************************
+bool sensorTriggered = false;  // Flag to prevent multiple sensor triggers
+
+//* ************************************************************************
 //* *********************** STATE VARIABLES *******************************
 //* ************************************************************************
 bool systemInitialized = false;      // Flag to track if startup sequence is complete
@@ -169,7 +174,15 @@ void loop() {
   //! ************************************************************************
   //! STEP 5.5: HANDLE SENSOR TRIGGER (ACTIVE LOW)
   //! ************************************************************************
-  if (systemInitialized && sensorButton.read() == LOW) {
+  // Reset sensor trigger flag when sensor goes HIGH
+  if (sensorButton.read() == HIGH) {
+    sensorTriggered = false;
+  }
+  
+  // Only trigger once when sensor goes LOW
+  if (systemInitialized && sensorButton.read() == LOW && !sensorTriggered) {
+    sensorTriggered = true;  // Set flag to prevent multiple triggers
+    
     if (getCurrentState() == IDLE_STATE) {
       // Start the cell sequence from loading tray position (no delay for initial start)
       Serial.println("Sensor triggered - starting cell sequence from loading tray position");
