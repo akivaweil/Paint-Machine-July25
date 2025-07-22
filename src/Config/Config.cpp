@@ -68,7 +68,7 @@ float Z_HOMING_SPEED = 1000.0;    // Slow homing speed
 //* ************************ FORK SETTINGS ********************************
 //* ************************************************************************
 // Loader fork stepper motor settings
-float FORK_MAX_DISTANCE_INCHES = 4.3;   // Maximum travel distance for fork (inches)
+float FORK_MAX_DISTANCE_INCHES = 4.1;   // Maximum travel distance for fork (inches)
 int FORK_MAX_DISTANCE_STEPS = (int)(FORK_MAX_DISTANCE_INCHES * 254);  // 254 steps per inch for 20T 2GT belt
 float FORK_STEPS_PER_INCH = 254.0;      // Steps per inch for fork movement (20T 2GT belt)
 float FORK_MAX_SPEED = 10000.0;          // Maximum speed for fork movement (steps/sec)
@@ -78,14 +78,14 @@ float FORK_ACCELERATION = 40000.0;      // Acceleration for fork movement (steps
 //* ************************ LOADING TRAY SETTINGS ***********************
 //* ************************************************************************
 // Loading tray position and fork extension settings
-float LOADING_TRAY_HEIGHT_INCHES = 9.6;    // Loading tray height in inches
-float LOADING_TRAY_ANGLE_DEGREES = 104.0;  // Loading tray servo angle in degrees
+float LOADING_TRAY_HEIGHT_INCHES = 9.5;    // Loading tray height in inches
+float LOADING_TRAY_ANGLE_DEGREES = 106.0;  // Loading tray servo angle in degrees
 
 //* ************************************************************************
 //* ************************ LOADING TRAY FORK SETTINGS *******************
 //* ************************************************************************
 // Loading tray specific fork extension settings
-float LOADING_TRAY_FORK_PICK_EXTENSION_INCHES = 4.1;    // Fork extension for picking from loading tray
+float LOADING_TRAY_FORK_PICK_EXTENSION_INCHES = 3.0;    // Fork extension for picking from loading tray
 int LOADING_TRAY_FORK_PICK_EXTENSION_STEPS = (int)(LOADING_TRAY_FORK_PICK_EXTENSION_INCHES * FORK_STEPS_PER_INCH);
-float LOADING_TRAY_FORK_PLACE_EXTENSION_INCHES = 4.1;   // Fork extension for placing to loading tray
-int LOADING_TRAY_FORK_PLACE_EXTENSION_STEPS = (int)(LOADING_TRAY_FORK_PLACE_EXTENSION_INCHES * FORK_STEPS_PER_INCH); 
+float LOADING_TRAY_FORK_PLACE_EXTENSION_INCHES = 3.0;   // Fork extension for placing to loading tray
+int LOADING_TRAY_FORK_PLACE_EXTENSION_STEPS = (int)(LOADING_TRAY_FORK_PLACE_EXTENSION_INCHES * FORK_STEPS_PER_INCH); 3
