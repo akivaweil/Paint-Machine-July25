@@ -42,8 +42,6 @@ void printCellConfig();
 //* ************************************************************************
 #define LOADING_TRAY_HEIGHT_INCHES 9.6
 #define LOADING_TRAY_ANGLE_DEGREES 104.0
-#define LOADING_TRAY_FORK_PICK_EXTENSION_INCHES 4.1    // Fork extension for picking from loading tray
-#define LOADING_TRAY_FORK_PLACE_EXTENSION_INCHES 4.1   // Fork extension for placing to loading tray
 
 //* ************************************************************************
 //* ************************ UTILITY FUNCTIONS ***************************
