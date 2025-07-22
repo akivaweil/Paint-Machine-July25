@@ -40,8 +40,7 @@ void printCellConfig();
 //* ************************************************************************
 //* ************************ LOADING TRAY CONFIGURATION ******************
 //* ************************************************************************
-#define LOADING_TRAY_HEIGHT_INCHES 9.6
-#define LOADING_TRAY_ANGLE_DEGREES 104.0
+// Loading tray position settings (defined in Config.cpp)
 
 //* ************************************************************************
 //* ************************ UTILITY FUNCTIONS ***************************

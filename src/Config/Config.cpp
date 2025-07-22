@@ -88,6 +88,13 @@ float FORK_MAX_SPEED = 10000.0;          // Maximum speed for fork movement (ste
 float FORK_ACCELERATION = 40000.0;      // Acceleration for fork movement (steps/sec²)
 
 //* ************************************************************************
+//* ************************ LOADING TRAY SETTINGS ***********************
+//* ************************************************************************
+// Loading tray position and fork extension settings
+float LOADING_TRAY_HEIGHT_INCHES = 9.6;    // Loading tray height in inches
+float LOADING_TRAY_ANGLE_DEGREES = 104.0;  // Loading tray servo angle in degrees
+
+//* ************************************************************************
 //* ************************ LOADING TRAY FORK SETTINGS *******************
 //* ************************************************************************
 // Loading tray specific fork extension settings
