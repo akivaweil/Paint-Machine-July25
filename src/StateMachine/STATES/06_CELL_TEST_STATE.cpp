@@ -126,10 +126,10 @@ void executeCellTestState() {
             //! STEP 2: PERFORM PICK OPERATION
             //! ************************************************************************
             if (!pickPhaseComplete) {
-                // Extend the loader fork to pick position
+                // Extend the loader fork to cell pick position
                 if (cellTestLoaderFork) {
-                    cellTestLoaderFork->extendToPickPosition();
-                    Serial.println("Step 2: Loader fork extending to pick position");
+                    cellTestLoaderFork->extendToCellPickPosition();
+                    Serial.println("Step 2: Loader fork extending to cell pick position");
                 }
                 currentStep = 3;
                 stepStartTime = currentTime;
@@ -204,10 +204,10 @@ void executeCellTestState() {
             //! STEP 7: PERFORM PLACE OPERATION
             //! ************************************************************************
             if (!placePhaseComplete) {
-                // Extend the loader fork to place position
+                // Extend the loader fork to cell place position
                 if (cellTestLoaderFork) {
-                    cellTestLoaderFork->extendToPlacePosition();
-                    Serial.println("Step 7: Loader fork extending to place position");
+                    cellTestLoaderFork->extendToCellPlacePosition();
+                    Serial.println("Step 7: Loader fork extending to cell place position");
                 }
                 currentStep = 8;
                 stepStartTime = currentTime;

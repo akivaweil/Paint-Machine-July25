@@ -90,6 +90,12 @@ extern int LOADING_TRAY_FORK_PICK_EXTENSION_STEPS;       // Pick extension in st
 extern float LOADING_TRAY_FORK_PLACE_EXTENSION_INCHES;   // Fork extension for placing to loading tray
 extern int LOADING_TRAY_FORK_PLACE_EXTENSION_STEPS;      // Place extension in steps
 
+// Cell specific fork extension settings
+extern float CELL_FORK_PICK_EXTENSION_INCHES;            // Fork extension for picking from cells
+extern int CELL_FORK_PICK_EXTENSION_STEPS;               // Cell pick extension in steps
+extern float CELL_FORK_PLACE_EXTENSION_INCHES;           // Fork extension for placing to cells
+extern int CELL_FORK_PLACE_EXTENSION_STEPS;              // Cell place extension in steps
+
 //* ************************************************************************
 //* ************************ CELL CONFIGURATION ***************************
 //* ************************************************************************

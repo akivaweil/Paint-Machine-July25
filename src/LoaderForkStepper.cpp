@@ -136,6 +136,41 @@ void LoaderForkStepper::extendToLoadingTrayPlacePosition() {
         Serial.println("Fork extending to loading tray place position: " + String(LOADING_TRAY_FORK_PLACE_EXTENSION_INCHES) + " inches (" + String(lastExtensionDistance) + " steps)");
     }
 }
+void LoaderForkStepper::extendToCellPickPosition() {
+    //! ************************************************************************
+    //! STEP 1: MOVE FORWARD (EXTEND) USING CELL PICK CONFIG DISTANCE
+    //! ************************************************************************
+    if (stepper) {
+        // Set speed and acceleration before movement
+        stepper->setSpeedInHz(FORK_MAX_SPEED);
+        stepper->setAcceleration(FORK_ACCELERATION);
+        
+        lastExtensionDistance = CELL_FORK_PICK_EXTENSION_STEPS;
+        int targetPosition = currentPosition + lastExtensionDistance;
+        stepper->moveTo(targetPosition);
+        currentPosition = targetPosition;
+        isExtended = true;
+        Serial.println("Fork extending to cell pick position: " + String(CELL_FORK_PICK_EXTENSION_INCHES) + " inches (" + String(lastExtensionDistance) + " steps)");
+    }
+}
+
+void LoaderForkStepper::extendToCellPlacePosition() {
+    //! ************************************************************************
+    //! STEP 1: MOVE FORWARD (EXTEND) USING CELL PLACE CONFIG DISTANCE
+    //! ************************************************************************
+    if (stepper) {
+        // Set speed and acceleration before movement
+        stepper->setSpeedInHz(FORK_MAX_SPEED);
+        stepper->setAcceleration(FORK_ACCELERATION);
+        
+        lastExtensionDistance = CELL_FORK_PLACE_EXTENSION_STEPS;
+        int targetPosition = currentPosition + lastExtensionDistance;
+        stepper->moveTo(targetPosition);
+        currentPosition = targetPosition;
+        isExtended = true;
+        Serial.println("Fork extending to cell place position: " + String(CELL_FORK_PLACE_EXTENSION_INCHES) + " inches (" + String(lastExtensionDistance) + " steps)");
+    }
+}
 
 void LoaderForkStepper::retract() {
     //! ************************************************************************

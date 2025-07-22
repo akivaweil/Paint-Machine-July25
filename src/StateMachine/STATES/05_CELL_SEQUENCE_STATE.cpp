@@ -323,11 +323,11 @@ void performPlaceOperation() {
         
         case 2: {
             //! ************************************************************************
-            //! STEP 2: EXTEND FORK TO PLACE POSITION
+            //! STEP 2: EXTEND FORK TO CELL PLACE POSITION
             //! ************************************************************************
             if (cellSequenceLoaderFork) {
-                cellSequenceLoaderFork->extendToPlacePosition();
-                Serial.println("Step 2: Fork extending to place position");
+                cellSequenceLoaderFork->extendToCellPlacePosition();
+                Serial.println("Step 2: Fork extending to cell place position");
             }
             sequenceData.currentStep = 3;
             sequenceData.stepStartTime = currentTime;

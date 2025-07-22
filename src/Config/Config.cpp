@@ -79,7 +79,7 @@ float FORK_ACCELERATION = 40000.0;      // Acceleration for fork movement (steps
 //* ************************************************************************
 // Loading tray position and fork extension settings
 float LOADING_TRAY_HEIGHT_INCHES = 9.5;    // Loading tray height in inches
-float LOADING_TRAY_ANGLE_DEGREES = 105.0;  // Loading tray servo angle in degrees
+float LOADING_TRAY_ANGLE_DEGREES = 104.0;  // Loading tray servo angle in degrees
 
 //* ************************************************************************
 //* ************************ LOADING TRAY FORK SETTINGS *******************
@@ -89,3 +89,11 @@ float LOADING_TRAY_FORK_PICK_EXTENSION_INCHES = 3.0;    // Fork extension for pi
 int LOADING_TRAY_FORK_PICK_EXTENSION_STEPS = (int)(LOADING_TRAY_FORK_PICK_EXTENSION_INCHES * FORK_STEPS_PER_INCH);
 float LOADING_TRAY_FORK_PLACE_EXTENSION_INCHES = 3.0;   // Fork extension for placing to loading tray
 int LOADING_TRAY_FORK_PLACE_EXTENSION_STEPS = (int)(LOADING_TRAY_FORK_PLACE_EXTENSION_INCHES * FORK_STEPS_PER_INCH);
+//* ************************************************************************
+//* ************************ CELL FORK SETTINGS ***************************
+//* ************************************************************************
+// Cell specific fork extension settings
+float CELL_FORK_PICK_EXTENSION_INCHES = 4.1;             // Fork extension for picking from cells
+int CELL_FORK_PICK_EXTENSION_STEPS = (int)(CELL_FORK_PICK_EXTENSION_INCHES * FORK_STEPS_PER_INCH);
+float CELL_FORK_PLACE_EXTENSION_INCHES = 4.1;            // Fork extension for placing to cells
+int CELL_FORK_PLACE_EXTENSION_STEPS = (int)(CELL_FORK_PLACE_EXTENSION_INCHES * FORK_STEPS_PER_INCH);
