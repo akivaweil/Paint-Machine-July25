@@ -44,7 +44,7 @@ extern float PLACE_FORK_EXTENSION_INCHES;  // Fork extension distance for place 
 extern int PLACE_FORK_EXTENSION_STEPS;     // Place fork extension in steps
 
 // Height adjustment settings
-extern float HEIGHT_ADJUSTMENT_INCHES; // Height adjustment during sequence (.4 inches)
+extern float HEIGHT_ADJUSTMENT_INCHES; // Height adjustment during sequence (0.7 inches)
 extern int HEIGHT_ADJUSTMENT_STEPS;    // Height adjustment in steps
 
 // Idle state settings

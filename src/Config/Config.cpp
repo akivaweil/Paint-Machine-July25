@@ -43,7 +43,7 @@ float PLACE_FORK_EXTENSION_INCHES = 3.9;   // Fork extension distance for place 
 int PLACE_FORK_EXTENSION_STEPS = (int)(PLACE_FORK_EXTENSION_INCHES * FORK_STEPS_PER_INCH);
 
 // Height adjustment settings
-float HEIGHT_ADJUSTMENT_INCHES = 0.5; // Height adjustment during sequence (.7 inches)
+float HEIGHT_ADJUSTMENT_INCHES = 0.7; // Height adjustment during sequence (0.7 inches)
 int HEIGHT_ADJUSTMENT_STEPS = (int)(HEIGHT_ADJUSTMENT_INCHES * STEPS_PER_INCH);
 
 // Idle state settings
