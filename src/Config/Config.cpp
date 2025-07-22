@@ -60,8 +60,8 @@ int FORK_HOME_SWITCH_DEBOUNCE = 5; // Fork home switch debounce time (5ms)
 //* ************************ Z-AXIS MOTOR SETTINGS ************************
 //* ************************************************************************
 // Z-axis stepper motor settings
-float Z_MAX_SPEED = 8000.0;      // Maximum speed in steps per second
-float Z_ACCELERATION = 27000.0;   // Acceleration in steps per second^2
+float Z_MAX_SPEED = 10000.0;      // Maximum speed in steps per second
+float Z_ACCELERATION = 30000.0;   // Acceleration in steps per second^2
 float Z_HOMING_SPEED = 1000.0;    // Slow homing speed
 
 //* ************************************************************************
@@ -71,8 +71,8 @@ float Z_HOMING_SPEED = 1000.0;    // Slow homing speed
 float FORK_MAX_DISTANCE_INCHES = 4.1;   // Maximum travel distance for fork (inches)
 int FORK_MAX_DISTANCE_STEPS = (int)(FORK_MAX_DISTANCE_INCHES * 254);  // 254 steps per inch for 20T 2GT belt
 float FORK_STEPS_PER_INCH = 254.0;      // Steps per inch for fork movement (20T 2GT belt)
-float FORK_MAX_SPEED = 10000.0;          // Maximum speed for fork movement (steps/sec)
-float FORK_ACCELERATION = 40000.0;      // Acceleration for fork movement (steps/sec²)
+float FORK_MAX_SPEED = 20000.0;          // Maximum speed for fork movement (steps/sec)
+float FORK_ACCELERATION = 70000.0;      // Acceleration for fork movement (steps/sec²)
 
 //* ************************************************************************
 //* ************************ LOADING TRAY SETTINGS ***********************

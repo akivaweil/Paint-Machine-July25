@@ -53,7 +53,7 @@ Bounce2::Button sensorButton = Bounce2::Button();
 //* ************************************************************************
 //* *********************** SENSOR CONTROL ********************************
 //* ************************************************************************
-bool sensorTriggered = false;  // Flag to prevent multiple sensor triggers
+bool sensorWasLow = false;  // Track previous sensor state to detect LOW state entry
 
 //* ************************************************************************
 //* *********************** STATE VARIABLES *******************************
@@ -174,15 +174,10 @@ void loop() {
   //! ************************************************************************
   //! STEP 5.5: HANDLE SENSOR TRIGGER (ACTIVE LOW)
   //! ************************************************************************
-  // Reset sensor trigger flag when sensor goes HIGH
-  if (sensorButton.read() == HIGH) {
-    sensorTriggered = false;
-  }
+  bool sensorIsLow = (sensorButton.read() == LOW);
   
-  // Only trigger once when sensor goes LOW
-  if (systemInitialized && sensorButton.read() == LOW && !sensorTriggered) {
-    sensorTriggered = true;  // Set flag to prevent multiple triggers
-    
+  // Trigger when entering LOW state (sensor just went LOW)
+  if (systemInitialized && sensorIsLow && !sensorWasLow) {
     if (getCurrentState() == IDLE_STATE) {
       // Start the cell sequence from loading tray position (no delay for initial start)
       Serial.println("Sensor triggered - starting cell sequence from loading tray position");
@@ -196,6 +191,9 @@ void loop() {
       continueCellSequence();
     }
   }
+  
+  // Update previous state
+  sensorWasLow = sensorIsLow;
 
   //! ************************************************************************
   //! STEP 6: HANDLE SERIAL COMMANDS
