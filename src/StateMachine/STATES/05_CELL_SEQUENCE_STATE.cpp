@@ -104,23 +104,6 @@ void continueCellSequence() {
         // We were waiting at loading tray position, now lift fork to catch square
         sequenceData.currentStep = 5;
         sequenceData.stepStartTime = millis();
-    } else if (sequenceData.currentStep == 12) {
-        // We were waiting at loading tray position with fork extended, now continue to next cell
-        // First lift Z 0.5 inches, then (after Z is done) retract fork, then advance to next cell
-        // Step 13: Raise Z 0.5 inches, then wait for Z to finish before retracting fork
-        if (cellSequenceZMotor) {
-            int currentSteps = cellSequenceZMotor->getCurrentPosition();
-            int liftSteps = (int)(0.5 * STEPS_PER_INCH);
-            int targetSteps = currentSteps + liftSteps;
-            cellSequenceZMotor->setSpeedInHz(Z_MAX_SPEED);
-            cellSequenceZMotor->setAcceleration(Z_ACCELERATION);
-            cellSequenceZMotor->moveTo(targetSteps);
-            Serial.println("Lifting Z 0.5 inches before retracting fork");
-        }
-        sequenceData.isPicking = false;
-        sequenceData.currentStep = 13; // New step: wait for Z, then retract fork
-        sequenceData.stepStartTime = millis();
-        sequenceData.forkAlreadyExtended = false; // Fork will be retracted after
     }
 }
 
@@ -411,123 +394,20 @@ void performPlaceOperation() {
         
         case 7: {
             //! ************************************************************************
-            //! STEP 7: WAIT FOR FORK RETRACTION TO COMPLETE
+            //! STEP 7: WAIT FOR FORK RETRACTION TO COMPLETE, THEN ADVANCE TO NEXT CELL
             //! ************************************************************************
             bool forkRetractionComplete = !cellSequenceLoaderFork || !cellSequenceLoaderFork->isMoving();
             if (forkRetractionComplete) {
                 Serial.println("Step 7: Place operation complete for cell " + String(sequenceData.currentColumn) + String(sequenceData.currentRow));
-                Serial.println("Automatically returning to loading tray position with fork extended...");
-                sequenceData.currentStep = 8; // Move to loading tray position
-                sequenceData.stepStartTime = currentTime;
-            }
-            break;
-        }
-        
-        case 8: {
-            //! ************************************************************************
-            //! STEP 8: MOVE TO LOADING TRAY POSITION
-            //! ************************************************************************
-            if (currentTime - sequenceData.stepStartTime >= 100) {
-                Serial.println("Step 8: Moving to loading tray position");
-                
-                // Move Z motor to loading tray height
-                if (cellSequenceZMotor) {
-                    int targetSteps = (int)(LOADING_TRAY_HEIGHT_INCHES * STEPS_PER_INCH);
-                    cellSequenceZMotor->setSpeedInHz(Z_MAX_SPEED);
-                    cellSequenceZMotor->setAcceleration(Z_ACCELERATION);
-                    cellSequenceZMotor->moveTo(targetSteps);
-                }
-                
-                // Move servo to loading tray angle
-                if (cellSequenceServoController) {
-                    cellSequenceServoController->write(LOADING_TRAY_ANGLE_DEGREES);
-                }
-                
-                sequenceData.currentStep = 9;
-                sequenceData.stepStartTime = currentTime;
-            }
-            break;
-        }
-        
-        case 9: {
-            //! ************************************************************************
-            //! STEP 9: WAIT FOR MOTOR AND SERVO TO REACH LOADING TRAY POSITION
-            //! ************************************************************************
-            bool zMotorReady = !cellSequenceZMotor || !cellSequenceZMotor->isRunning();
-            bool servoReady = !cellSequenceServoController || cellSequenceServoController->hasReachedTarget();
-            
-            if (zMotorReady && servoReady) {
-                Serial.println("Step 9: Loading tray position reached, extending fork");
-                sequenceData.currentStep = 10;
-                sequenceData.stepStartTime = currentTime;
-            }
-            break;
-        }
-        
-        case 10: {
-            //! ************************************************************************
-            //! STEP 10: EXTEND FORK TO LOADING TRAY PICK POSITION
-            //! ************************************************************************
-            if (cellSequenceLoaderFork) {
-                cellSequenceLoaderFork->extendToLoadingTrayPickPosition();
-                Serial.println("Step 10: Fork extending to loading tray pick position");
-            }
-            sequenceData.currentStep = 11;
-            sequenceData.stepStartTime = currentTime;
-            break;
-        }
-        
-        case 11: {
-            //! ************************************************************************
-            //! STEP 11: WAIT FOR FORK EXTENSION TO COMPLETE
-            //! ************************************************************************
-            bool forkExtensionComplete = !cellSequenceLoaderFork || !cellSequenceLoaderFork->isMoving();
-            if (forkExtensionComplete) {
-                Serial.println("Step 11: Fork extension complete - waiting at loading tray position with fork extended");
-                Serial.println("Press START button to continue to next cell...");
-                sequenceData.currentStep = 12; // Wait for start button press
-                sequenceData.stepStartTime = currentTime;
-            }
-            break;
-        }
-        
-        case 12: {
-            //! ************************************************************************
-            //! STEP 12: WAIT FOR START BUTTON PRESS TO CONTINUE
-            //! ************************************************************************
-            // This step waits indefinitely until the start button is pressed again
-            // The start button handling is done in main.cpp
-            break;
-        }
-
-        case 13: {
-            //! ************************************************************************
-            //! STEP 13: WAIT FOR Z LIFT TO COMPLETE, THEN RETRACT FORK
-            //! ************************************************************************
-            bool zMotorReady = !cellSequenceZMotor || !cellSequenceZMotor->isRunning();
-            if (zMotorReady) {
-                if (cellSequenceLoaderFork) {
-                    cellSequenceLoaderFork->retract();
-                    Serial.println("Step 13: Z lift complete, retracting fork");
-                }
-                sequenceData.currentStep = 14; // Wait for fork retraction to complete
-                sequenceData.stepStartTime = currentTime;
-            }
-            break;
-        }
-
-        case 14: {
-            //! ************************************************************************
-            //! STEP 14: WAIT FOR FORK RETRACTION TO COMPLETE, THEN ADVANCE TO NEXT CELL
-            //! ************************************************************************
-            bool forkRetractionComplete = !cellSequenceLoaderFork || !cellSequenceLoaderFork->isMoving();
-            if (forkRetractionComplete) {
                 nextCell(); // Advance to next valid cell (skips invalid cells)
-                sequenceData.currentStep = 0; // Now proceed to normal place operation
+                sequenceData.isPicking = true; // Switch back to pick mode
+                sequenceData.currentStep = 0; // Start new pick operation
                 sequenceData.stepStartTime = currentTime;
             }
             break;
         }
+        
+
     }
 }
 
