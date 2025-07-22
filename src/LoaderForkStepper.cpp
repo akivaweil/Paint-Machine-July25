@@ -67,37 +67,37 @@ void LoaderForkStepper::extend() {
 
 void LoaderForkStepper::extendToPickPosition() {
     //! ************************************************************************
-    //! STEP 1: MOVE FORWARD (EXTEND) USING PICK CONFIG DISTANCE
+    //! STEP 1: MOVE FORWARD (EXTEND) USING LOADING TRAY PICK CONFIG DISTANCE
     //! ************************************************************************
     if (stepper) {
         // Set speed and acceleration before movement
         stepper->setSpeedInHz(FORK_MAX_SPEED);
         stepper->setAcceleration(FORK_ACCELERATION);
         
-        lastExtensionDistance = PICK_FORK_EXTENSION_STEPS;
+        lastExtensionDistance = LOADING_TRAY_FORK_PICK_EXTENSION_STEPS;
         int targetPosition = currentPosition + lastExtensionDistance;
         stepper->moveTo(targetPosition);
         currentPosition = targetPosition;
         isExtended = true;
-        Serial.println("Fork extending to pick position: " + String(PICK_FORK_EXTENSION_INCHES) + " inches (" + String(lastExtensionDistance) + " steps)");
+        Serial.println("Fork extending to pick position: " + String(LOADING_TRAY_FORK_PICK_EXTENSION_INCHES) + " inches (" + String(lastExtensionDistance) + " steps)");
     }
 }
 
 void LoaderForkStepper::extendToPlacePosition() {
     //! ************************************************************************
-    //! STEP 1: MOVE FORWARD (EXTEND) USING PLACE CONFIG DISTANCE
+    //! STEP 1: MOVE FORWARD (EXTEND) USING LOADING TRAY PLACE CONFIG DISTANCE
     //! ************************************************************************
     if (stepper) {
         // Set speed and acceleration before movement
         stepper->setSpeedInHz(FORK_MAX_SPEED);
         stepper->setAcceleration(FORK_ACCELERATION);
         
-        lastExtensionDistance = PLACE_FORK_EXTENSION_STEPS;
+        lastExtensionDistance = LOADING_TRAY_FORK_PLACE_EXTENSION_STEPS;
         int targetPosition = currentPosition + lastExtensionDistance;
         stepper->moveTo(targetPosition);
         currentPosition = targetPosition;
         isExtended = true;
-        Serial.println("Fork extending to place position: " + String(PLACE_FORK_EXTENSION_INCHES) + " inches (" + String(lastExtensionDistance) + " steps)");
+        Serial.println("Fork extending to place position: " + String(LOADING_TRAY_FORK_PLACE_EXTENSION_INCHES) + " inches (" + String(lastExtensionDistance) + " steps)");
     }
 }
 

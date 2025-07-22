@@ -27,22 +27,8 @@ extern float Z_CYCLE_DISTANCE_INCHES; // Distance to move down/up during cycle
 extern int Z_CYCLE_DISTANCE_STEPS;    // Cycle distance in steps
 
 //* ************************************************************************
-//* ************************ PICK/PLACE SEQUENCE SETTINGS *****************
+//* ************************ HEIGHT ADJUSTMENT SETTINGS *******************
 //* ************************************************************************
-// Pick state settings
-extern float PICK_HEIGHT_INCHES;  // Height to move to for pick operation
-extern int PICK_HEIGHT_STEPS;     // Pick height in steps
-extern float PICK_ANGLE_DEGREES;  // Servo angle for pick operation (half-degree precision)
-extern float PICK_FORK_EXTENSION_INCHES;  // Fork extension distance for pick operation
-extern int PICK_FORK_EXTENSION_STEPS;     // Pick fork extension in steps
-
-// Place state settings  
-extern float PLACE_HEIGHT_INCHES;     // Height to move to for place operation
-extern int PLACE_HEIGHT_STEPS;        // Place height in steps
-extern float PLACE_ANGLE_DEGREES;     // Servo angle for place operation (half-degree precision)
-extern float PLACE_FORK_EXTENSION_INCHES;  // Fork extension distance for place operation
-extern int PLACE_FORK_EXTENSION_STEPS;     // Place fork extension in steps
-
 // Height adjustment settings
 extern float HEIGHT_ADJUSTMENT_INCHES; // Height adjustment during sequence (0.5 inches)
 extern int HEIGHT_ADJUSTMENT_STEPS;    // Height adjustment in steps

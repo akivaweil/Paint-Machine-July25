@@ -26,22 +26,8 @@ float Z_CYCLE_DISTANCE_INCHES = 2.0;  // Distance to move down/up during cycle (
 int Z_CYCLE_DISTANCE_STEPS = (int)(Z_CYCLE_DISTANCE_INCHES * STEPS_PER_INCH);
 
 //* ************************************************************************
-//* ************************ PICK/PLACE SEQUENCE SETTINGS *****************
+//* ************************ HEIGHT ADJUSTMENT SETTINGS *******************
 //* ************************************************************************
-// Pick state settings
-float PICK_HEIGHT_INCHES = 0.3;   // Height to move to for pick operation (0.3 inches)
-int PICK_HEIGHT_STEPS = (int)(PICK_HEIGHT_INCHES * STEPS_PER_INCH);
-float PICK_ANGLE_DEGREES = 47.5;      // Servo angle for pick operation (half-degree precision)
-float PICK_FORK_EXTENSION_INCHES = 4.0;   // Fork extension distance for pick operation (inches)
-int PICK_FORK_EXTENSION_STEPS = (int)(PICK_FORK_EXTENSION_INCHES * FORK_STEPS_PER_INCH);
-
-// Place state settings
-float PLACE_HEIGHT_INCHES = 4.1;      // Height to move to for place operation (4.1 inches)
-int PLACE_HEIGHT_STEPS = (int)(PLACE_HEIGHT_INCHES * STEPS_PER_INCH);
-float PLACE_ANGLE_DEGREES = 152.0;         // Servo angle for place operation (half-degree precision)
-float PLACE_FORK_EXTENSION_INCHES = 3.9;   // Fork extension distance for place operation (inches) - REDUCED FOR CELLS
-int PLACE_FORK_EXTENSION_STEPS = (int)(PLACE_FORK_EXTENSION_INCHES * FORK_STEPS_PER_INCH);
-
 // Height adjustment settings
 float HEIGHT_ADJUSTMENT_INCHES = 0.5; // Height adjustment during sequence (0.5 inches)
 int HEIGHT_ADJUSTMENT_STEPS = (int)(HEIGHT_ADJUSTMENT_INCHES * STEPS_PER_INCH);
