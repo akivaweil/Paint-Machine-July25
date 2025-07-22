@@ -93,7 +93,7 @@ int LOADING_TRAY_FORK_PLACE_EXTENSION_STEPS = (int)(LOADING_TRAY_FORK_PLACE_EXTE
 //* ************************ CELL FORK SETTINGS ***************************
 //* ************************************************************************
 // Cell specific fork extension settings
-float CELL_FORK_PICK_EXTENSION_INCHES = 4.1;             // Fork extension for picking from cells
+float CELL_FORK_PICK_EXTENSION_INCHES = 3.8;             // Fork extension for picking from cells
 int CELL_FORK_PICK_EXTENSION_STEPS = (int)(CELL_FORK_PICK_EXTENSION_INCHES * FORK_STEPS_PER_INCH);
-float CELL_FORK_PLACE_EXTENSION_INCHES = 4.1;            // Fork extension for placing to cells
+float CELL_FORK_PLACE_EXTENSION_INCHES = 3.8;            // Fork extension for placing to cells
 int CELL_FORK_PLACE_EXTENSION_STEPS = (int)(CELL_FORK_PLACE_EXTENSION_INCHES * FORK_STEPS_PER_INCH);

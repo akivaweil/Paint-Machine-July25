@@ -171,13 +171,12 @@ void loop() {
   //! ************************************************************************
   if (systemInitialized && sensorButton.fell()) {
     if (getCurrentState() == IDLE_STATE) {
-      // Start the cell sequence from loading tray position with 1 second delay
-      Serial.println("Sensor triggered - waiting 1 second before starting cell sequence");
-      delay(1000); // 1 second delay before starting movement
-      Serial.println("Starting cell sequence from loading tray position");
+      // Start the cell sequence from loading tray position (no delay for initial start)
+      Serial.println("Sensor triggered - starting cell sequence from loading tray position");
       startCellSequence();
       setState(CELL_SEQUENCE_STATE);
     } else if (getCurrentState() == CELL_SEQUENCE_STATE) {
+      // Only delay when already in cell sequence (at loading tray position)
       Serial.println("Sensor triggered - waiting 1 second before continuing to next cell");
       delay(1000); // 1 second delay before continuing
       Serial.println("Continuing to next cell");
