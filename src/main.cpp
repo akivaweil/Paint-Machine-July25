@@ -322,6 +322,25 @@ void loop() {
       } else {
         Serial.println("ERROR: Invalid cell reference format. Use: A1, B2, C3, etc.");
       }
+    } else if (command.startsWith("test_cell ")) {
+      // Format: test_cell <column><row>
+      // Example: test_cell A1
+      String cellRef = command.substring(10);
+      
+      if (cellRef.length() >= 2) {
+        char column = cellRef.charAt(0);
+        int row = cellRef.substring(1).toInt();
+        
+        if (isValidCell(column, row)) {
+          Serial.println("Starting cell test for " + String(column) + String(row));
+          setCellTestTarget(column, row);
+          setState(CELL_TEST_STATE);
+        } else {
+          Serial.println("ERROR: Invalid cell reference. Use A1-D5");
+        }
+      } else {
+        Serial.println("ERROR: Invalid cell reference format. Use: test_cell A1, test_cell B2, etc.");
+      }
     } else if (command == "help") {
       Serial.println("=== AVAILABLE COMMANDS ===");
       Serial.println("h<height>  - Move Z-axis to height (inches) - Example: h1.3, h20 (max 27 inches)");
@@ -330,6 +349,7 @@ void loop() {
       Serial.println("cells      - Show all cell configurations");
       Serial.println("cell_set <column><row> <height> <angle> - Set cell position");
       Serial.println("cell_move <column><row> - Move to specific cell position");
+      Serial.println("test_cell <column><row> - Test pick/place cycle for specific cell");
       Serial.println("start_sequence - Start automated cell sequence (machine waits at loading tray position)");
       Serial.println("help       - Show this help message");
       Serial.println("test_manual - Enter test state");
@@ -499,6 +519,9 @@ void setupStateMachineReferences() {
   
   // Set references for cell sequence state
   setCellSequenceReferences(&loaderServo, &loaderForkStepper, zMotor);
+  
+  // Set references for cell test state
+  setCellTestReferences(&loaderServo, &loaderForkStepper, zMotor);
   
   Serial.println("State machine references configured");
 }

@@ -19,7 +19,8 @@ enum StateMachineState {
     PICK_STATE = 2,        // Picking operation
     PLACE_STATE = 3,       // Placing operation
     TEST_STATE = 4,        // Test state for manual testing
-    CELL_SEQUENCE_STATE = 5 // Automated cell sequence (pick from loading tray, place in cells)
+    CELL_SEQUENCE_STATE = 5, // Automated cell sequence (pick from loading tray, place in cells)
+    CELL_TEST_STATE = 6    // Individual cell testing with pick/place operations
 };
 
 //* ************************************************************************
@@ -55,6 +56,7 @@ void executePickState();
 void executePlaceState();
 void executeTestState();
 void executeCellSequenceState();
+void executeCellTestState();
 
 // State reset functions
 void resetIdleState();
@@ -63,6 +65,7 @@ void resetPickState();
 void resetPlaceState();
 void resetTestState();
 void resetCellSequenceState();
+void resetCellTestState();
 
 // Home state specific functions
 void performTestMotionSequence();
@@ -76,6 +79,10 @@ void setPlaceReferences(ServoControl* servoController, LoaderForkStepper* loader
 void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* servoController, LoaderForkStepper* loaderFork);
 void setIdleReferences(ServoControl* servo, ServoAccelerationController* servoController, FastAccelStepper* zMotor);
 void setCellSequenceReferences(ServoControl* servoController, LoaderForkStepper* loaderFork, FastAccelStepper* zMotor);
+void setCellTestReferences(ServoControl* servoController, LoaderForkStepper* loaderFork, FastAccelStepper* zMotor);
+
+// Cell test functions
+void setCellTestTarget(char column, int row);
 
 // Cell sequence functions
 void startCellSequence();
