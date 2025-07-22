@@ -65,24 +65,27 @@ void startCellSequence() {
     sequenceData.forkAlreadyExtended = false; // Fork starts retracted
     
     Serial.println("=== STARTING CELL SEQUENCE ===");
-    Serial.println("Sequence: Pick from loading tray, then place in cells A1-D5");
+    Serial.println("Sequence: Pick from loading tray, then place in valid cells");
+    Serial.println("Valid cells: A1-A5, B2-B5, C1-C5, D3-D5");
 }
 
 void nextCell() {
     //! ************************************************************************
-    //! ADVANCE TO NEXT CELL
+    //! ADVANCE TO NEXT CELL (SKIPPING INVALID CELLS)
     //! ************************************************************************
-    sequenceData.currentRow++;
-    if (sequenceData.currentRow > TOTAL_ROWS) {
-        sequenceData.currentRow = 1;
-        sequenceData.currentColumn++;
-        if (sequenceData.currentColumn > 'D') {
-            // All cells processed
-            sequenceData.sequenceComplete = true;
-            Serial.println("All cells processed - sequence complete");
-            return;
+    do {
+        sequenceData.currentRow++;
+        if (sequenceData.currentRow > TOTAL_ROWS) {
+            sequenceData.currentRow = 1;
+            sequenceData.currentColumn++;
+            if (sequenceData.currentColumn > 'D') {
+                // All cells processed
+                sequenceData.sequenceComplete = true;
+                Serial.println("All cells processed - sequence complete");
+                return;
+            }
         }
-    }
+    } while (!isValidCell(sequenceData.currentColumn, sequenceData.currentRow));
     
     // Reset for next cell
     sequenceData.isPicking = true;
