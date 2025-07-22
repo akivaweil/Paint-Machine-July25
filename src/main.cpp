@@ -176,15 +176,27 @@ void loop() {
   //! ************************************************************************
   bool sensorIsLow = (sensorButton.read() == LOW);
   
-  // Trigger when entering LOW state (sensor just went LOW)
-  if (systemInitialized && sensorIsLow && !sensorWasLow) {
+  // Trigger when entering LOW state (sensor just went LOW) OR when already LOW in IDLE state
+  if (systemInitialized && sensorIsLow) {
     if (getCurrentState() == IDLE_STATE) {
-      // Start the cell sequence from loading tray position (no delay for initial start)
-      Serial.println("Sensor triggered - starting cell sequence from loading tray position");
-      startCellSequence();
-      setState(CELL_SEQUENCE_STATE);
-    } else if (getCurrentState() == CELL_SEQUENCE_STATE) {
-      // Only delay when already in cell sequence (at loading tray position)
+      // Check if this is a new trigger (sensor just went LOW) or wood already present
+      if (!sensorWasLow) {
+        // Sensor just went LOW - start immediately
+        Serial.println("Sensor triggered - starting cell sequence from loading tray position");
+        startCellSequence();
+        setState(CELL_SEQUENCE_STATE);
+      } else {
+        // Wood already present when returning to IDLE - start after brief delay
+        static unsigned long lastIdleCheck = 0;
+        if (millis() - lastIdleCheck > 500) { // Check every 500ms to avoid rapid triggering
+          Serial.println("Wood already present in IDLE state - starting cell sequence");
+          startCellSequence();
+          setState(CELL_SEQUENCE_STATE);
+          lastIdleCheck = millis();
+        }
+      }
+    } else if (getCurrentState() == CELL_SEQUENCE_STATE && !sensorWasLow) {
+      // Only trigger on edge when already in cell sequence (sensor just went LOW)
       Serial.println("Sensor triggered - waiting 1 second before continuing to next cell");
       delay(1000); // 1 second delay before continuing
       Serial.println("Continuing to next cell");
