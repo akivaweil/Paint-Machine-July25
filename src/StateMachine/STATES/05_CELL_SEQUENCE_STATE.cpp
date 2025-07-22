@@ -107,17 +107,6 @@ void continueCellSequence() {
     } else if (sequenceData.currentStep == 12) {
         // We were waiting at loading tray position with fork extended, now continue to next cell
         // First lift Z 0.5 inches, then (after Z is done) retract fork, then advance to next cell
-        sequenceData.currentRow++;
-        if (sequenceData.currentRow > TOTAL_ROWS) {
-            sequenceData.currentRow = 1;
-            sequenceData.currentColumn++;
-            if (sequenceData.currentColumn > 'D') {
-                // All cells processed
-                sequenceData.sequenceComplete = true;
-                Serial.println("All cells processed - sequence complete");
-                return;
-            }
-        }
         // Step 13: Raise Z 0.5 inches, then wait for Z to finish before retracting fork
         if (cellSequenceZMotor) {
             int currentSteps = cellSequenceZMotor->getCurrentPosition();
@@ -132,7 +121,6 @@ void continueCellSequence() {
         sequenceData.currentStep = 13; // New step: wait for Z, then retract fork
         sequenceData.stepStartTime = millis();
         sequenceData.forkAlreadyExtended = false; // Fork will be retracted after
-        Serial.println("Moving to cell " + String(sequenceData.currentColumn) + String(sequenceData.currentRow));
     }
 }
 
@@ -522,6 +510,19 @@ void performPlaceOperation() {
                     cellSequenceLoaderFork->retract();
                     Serial.println("Step 13: Z lift complete, retracting fork");
                 }
+                sequenceData.currentStep = 14; // Wait for fork retraction to complete
+                sequenceData.stepStartTime = currentTime;
+            }
+            break;
+        }
+
+        case 14: {
+            //! ************************************************************************
+            //! STEP 14: WAIT FOR FORK RETRACTION TO COMPLETE, THEN ADVANCE TO NEXT CELL
+            //! ************************************************************************
+            bool forkRetractionComplete = !cellSequenceLoaderFork || !cellSequenceLoaderFork->isMoving();
+            if (forkRetractionComplete) {
+                nextCell(); // Advance to next valid cell (skips invalid cells)
                 sequenceData.currentStep = 0; // Now proceed to normal place operation
                 sequenceData.stepStartTime = currentTime;
             }
