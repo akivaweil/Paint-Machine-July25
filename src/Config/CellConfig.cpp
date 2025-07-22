@@ -25,7 +25,7 @@
 // These values are used by the cell sequence state for loading tray operations
 
 float CELL_HEIGHTS[TOTAL_ROWS][TOTAL_COLUMNS] = {
-    {8.2,  0.0,  8.4,  0.0}, // Row 1 (A1, B1 removed, C1, D1 removed)
+    {8.2,  0.0,  0.0,  0.0}, // Row 1 (A1, B1 removed, C1 removed, D1 removed)
     {6.2,  7.2,  6.3,  0.0}, // Row 2 (A2, B2, C2, D2 removed)
     {4.2,  5.45,  4.3,  5.4}, // Row 3 (A3, B3, C3, D3)
     {2.4,  3.629,  2.4,  3.4}, // Row 4 (A4, B4, C4, D4)
@@ -33,7 +33,7 @@ float CELL_HEIGHTS[TOTAL_ROWS][TOTAL_COLUMNS] = {
 };
 
 int CELL_ANGLES[TOTAL_ROWS][TOTAL_COLUMNS] = {
-    {175,  0,  126,  0}, // Row 1 (B1 and D1 removed)
+    {175,  0,  0,  0}, // Row 1 (B1, C1, and D1 removed)
     {175,  151,  126,  0}, // Row 2 (D2 removed)
     {175,  151,  126,  104}, // Row 3
     {175,  151,  126,  104}, // Row 4
@@ -61,9 +61,9 @@ int cellToIndex(char column, int row) {
         if (row_index >= 1 && row_index < 5) {
             return CELLS_PER_COLUMN_A + (row_index - 1);
         }
-    } else if (col_index == 2) { // Column C - 5 cells (rows 1-5)
-        if (row_index >= 0 && row_index < CELLS_PER_COLUMN_C) {
-            return CELLS_PER_COLUMN_A + CELLS_PER_COLUMN_B + row_index;
+    } else if (col_index == 2) { // Column C - 4 cells (rows 2-5, removed row 1)
+        if (row_index >= 1 && row_index < 5) {
+            return CELLS_PER_COLUMN_A + CELLS_PER_COLUMN_B + (row_index - 1);
         }
     } else if (col_index == 3) { // Column D - 3 cells (rows 3-5, removed rows 1-2)
         if (row_index >= 2 && row_index < 5) {
@@ -84,9 +84,9 @@ void indexToCell(int cell_index, char& column, int& row) {
             column = 'B';
             row = (cell_index - CELLS_PER_COLUMN_A) + 2; // +2 because row 1 is removed
         } else if (cell_index < CELLS_PER_COLUMN_A + CELLS_PER_COLUMN_B + CELLS_PER_COLUMN_C) {
-            // Column C cells (9-13)
+            // Column C cells (9-12)
             column = 'C';
-            row = (cell_index - CELLS_PER_COLUMN_A - CELLS_PER_COLUMN_B) + 1;
+            row = (cell_index - CELLS_PER_COLUMN_A - CELLS_PER_COLUMN_B) + 2; // +2 because row 1 is removed
         } else {
             // Column D cells (14-16)
             column = 'D';
@@ -132,9 +132,9 @@ void initializeCellConfig() {
         cell_positions[idx].is_configured = true;
     }
     
-    // Column C: 5 cells (rows 1-5)
-    for (int row = 0; row < CELLS_PER_COLUMN_C; row++) {
-        int idx = CELLS_PER_COLUMN_A + CELLS_PER_COLUMN_B + row;
+    // Column C: 4 cells (rows 2-5, removed row 1)
+    for (int row = 1; row < 5; row++) {
+        int idx = CELLS_PER_COLUMN_A + CELLS_PER_COLUMN_B + (row - 1);
         cell_positions[idx].height_inches = CELL_HEIGHTS[row][2];
         cell_positions[idx].servo_angle = CELL_ANGLES[row][2];
         cell_positions[idx].is_configured = true;
@@ -216,7 +216,7 @@ void resetCellConfig() {
 void printCellConfig() {
     Serial.println("=== CELL CONFIGURATION GRID ===");
     Serial.println("Format: Cell (Height inches, Angle degrees)");
-    Serial.println("Note: Column B has 4 cells (B1 removed), Column D has 3 cells (D1, D2 removed)");
+    Serial.println("Note: Column B has 4 cells (B1 removed), Column C has 4 cells (C1 removed), Column D has 3 cells (D1, D2 removed)");
     Serial.println();
     Serial.print("     ");
     for (char col = 'A'; col < 'A' + TOTAL_COLUMNS; col++) {
@@ -233,7 +233,7 @@ void printCellConfig() {
             } else if (col == 'B') {
                 cell_exists = (row >= 2 && row <= 5); // 4 cells, removed row 1
             } else if (col == 'C') {
-                cell_exists = (row >= 1 && row <= 5); // All 5 cells exist
+                cell_exists = (row >= 2 && row <= 5); // 4 cells, removed row 1
             } else if (col == 'D') {
                 cell_exists = (row >= 3 && row <= 5); // 3 cells, removed rows 1-2
             }

@@ -35,9 +35,9 @@ void printCellConfig();
 #define TOTAL_ROWS 5
 #define CELLS_PER_COLUMN_A 5  // Column A has 5 cells
 #define CELLS_PER_COLUMN_B 4  // Column B has 4 cells (removed highest)
-#define CELLS_PER_COLUMN_C 5  // Column C has 5 cells
+#define CELLS_PER_COLUMN_C 4  // Column C has 4 cells (removed highest)
 #define CELLS_PER_COLUMN_D 3  // Column D has 3 cells (removed highest 2)
-#define TOTAL_CELLS (CELLS_PER_COLUMN_A + CELLS_PER_COLUMN_B + CELLS_PER_COLUMN_C + CELLS_PER_COLUMN_D)  // 17 cells total
+#define TOTAL_CELLS (CELLS_PER_COLUMN_A + CELLS_PER_COLUMN_B + CELLS_PER_COLUMN_C + CELLS_PER_COLUMN_D)  // 16 cells total
 #define DEFAULT_HEIGHT_INCHES 5.0
 #define DEFAULT_SERVO_ANGLE 90
 
