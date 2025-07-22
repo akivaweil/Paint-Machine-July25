@@ -41,7 +41,7 @@ void executeIdleState() {
             idleZMotor->setSpeedInHz(Z_MAX_SPEED);
             idleZMotor->setAcceleration(Z_ACCELERATION);
             // Move to loading tray height (0.3 inches)
-            int loadingTraySteps = (int)(0.3 * STEPS_PER_INCH);
+            int loadingTraySteps = (int)(5.0 * STEPS_PER_INCH);
             idleZMotor->moveTo(loadingTraySteps);
         }
         

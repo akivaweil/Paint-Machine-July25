@@ -352,7 +352,7 @@ void parseManualCommand(String command) {
     switch (commandType) {
         case 'h': // Height command
             if (value > 0 && value <= 27) { // Reasonable height limits for testing
-                Serial.println("Manual height command: Moving to " + String(value) + " inches");
+                logTestCurrentValues();
                 moveToManualHeight(value);
             } else {
                 Serial.println("Invalid height. Must be between 0.1 and 27 inches");
@@ -361,7 +361,7 @@ void parseManualCommand(String command) {
             
         case 'a': // Servo angle command
             if (value >= 0 && value <= 180) { // Servo angle limits
-                Serial.println("Manual angle command: Moving servo to " + String(value) + " degrees");
+                logTestCurrentValues();
                 moveToManualAngle(value);
             } else {
                 Serial.println("Invalid angle. Must be between 0 and 180 degrees");
@@ -388,7 +388,7 @@ void parseManualCommand(String command) {
             
         case 'f': // Fork position test
             if (value >= 0 && value <= FORK_MAX_DISTANCE_INCHES) { // Fork position limits from config
-                Serial.println("Manual fork command: Moving to " + String(value) + " inches");
+                logTestCurrentValues();
                 moveToManualForkPosition(value);
             } else {
                 Serial.println("Invalid fork position. Must be between 0 and " + String(FORK_MAX_DISTANCE_INCHES) + " inches");
@@ -421,9 +421,6 @@ void moveToManualHeight(float heightInches) {
     testZMotor->setAcceleration(Z_TEST_ACCELERATION);
     testZMotor->moveTo(targetSteps);
     manualMotorMoving = true;
-    
-    Serial.println("Moving Z to: " + String(targetSteps) + " steps (" + String(heightInches) + " inches)");
-    Serial.println("Speed: " + String(Z_TEST_MAX_SPEED) + " steps/sec, Accel: " + String(Z_TEST_ACCELERATION) + " steps/sec²");
 }
 
 void moveToManualAngle(int angleDegrees) {
@@ -443,8 +440,6 @@ void moveToManualAngle(int angleDegrees) {
     testServoController->moveTo(angleDegrees);
     manualServoMoving = true;
     servoMoveStartTime = millis();  // Record when servo movement started
-    
-    Serial.println("Moving servo to: " + String(angleDegrees) + " degrees");
 }
 
 void moveToManualForkPosition(float positionInches) {
@@ -466,9 +461,6 @@ void moveToManualForkPosition(float positionInches) {
     
     // Set current position to target (simplified approach for testing)
     testLoaderFork->setCurrentPosition(targetSteps);
-    
-    Serial.println("Moving fork to: " + String(targetSteps) + " steps (" + String(positionInches) + " inches)");
-    Serial.println("Fork position test complete");
 }
 
 void printManualModeHelp() {
@@ -558,5 +550,34 @@ void checkSerialCommands() {
         } else {
             inputBuffer += c;
         }
+    }
+}
+
+//* ************************************************************************
+//* ************************ LOG TEST CURRENT VALUES **********************
+//* ************************************************************************
+void logTestCurrentValues() {
+    //! ************************************************************************
+    //! LOG CURRENT POSITION VALUES ONLY FOR TEST STATE
+    //! ************************************************************************
+    
+    // Get current Z position
+    if (testZMotor) {
+        int currentSteps = testZMotor->getCurrentPosition();
+        float currentInches = (float)currentSteps / STEPS_PER_INCH;
+        Serial.println("Z: " + String(currentInches, 2) + "\" (" + String(currentSteps) + " steps)");
+    }
+    
+    // Get current servo angle
+    if (testServoController) {
+        float currentAngle = testServoController->getCurrentAngle();
+        Serial.println("Angle: " + String(currentAngle, 1) + "°");
+    }
+    
+    // Get current fork position
+    if (testLoaderFork) {
+        int currentForkSteps = testLoaderFork->getCurrentPosition();
+        float currentForkInches = (float)currentForkSteps / FORK_STEPS_PER_INCH;
+        Serial.println("Fork: " + String(currentForkInches, 2) + "\" (" + String(currentForkSteps) + " steps)");
     }
 } 

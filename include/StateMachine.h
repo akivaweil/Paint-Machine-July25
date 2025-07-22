@@ -93,5 +93,6 @@ void printManualModeHelp();
 void printManualModeStatus();
 void toggleManualMode();
 void checkSerialCommands();
+void logTestCurrentValues(); // Log current position values for test state
 
 #endif // STATE_MACHINE_H 

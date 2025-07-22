@@ -47,7 +47,7 @@ float HEIGHT_ADJUSTMENT_INCHES = 0.5; // Height adjustment during sequence (.7 i
 int HEIGHT_ADJUSTMENT_STEPS = (int)(HEIGHT_ADJUSTMENT_INCHES * STEPS_PER_INCH);
 
 // Idle state settings
-float IDLE_HEIGHT_INCHES = 2.0;        // Height for idle state (5 inches)
+float IDLE_HEIGHT_INCHES = 6.0;        // Height for idle state (5 inches)
 int IDLE_HEIGHT_STEPS = (int)(IDLE_HEIGHT_INCHES * STEPS_PER_INCH);
 float IDLE_ANGLE_DEGREES = 50.0;           // Servo angle for idle state (half-degree precision)
 
@@ -65,7 +65,7 @@ float SERVO_THIRD_POS = 70.0;      // Third position in sequence (half-degree pr
 // Timing settings (in milliseconds)
 int HOME_SWITCH_DEBOUNCE = 5;      // Home switch debounce time (5ms)
 int START_BUTTON_DEBOUNCE = 20;    // Start button debounce time (50ms)
-int FORK_HOME_SWITCH_DEBOUNCE = 103; // Fork home switch debounce time (5ms)
+int FORK_HOME_SWITCH_DEBOUNCE = 10; // Fork home switch debounce time (5ms)
 
 // Note: All sequence timing is now based on actual completion of operations
 // No artificial delays - system responds immediately when operations complete

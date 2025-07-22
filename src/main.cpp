@@ -71,6 +71,7 @@ void performServoSequence();
 void performCycle();
 void performServoAccelerationSequence();
 void testServoAccelerationController(); // New test function
+void logCurrentValues(); // Function to log current position values
 
 //* ************************************************************************
 //* *********************** SETUP FUNCTION ********************************
@@ -171,34 +172,32 @@ void loop() {
     String command = Serial.readStringUntil('\n');
     command.trim();
     
-    // Check for manual commands first (z1.3, a30, etc.)
+    // Check for manual commands first (h1.3, a30, f0.5, etc.)
     if (command.length() >= 2) {
       char commandType = command.charAt(0);
       String valueStr = command.substring(1);
       float value = valueStr.toFloat();
       
       if (commandType == 'h' && value > 0 && value <= 27) {
-        // Manual height command
-        Serial.println("Manual height command: Moving to " + String(value) + " inches");
+        // Manual height command - log current values only
+        logCurrentValues();
         if (zMotor) {
           int targetSteps = (int)(value * STEPS_PER_INCH);
           zMotor->setSpeedInHz(Z_MAX_SPEED);
           zMotor->setAcceleration(Z_ACCELERATION);
           zMotor->moveTo(targetSteps);
-          Serial.println("Moving to: " + String(targetSteps) + " steps (" + String(value) + " inches)");
         } else {
           Serial.println("ERROR: Z motor not available");
         }
         return; // Skip other command processing
       } else if (commandType == 'a' && value >= 0 && value <= 180) {
-        // Manual servo angle command (supports half-degree precision)
-        Serial.println("Manual angle command: Moving servo to " + String(value, 1) + " degrees");
+        // Manual servo angle command - log current values only
+        logCurrentValues();
         mainServoController.moveTo(value);
-        Serial.println("Moving servo to: " + String(value, 1) + " degrees");
         return; // Skip other command processing
       } else if (commandType == 'f' && value >= 0 && value <= FORK_MAX_DISTANCE_INCHES) {
-        // Manual fork position command
-        Serial.println("Manual fork command: Moving to " + String(value) + " inches");
+        // Manual fork position command - log current values only
+        logCurrentValues();
         if (loaderForkStepper.isMoving()) {
           Serial.println("Fork already moving - command ignored");
         } else {
@@ -210,8 +209,6 @@ void loop() {
             forkStepper->setSpeedInHz(FORK_MAX_SPEED);
             forkStepper->setAcceleration(FORK_ACCELERATION);
             forkStepper->moveTo(targetSteps);
-            Serial.println("Moving fork to: " + String(targetSteps) + " steps (" + String(value) + " inches)");
-            Serial.println("Fork movement started");
           } else {
             Serial.println("ERROR: Fork stepper not available");
           }
@@ -388,7 +385,7 @@ void initializeButtons() {
   zHomeSwitch.interval(HOME_SWITCH_DEBOUNCE);
   
   // Fork home switch: Active HIGH (input pulldown)
-  forkHomeSwitch.attach(FORK_HOME_SWITCH_PIN, INPUT_PULLDOWN);
+  forkHomeSwitch.attach(FORK_HOME_SWITCH_PIN, INPUT);
   forkHomeSwitch.interval(FORK_HOME_SWITCH_DEBOUNCE);
   
   Serial.println("Buttons and switches setup complete");
@@ -886,4 +883,29 @@ void testServoAccelerationController() {
   
   Serial.println("=== SERVO ACCELERATION CONTROLLER TEST COMPLETE ===");
   Serial.println("All tests passed - servo acceleration controller is working properly");
+}
+
+//* ************************************************************************
+//* ************************ LOG CURRENT VALUES ***************************
+//* ************************************************************************
+void logCurrentValues() {
+    //! ************************************************************************
+    //! LOG CURRENT POSITION VALUES ONLY
+    //! ************************************************************************
+    
+    // Get current Z position
+    if (zMotor) {
+        int currentSteps = zMotor->getCurrentPosition();
+        float currentInches = (float)currentSteps / STEPS_PER_INCH;
+        Serial.println("Z: " + String(currentInches, 2) + "\" (" + String(currentSteps) + " steps)");
+    }
+    
+    // Get current servo angle
+    float currentAngle = mainServoController.getCurrentAngle();
+    Serial.println("Angle: " + String(currentAngle, 1) + "°");
+    
+    // Get current fork position
+    int currentForkSteps = loaderForkStepper.getCurrentPosition();
+    float currentForkInches = (float)currentForkSteps / FORK_STEPS_PER_INCH;
+    Serial.println("Fork: " + String(currentForkInches, 2) + "\" (" + String(currentForkSteps) + " steps)");
 }
