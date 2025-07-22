@@ -48,6 +48,7 @@ LoaderForkStepper loaderForkStepper(LOADER_FORK_STEP_PIN, LOADER_FORK_DIR_PIN); 
 Bounce2::Button startButton = Bounce2::Button();
 Bounce2::Button zHomeSwitch = Bounce2::Button();
 Bounce2::Button forkHomeSwitch = Bounce2::Button();
+Bounce2::Button sensorButton = Bounce2::Button();
 
 //* ************************************************************************
 //* *********************** STATE VARIABLES *******************************
@@ -161,6 +162,21 @@ void loop() {
       setState(CELL_SEQUENCE_STATE);
     } else if (getCurrentState() == CELL_SEQUENCE_STATE) {
       Serial.println("Start button pressed - continuing to next cell");
+      continueCellSequence();
+    }
+  }
+
+  //! ************************************************************************
+  //! STEP 5.5: HANDLE SENSOR TRIGGER (ACTIVE LOW)
+  //! ************************************************************************
+  if (systemInitialized && sensorButton.fell()) {
+    if (getCurrentState() == IDLE_STATE) {
+      // Start the cell sequence from loading tray position
+      Serial.println("Sensor triggered - starting cell sequence from loading tray position");
+      startCellSequence();
+      setState(CELL_SEQUENCE_STATE);
+    } else if (getCurrentState() == CELL_SEQUENCE_STATE) {
+      Serial.println("Sensor triggered - continuing to next cell");
       continueCellSequence();
     }
   }
@@ -408,6 +424,10 @@ void initializeButtons() {
   forkHomeSwitch.attach(FORK_HOME_SWITCH_PIN, INPUT);
   forkHomeSwitch.interval(FORK_HOME_SWITCH_DEBOUNCE);
   
+  // Sensor: Active LOW (input pullup)
+  sensorButton.attach(SENSOR_PIN, INPUT_PULLUP);
+  sensorButton.interval(START_BUTTON_DEBOUNCE);
+  
   Serial.println("Buttons and switches setup complete");
 }
 
@@ -494,6 +514,7 @@ void updateButtons() {
   startButton.update();
   zHomeSwitch.update();
   forkHomeSwitch.update();
+  sensorButton.update();
 }
 
 void setupStateMachineReferences() {
