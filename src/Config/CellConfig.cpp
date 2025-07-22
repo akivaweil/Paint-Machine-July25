@@ -1,13 +1,6 @@
 #include <Arduino.h>
 #include "Config/CellConfig.h"
 #include "Config/Config.h"
-
-//* ************************************************************************
-//* ************************ LOADING TRAY CONFIGURATION ******************
-//* ************************************************************************
-// Loading tray position and fork extension settings
-// These values are used by the cell sequence state for loading tray operations
-
 //* ************************************************************************
 //* ************************ EASY CELL CONFIGURATION GRID *****************
 //* ************************************************************************
@@ -25,6 +18,12 @@
 // 4   {3.6,  4.6,  5.6,  6.6},
 // 5   {3.8,  4.8,  5.8,  6.8}
 
+//* ************************************************************************
+//* ************************ LOADING TRAY CONFIGURATION ******************
+//* ************************************************************************
+// Loading tray position and fork extension settings
+// These values are used by the cell sequence state for loading tray operations
+
 float CELL_HEIGHTS[TOTAL_ROWS][TOTAL_COLUMNS] = {
     {8.2,  0.0,  8.4,  0.0}, // Row 1 (A1, B1 removed, C1, D1 removed)
     {6.2,  7.2,  6.3,  0.0}, // Row 2 (A2, B2, C2, D2 removed)
@@ -34,11 +33,11 @@ float CELL_HEIGHTS[TOTAL_ROWS][TOTAL_COLUMNS] = {
 };
 
 int CELL_ANGLES[TOTAL_ROWS][TOTAL_COLUMNS] = {
-    {173,  0,  126,  0}, // Row 1 (B1 and D1 removed)
-    {173,  149,  126,  0}, // Row 2 (D2 removed)
-    {173,  149,  126,  104}, // Row 3
-    {173,  149,  126,  104}, // Row 4
-    {173,  149,  126,  104}  // Row 5
+    {175,  0,  126,  0}, // Row 1 (B1 and D1 removed)
+    {175,  151,  126,  0}, // Row 2 (D2 removed)
+    {175,  151,  126,  104}, // Row 3
+    {175,  151,  126,  104}, // Row 4
+    {175,  151,  126,  104}  // Row 5
 };
 
 //* ************************************************************************
