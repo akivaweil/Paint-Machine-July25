@@ -27,9 +27,9 @@
 float CELL_HEIGHTS[TOTAL_ROWS][TOTAL_COLUMNS] = {
     {8.2,  0.0,  8.4,  0.0}, // Row 1 (A1, B1 removed, C1, D1 removed)
     {6.2,  7.2,  6.3,  0.0}, // Row 2 (A2, B2, C2, D2 removed)
-    {4.2,  5.45,  4.3,  5.56}, // Row 3 (A3, B3, C3, D3)
-    {2.4,  3.629,  2.4,  3.629}, // Row 4 (A4, B4, C4, D4)
-    {0.4,  1.7,  0.4,  1.7}  // Row 5 (A5, B5, C5, D5)
+    {4.2,  5.45,  4.3,  5.4}, // Row 3 (A3, B3, C3, D3)
+    {2.4,  3.629,  2.4,  3.4}, // Row 4 (A4, B4, C4, D4)
+    {0.4,  1.7,  0.4,  1.5}  // Row 5 (A5, B5, C5, D5)
 };
 
 int CELL_ANGLES[TOTAL_ROWS][TOTAL_COLUMNS] = {

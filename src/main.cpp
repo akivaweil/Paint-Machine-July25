@@ -505,12 +505,6 @@ void setupStateMachineReferences() {
   // Set references for home state
   setHomeReferences(zMotor, &zHomeSwitch, &loaderForkStepper);
   
-  // Set references for pick state - using ServoControl directly
-  setPickReferences(&loaderServo, &loaderForkStepper, zMotor);
-  
-  // Set references for place state - using ServoControl directly
-  setPlaceReferences(&loaderServo, &loaderForkStepper, zMotor);
-  
   // Set references for test state
   setTestReferences(zMotor, &mainServoController, &loaderForkStepper);
   

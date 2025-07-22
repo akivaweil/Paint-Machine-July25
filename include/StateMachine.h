@@ -16,11 +16,9 @@ class LoaderForkStepper;
 enum StateMachineState {
     IDLE_STATE = 0,        // Waiting for commands
     HOME_STATE = 1,        // Homing sequence
-    PICK_STATE = 2,        // Picking operation
-    PLACE_STATE = 3,       // Placing operation
-    TEST_STATE = 4,        // Test state for manual testing
-    CELL_SEQUENCE_STATE = 5, // Automated cell sequence (pick from loading tray, place in cells)
-    CELL_TEST_STATE = 6    // Individual cell testing with pick/place operations
+    TEST_STATE = 2,        // Test state for manual testing
+    CELL_SEQUENCE_STATE = 3, // Automated cell sequence (pick from loading tray, place in cells)
+    CELL_TEST_STATE = 4    // Individual cell testing with pick/place operations
 };
 
 //* ************************************************************************
@@ -52,8 +50,6 @@ String getStateName(StateMachineState state);
 // Individual state execution functions
 void executeIdleState();
 void executeHomeState();
-void executePickState();
-void executePlaceState();
 void executeTestState();
 void executeCellSequenceState();
 void executeCellTestState();
@@ -61,8 +57,6 @@ void executeCellTestState();
 // State reset functions
 void resetIdleState();
 void resetHomeState();
-void resetPickState();
-void resetPlaceState();
 void resetTestState();
 void resetCellSequenceState();
 void resetCellTestState();
@@ -74,8 +68,6 @@ void performTestMotionSequence();
 void setHomeReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch);
 // Overload to set loader fork stepper for homing
 void setHomeReferences(FastAccelStepper* motor, Bounce2::Button* homeSwitch, LoaderForkStepper* forkStepper);
-void setPickReferences(ServoControl* servoController, LoaderForkStepper* loaderFork, FastAccelStepper* zMotor);
-void setPlaceReferences(ServoControl* servoController, LoaderForkStepper* loaderFork, FastAccelStepper* zMotor);
 void setTestReferences(FastAccelStepper* motor, ServoAccelerationController* servoController, LoaderForkStepper* loaderFork);
 void setIdleReferences(ServoControl* servo, ServoAccelerationController* servoController, FastAccelStepper* zMotor);
 void setCellSequenceReferences(ServoControl* servoController, LoaderForkStepper* loaderFork, FastAccelStepper* zMotor);

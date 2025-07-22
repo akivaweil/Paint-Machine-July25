@@ -46,12 +46,6 @@ void updateStateMachine() {
             case HOME_STATE:
                 resetHomeState();
                 break;
-            case PICK_STATE:
-                resetPickState();
-                break;
-            case PLACE_STATE:
-                resetPlaceState();
-                break;
             case TEST_STATE:
                 resetTestState();
                 break;
@@ -75,12 +69,6 @@ void updateStateMachine() {
             break;
         case HOME_STATE:
             executeHomeState();
-            break;
-        case PICK_STATE:
-            executePickState();
-            break;
-        case PLACE_STATE:
-            executePlaceState();
             break;
         case TEST_STATE:
             executeTestState();
@@ -130,10 +118,6 @@ String getStateName(StateMachineState state) {
             return "IDLE";
         case HOME_STATE:
             return "HOME";
-        case PICK_STATE:
-            return "PICK";
-        case PLACE_STATE:
-            return "PLACE";
         case TEST_STATE:
             return "TEST";
         case CELL_SEQUENCE_STATE:
