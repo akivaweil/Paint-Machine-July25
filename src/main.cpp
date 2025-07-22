@@ -169,7 +169,7 @@ void loop() {
   //! ************************************************************************
   //! STEP 5.5: HANDLE SENSOR TRIGGER (ACTIVE LOW)
   //! ************************************************************************
-  if (systemInitialized && sensorButton.fell()) {
+  if (systemInitialized && sensorButton.read() == LOW) {
     if (getCurrentState() == IDLE_STATE) {
       // Start the cell sequence from loading tray position (no delay for initial start)
       Serial.println("Sensor triggered - starting cell sequence from loading tray position");
