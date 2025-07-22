@@ -3,6 +3,12 @@
 #include "Config/Config.h"
 
 //* ************************************************************************
+//* ************************ LOADING TRAY CONFIGURATION ******************
+//* ************************************************************************
+// Loading tray position and fork extension settings
+// These values are used by the cell sequence state for loading tray operations
+
+//* ************************************************************************
 //* ************************ EASY CELL CONFIGURATION GRID *****************
 //* ************************************************************************
 // Edit the values below to set the height (inches) and angle (degrees) for each cell.

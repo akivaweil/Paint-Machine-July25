@@ -101,6 +101,42 @@ void LoaderForkStepper::extendToPlacePosition() {
     }
 }
 
+void LoaderForkStepper::extendToLoadingTrayPickPosition() {
+    //! ************************************************************************
+    //! STEP 1: MOVE FORWARD (EXTEND) USING LOADING TRAY PICK CONFIG DISTANCE
+    //! ************************************************************************
+    if (stepper) {
+        // Set speed and acceleration before movement
+        stepper->setSpeedInHz(FORK_MAX_SPEED);
+        stepper->setAcceleration(FORK_ACCELERATION);
+        
+        lastExtensionDistance = LOADING_TRAY_FORK_PICK_EXTENSION_STEPS;
+        int targetPosition = currentPosition + lastExtensionDistance;
+        stepper->moveTo(targetPosition);
+        currentPosition = targetPosition;
+        isExtended = true;
+        Serial.println("Fork extending to loading tray pick position: " + String(LOADING_TRAY_FORK_PICK_EXTENSION_INCHES) + " inches (" + String(lastExtensionDistance) + " steps)");
+    }
+}
+
+void LoaderForkStepper::extendToLoadingTrayPlacePosition() {
+    //! ************************************************************************
+    //! STEP 1: MOVE FORWARD (EXTEND) USING LOADING TRAY PLACE CONFIG DISTANCE
+    //! ************************************************************************
+    if (stepper) {
+        // Set speed and acceleration before movement
+        stepper->setSpeedInHz(FORK_MAX_SPEED);
+        stepper->setAcceleration(FORK_ACCELERATION);
+        
+        lastExtensionDistance = LOADING_TRAY_FORK_PLACE_EXTENSION_STEPS;
+        int targetPosition = currentPosition + lastExtensionDistance;
+        stepper->moveTo(targetPosition);
+        currentPosition = targetPosition;
+        isExtended = true;
+        Serial.println("Fork extending to loading tray place position: " + String(LOADING_TRAY_FORK_PLACE_EXTENSION_INCHES) + " inches (" + String(lastExtensionDistance) + " steps)");
+    }
+}
+
 void LoaderForkStepper::retract() {
     //! ************************************************************************
     //! STEP 1: MOVE BACKWARD (RETRACT) USING ACTUAL EXTENSION DISTANCE

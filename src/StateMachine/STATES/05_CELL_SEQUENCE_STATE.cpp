@@ -25,8 +25,6 @@ static FastAccelStepper* cellSequenceZMotor = nullptr;
 //* ************************ CONSTANTS ***********************************
 //* ************************************************************************
 #define HEIGHT_OFFSET_INCHES 0.5
-#define LOADING_TRAY_HEIGHT_INCHES 9.6  // Adjust this to match your loading tray height
-#define LOADING_TRAY_ANGLE_DEGREES 48.0   // Adjust this to match your loading tray angle
 
 //* ************************************************************************
 //* ************************ STATE EXECUTION *****************************
@@ -185,11 +183,11 @@ void performPickOperation() {
         
         case 2: {
             //! ************************************************************************
-            //! STEP 2: EXTEND FORK TO PICK POSITION
+            //! STEP 2: EXTEND FORK TO LOADING TRAY PICK POSITION
             //! ************************************************************************
             if (cellSequenceLoaderFork) {
-                cellSequenceLoaderFork->extendToPickPosition();
-                Serial.println("Step 2: Fork extending to pick position");
+                cellSequenceLoaderFork->extendToLoadingTrayPickPosition();
+                Serial.println("Step 2: Fork extending to loading tray pick position");
             }
             sequenceData.currentStep = 3;
             sequenceData.stepStartTime = currentTime;
@@ -477,11 +475,11 @@ void performPlaceOperation() {
         
         case 10: {
             //! ************************************************************************
-            //! STEP 10: EXTEND FORK TO PICK POSITION
+            //! STEP 10: EXTEND FORK TO LOADING TRAY PICK POSITION
             //! ************************************************************************
             if (cellSequenceLoaderFork) {
-                cellSequenceLoaderFork->extendToPickPosition();
-                Serial.println("Step 10: Fork extending to pick position");
+                cellSequenceLoaderFork->extendToLoadingTrayPickPosition();
+                Serial.println("Step 10: Fork extending to loading tray pick position");
             }
             sequenceData.currentStep = 11;
             sequenceData.stepStartTime = currentTime;

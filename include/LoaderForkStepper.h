@@ -44,6 +44,8 @@ public:
     void extend();                // Move 3 inches forward (extend)
     void extendToPickPosition();  // Move to pick position using config distance
     void extendToPlacePosition(); // Move to place position using config distance
+    void extendToLoadingTrayPickPosition();   // Move to loading tray pick position
+    void extendToLoadingTrayPlacePosition();  // Move to loading tray place position
     void retract();               // Move 3 inches backward (retract)
     void toggle();                // Toggle between extended/retracted states
     

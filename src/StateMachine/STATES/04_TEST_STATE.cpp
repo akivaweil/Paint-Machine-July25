@@ -558,26 +558,26 @@ void checkSerialCommands() {
 //* ************************************************************************
 void logTestCurrentValues() {
     //! ************************************************************************
-    //! LOG CURRENT POSITION VALUES ONLY FOR TEST STATE
+    //! LOG CURRENT POSITION VALUES ONLY FOR TEST STATE - COMPACT FORMAT
     //! ************************************************************************
     
     // Get current Z position
     if (testZMotor) {
         int currentSteps = testZMotor->getCurrentPosition();
         float currentInches = (float)currentSteps / STEPS_PER_INCH;
-        Serial.println("Z: " + String(currentInches, 2) + "\" (" + String(currentSteps) + " steps)");
+        Serial.print("Z:" + String(currentInches, 2) + "\" ");
     }
     
     // Get current servo angle
     if (testServoController) {
         float currentAngle = testServoController->getCurrentAngle();
-        Serial.println("Angle: " + String(currentAngle, 1) + "°");
+        Serial.print("A:" + String(currentAngle, 1) + "° ");
     }
     
     // Get current fork position
     if (testLoaderFork) {
         int currentForkSteps = testLoaderFork->getCurrentPosition();
         float currentForkInches = (float)currentForkSteps / FORK_STEPS_PER_INCH;
-        Serial.println("Fork: " + String(currentForkInches, 2) + "\" (" + String(currentForkSteps) + " steps)");
+        Serial.println("F:" + String(currentForkInches, 2) + "\"");
     }
 } 

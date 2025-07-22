@@ -32,7 +32,7 @@ int Z_CYCLE_DISTANCE_STEPS = (int)(Z_CYCLE_DISTANCE_INCHES * STEPS_PER_INCH);
 float PICK_HEIGHT_INCHES = 0.3;   // Height to move to for pick operation (3.2 inches)
 int PICK_HEIGHT_STEPS = (int)(PICK_HEIGHT_INCHES * STEPS_PER_INCH);
 float PICK_ANGLE_DEGREES = 47.5;      // Servo angle for pick operation (half-degree precision)
-float PICK_FORK_EXTENSION_INCHES = 4.1;   // Fork extension distance for pick operation (inches)
+float PICK_FORK_EXTENSION_INCHES = 4.0;   // Fork extension distance for pick operation (inches)
 int PICK_FORK_EXTENSION_STEPS = (int)(PICK_FORK_EXTENSION_INCHES * FORK_STEPS_PER_INCH);
 
 // Place state settings
@@ -85,4 +85,13 @@ float FORK_MAX_DISTANCE_INCHES = 4.3;   // Maximum travel distance for fork (inc
 int FORK_MAX_DISTANCE_STEPS = (int)(FORK_MAX_DISTANCE_INCHES * 254);  // 254 steps per inch for 20T 2GT belt
 float FORK_STEPS_PER_INCH = 254.0;      // Steps per inch for fork movement (20T 2GT belt)
 float FORK_MAX_SPEED = 10000.0;          // Maximum speed for fork movement (steps/sec)
-float FORK_ACCELERATION = 40000.0;      // Acceleration for fork movement (steps/sec²) 
+float FORK_ACCELERATION = 40000.0;      // Acceleration for fork movement (steps/sec²)
+
+//* ************************************************************************
+//* ************************ LOADING TRAY FORK SETTINGS *******************
+//* ************************************************************************
+// Loading tray specific fork extension settings
+float LOADING_TRAY_FORK_PICK_EXTENSION_INCHES = 4.1;    // Fork extension for picking from loading tray
+int LOADING_TRAY_FORK_PICK_EXTENSION_STEPS = (int)(LOADING_TRAY_FORK_PICK_EXTENSION_INCHES * FORK_STEPS_PER_INCH);
+float LOADING_TRAY_FORK_PLACE_EXTENSION_INCHES = 4.1;   // Fork extension for placing to loading tray
+int LOADING_TRAY_FORK_PLACE_EXTENSION_STEPS = (int)(LOADING_TRAY_FORK_PLACE_EXTENSION_INCHES * FORK_STEPS_PER_INCH); 

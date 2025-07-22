@@ -89,6 +89,15 @@ extern float FORK_MAX_SPEED;            // Maximum speed for fork movement (step
 extern float FORK_ACCELERATION;         // Acceleration for fork movement (steps/sec²)
 
 //* ************************************************************************
+//* ************************ LOADING TRAY FORK SETTINGS *******************
+//* ************************************************************************
+// Loading tray specific fork extension settings
+extern float LOADING_TRAY_FORK_PICK_EXTENSION_INCHES;    // Fork extension for picking from loading tray
+extern int LOADING_TRAY_FORK_PICK_EXTENSION_STEPS;       // Pick extension in steps
+extern float LOADING_TRAY_FORK_PLACE_EXTENSION_INCHES;   // Fork extension for placing to loading tray
+extern int LOADING_TRAY_FORK_PLACE_EXTENSION_STEPS;      // Place extension in steps
+
+//* ************************************************************************
 //* ************************ CELL CONFIGURATION ***************************
 //* ************************************************************************
 // Include cell configuration for 20 storage cells
